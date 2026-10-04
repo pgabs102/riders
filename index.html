@@ -1,0 +1,2088 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+<title>HABAL NA V5.5.1 - Rider</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<link rel="stylesheet"
+href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+<style>
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#f3f3f3;
+  color:#222;
+}
+
+header{
+  background:#8b0000;
+  color:white;
+  padding:15px;
+  text-align:center;
+}
+
+header h2{
+  margin:0 0 4px;
+}
+
+.container{
+  max-width:700px;
+  margin:auto;
+  padding:12px;
+}
+
+.card{
+  background:white;
+  border-radius:14px;
+  padding:15px;
+  margin-bottom:12px;
+  box-shadow:0 2px 8px #0002;
+}
+
+input,
+button{
+  width:100%;
+  padding:12px;
+  margin-top:8px;
+  border-radius:9px;
+  border:1px solid #ccc;
+  font-size:15px;
+}
+
+button{
+  border:0;
+  background:#8b0000;
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+button:active{
+  transform:scale(.98);
+}
+
+button.green{
+  background:#16823b;
+}
+
+button.orange{
+  background:#d97706;
+}
+
+button.blue{
+  background:#2457a6;
+}
+
+button.danger{
+  background:#b00020;
+}
+
+.booking{
+  border:1px solid #ddd;
+  border-radius:12px;
+  padding:12px;
+  margin-top:10px;
+  background:#fff;
+}
+
+.booking.selected{
+  border:2px solid #8b0000;
+  background:#fff8f8;
+}
+
+.booking.accepted{
+  border-left:5px solid #16823b;
+}
+
+.booking h4{
+  margin:0 0 8px;
+}
+
+.info{
+  line-height:1.6;
+}
+
+.small{
+  font-size:13px;
+  color:#666;
+}
+
+.status{
+  padding:12px;
+  border-radius:10px;
+  background:#eee;
+  margin-top:10px;
+  font-weight:bold;
+}
+
+#map{
+  height:330px;
+  border-radius:12px;
+  overflow:hidden;
+}
+
+.hidden{
+  display:none !important;
+}
+
+.toast{
+  position:fixed;
+  top:15px;
+  left:50%;
+  transform:translateX(-50%);
+  width:90%;
+  max-width:500px;
+  background:#222;
+  color:white;
+  padding:14px;
+  border-radius:10px;
+  text-align:center;
+  z-index:99999;
+  box-shadow:0 3px 12px #0005;
+}
+
+.new-booking{
+  animation:popIn .2s ease;
+}
+
+@keyframes popIn{
+  from{
+    opacity:0;
+    transform:scale(.98);
+  }
+  to{
+    opacity:1;
+    transform:scale(1);
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h2>🏍️ HABAL NA</h2>
+  <div>Rider V5.5.1</div>
+</header>
+
+<div id="toast" class="toast hidden"></div>
+
+<div class="container">
+
+<!-- RIDER PROFILE -->
+<div class="card">
+
+  <h3>👤 Rider Profile</h3>
+
+  <input
+    id="riderName"
+    placeholder="Rider Name"
+  >
+
+  <input
+    id="riderContact"
+    placeholder="Rider Contact"
+    type="tel"
+  >
+
+  <button
+    class="green"
+    id="gpsButton"
+    onclick="toggleRiderGPS()"
+  >
+    📍 START RIDER GPS
+  </button>
+
+  <div
+    id="gpsStatus"
+    class="status"
+  >
+    Rider GPS is OFF.
+  </div>
+
+</div>
+
+<!-- AVAILABLE BOOKINGS -->
+<div class="card">
+
+  <h3>🔔 Available Bookings</h3>
+
+  <div id="bookingList">
+    Loading bookings...
+  </div>
+
+</div>
+
+<!-- SELECTED BOOKING -->
+<div class="card">
+
+  <h3>📋 Selected Booking</h3>
+
+  <div id="selectedBooking">
+    No booking selected.
+  </div>
+
+  <!-- ACCEPT -->
+  <button
+    id="acceptBtn"
+    class="green hidden"
+    onclick="acceptSelectedRide()"
+  >
+    ✅ ACCEPT BOOKING
+  </button>
+
+  <!-- WAZE PICKUP -->
+  <button
+    id="wazePickupBtn"
+    class="blue hidden"
+    onclick="wazeToPickup()"
+  >
+    🧭 WAZE TO PICKUP
+  </button>
+
+  <!-- CALL -->
+  <button
+    id="callPassengerBtn"
+    class="blue hidden"
+    onclick="callPassenger()"
+  >
+    📞 CALL PASSENGER
+  </button>
+
+  <!-- PICKED UP -->
+  <button
+    id="pickedUpBtn"
+    class="orange hidden"
+    onclick="markPickedUp()"
+  >
+    🏍️ PASSENGER PICKED UP
+  </button>
+
+  <!-- WAZE DESTINATION -->
+  <button
+    id="wazeDestinationBtn"
+    class="blue hidden"
+    onclick="wazeToDestination()"
+  >
+    🧭 WAZE TO DESTINATION
+  </button>
+
+  <!-- ARRIVED -->
+  <button
+    id="arrivedBtn"
+    class="orange hidden"
+    onclick="markArrived()"
+  >
+    🏁 ARRIVED / DROP OFF PASSENGER
+  </button>
+
+  <!-- COMPLETE -->
+  <button
+    id="completeBtn"
+    class="green hidden"
+    onclick="completeRide()"
+  >
+    ✅ COMPLETE RIDE
+  </button>
+
+</div>
+
+<!-- MAP -->
+<div class="card">
+
+  <h3>🗺️ Rider Map</h3>
+
+  <div id="map"></div>
+
+</div>
+
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+
+const SUPABASE_URL =
+"https://omkgcczffjtevwzsscwg.supabase.co";
+
+const SUPABASE_KEY =
+"sb_publishable_-7gCKDHORQ5gIACet6vJUg_X7HmdMeg";
+
+const supabaseClient =
+supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+/* =========================
+   VARIABLES
+========================= */
+
+let map = null;
+
+let riderMarker = null;
+let pickupMarker = null;
+let destinationMarker = null;
+let routeLine = null;
+
+let riderLocation = null;
+
+let selectedRide = null;
+
+let rides = [];
+
+let gpsWatchId = null;
+
+let bookingSignature = "";
+
+let routeRequestId = 0;
+
+let loadingBookings = false;
+
+/* =========================
+   HELPERS
+========================= */
+
+function escapeHTML(value){
+
+  return String(value ?? "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+}
+
+function statusText(status){
+
+  const statuses = {
+
+    searching:"🔎 SEARCHING",
+
+    accepted:"🏍️ ACCEPTED",
+
+    picked_up:"🚗 PICKED UP",
+
+    arrived:"🏁 ARRIVED / DROP-OFF",
+
+    completed:"✅ COMPLETED",
+
+    cancelled:"❌ CANCELLED"
+
+  };
+
+  return statuses[status] || status;
+}
+
+function showToast(message){
+
+  const toast =
+    document.getElementById("toast");
+
+  toast.innerText = message;
+
+  toast.classList.remove("hidden");
+
+  clearTimeout(showToast.timer);
+
+  showToast.timer = setTimeout(
+    function(){
+
+      toast.classList.add("hidden");
+
+    },
+    3000
+  );
+}
+
+/* =========================
+   MAP
+========================= */
+
+function initMap(){
+
+  map =
+    L.map("map")
+    .setView(
+      [14.4086,121.0415],
+      13
+    );
+
+  L.tileLayer(
+    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    {
+      maxZoom:19,
+      attribution:"© OpenStreetMap"
+    }
+  ).addTo(map);
+}
+
+/* =========================
+   BUTTON CONTROL
+========================= */
+
+function hideAllActions(){
+
+  const ids = [
+
+    "acceptBtn",
+    "wazePickupBtn",
+    "callPassengerBtn",
+    "pickedUpBtn",
+    "wazeDestinationBtn",
+    "arrivedBtn",
+    "completeBtn"
+
+  ];
+
+  ids.forEach(function(id){
+
+    document
+      .getElementById(id)
+      .classList.add("hidden");
+
+  });
+}
+
+function showSelectedActions(){
+
+  hideAllActions();
+
+  if(!selectedRide){
+    return;
+  }
+
+  /*
+    SEARCHING
+    Show ACCEPT immediately
+  */
+
+  if(
+    selectedRide.status === "searching"
+  ){
+
+    document
+      .getElementById("acceptBtn")
+      .classList.remove("hidden");
+
+    return;
+  }
+
+  /*
+    ACCEPTED
+  */
+
+  if(
+    selectedRide.status === "accepted"
+  ){
+
+    document
+      .getElementById("wazePickupBtn")
+      .classList.remove("hidden");
+
+    document
+      .getElementById("callPassengerBtn")
+      .classList.remove("hidden");
+
+    document
+      .getElementById("pickedUpBtn")
+      .classList.remove("hidden");
+
+    return;
+  }
+
+  /*
+    PICKED UP
+  */
+
+  if(
+    selectedRide.status === "picked_up"
+  ){
+
+    document
+      .getElementById("callPassengerBtn")
+      .classList.remove("hidden");
+
+    document
+      .getElementById("wazeDestinationBtn")
+      .classList.remove("hidden");
+
+    document
+      .getElementById("arrivedBtn")
+      .classList.remove("hidden");
+
+    return;
+  }
+
+  /*
+    ARRIVED
+  */
+
+  if(
+    selectedRide.status === "arrived"
+  ){
+
+    document
+      .getElementById("completeBtn")
+      .classList.remove("hidden");
+
+    return;
+  }
+}
+
+/* =========================
+   SELECT BOOKING
+========================= */
+
+function selectRide(ride){
+
+  if(!ride){
+    return;
+  }
+
+  selectedRide = ride;
+
+  showSelectedBooking();
+
+  showSelectedActions();
+
+  drawRideOnMap(ride);
+
+  renderBookings(false);
+}
+
+/* =========================
+   SELECTED BOOKING UI
+========================= */
+
+function showSelectedBooking(){
+
+  const box =
+    document.getElementById(
+      "selectedBooking"
+    );
+
+  if(!selectedRide){
+
+    box.innerHTML =
+      "No booking selected.";
+
+    hideAllActions();
+
+    return;
+  }
+
+  box.innerHTML = `
+
+    <div class="info">
+
+      <b>Status:</b>
+      ${statusText(selectedRide.status)}
+      <br>
+
+      <b>Passenger:</b>
+      ${escapeHTML(
+        selectedRide.passenger_name
+      )}
+      <br>
+
+      <b>Contact:</b>
+      ${escapeHTML(
+        selectedRide.passenger_contact
+      )}
+      <br>
+
+      <b>Destination:</b>
+      ${escapeHTML(
+        selectedRide.destination
+      )}
+      <br>
+
+      <b>Distance:</b>
+      ${Number(
+        selectedRide.distance_km || 0
+      ).toFixed(2)}
+      km
+      <br>
+
+      <b>Fare:</b>
+      ₱${Number(
+        selectedRide.estimated_fare || 0
+      ).toFixed(2)}
+
+    </div>
+
+  `;
+
+  showSelectedActions();
+}
+
+/* =========================
+   RENDER BOOKINGS
+========================= */
+
+function renderBookings(animateNew){
+
+  const box =
+    document.getElementById(
+      "bookingList"
+    );
+
+  if(!rides.length){
+
+    box.innerHTML =
+      '<div class="small">No active bookings.</div>';
+
+    return;
+  }
+
+  /*
+    IMPORTANT:
+    We only replace the contents when
+    the data signature changed.
+    This prevents flickering.
+  */
+
+  const fragment =
+    document.createDocumentFragment();
+
+  rides.forEach(function(ride){
+
+    const div =
+      document.createElement("div");
+
+    div.className =
+      "booking";
+
+    if(
+      selectedRide &&
+      String(selectedRide.id) ===
+      String(ride.id)
+    ){
+
+      div.classList.add("selected");
+
+    }
+
+    if(
+      ride.status === "accepted"
+    ){
+
+      div.classList.add("accepted");
+
+    }
+
+    div.innerHTML = `
+
+      <h4>
+        ${statusText(ride.status)}
+      </h4>
+
+      <div class="info">
+
+        👤
+        <b>Passenger:</b>
+        ${escapeHTML(
+          ride.passenger_name
+        )}
+        <br>
+
+        📞
+        <b>Contact:</b>
+        ${escapeHTML(
+          ride.passenger_contact
+        )}
+        <br>
+
+        🎯
+        <b>Destination:</b>
+        ${escapeHTML(
+          ride.destination
+        )}
+        <br>
+
+        📏
+        <b>Distance:</b>
+        ${Number(
+          ride.distance_km || 0
+        ).toFixed(2)}
+        km
+        <br>
+
+        💰
+        <b>Fare:</b>
+        ₱${Number(
+          ride.estimated_fare || 0
+        ).toFixed(2)}
+
+      </div>
+
+    `;
+
+    /*
+      SEARCHING:
+      Instant ACCEPT button
+    */
+
+    if(
+      ride.status === "searching"
+    ){
+
+      const acceptButton =
+        document.createElement("button");
+
+      acceptButton.className =
+        "green";
+
+      acceptButton.innerText =
+        "✅ ACCEPT BOOKING";
+
+      acceptButton.onclick =
+        function(event){
+
+          event.stopPropagation();
+
+          selectedRide = ride;
+
+          showSelectedBooking();
+
+          /*
+            Buttons appear immediately.
+          */
+
+          showSelectedActions();
+
+          acceptRide(ride);
+
+        };
+
+      div.appendChild(
+        acceptButton
+      );
+
+    }
+
+    /*
+      For all other statuses,
+      SELECT button.
+    */
+
+    if(
+      ride.status !== "searching"
+    ){
+
+      const selectButton =
+        document.createElement("button");
+
+      selectButton.className =
+        "blue";
+
+      selectButton.innerText =
+        selectedRide &&
+        String(selectedRide.id) ===
+        String(ride.id)
+        ? "SELECTED"
+        : "SELECT RIDE";
+
+      selectButton.onclick =
+        function(event){
+
+          event.stopPropagation();
+
+          selectRide(ride);
+
+        };
+
+      div.appendChild(
+        selectButton
+      );
+
+    }
+
+    fragment.appendChild(div);
+
+  });
+
+  /*
+    Only replace DOM once.
+    No repeated individual updates.
+  */
+
+  box.replaceChildren(
+    fragment
+  );
+}
+
+/* =========================
+   LOAD BOOKINGS
+========================= */
+
+async function loadBookings(){
+
+  if(loadingBookings){
+    return;
+  }
+
+  loadingBookings = true;
+
+  try{
+
+    const {data,error} =
+      await supabaseClient
+      .from("rides")
+      .select("*")
+      .in(
+        "status",
+        [
+          "searching",
+          "accepted",
+          "picked_up",
+          "arrived"
+        ]
+      )
+      .order(
+        "created_at",
+        {
+          ascending:true
+        }
+      );
+
+    if(error){
+
+      console.error(
+        "Load bookings:",
+        error
+      );
+
+      return;
+    }
+
+    const newRides =
+      data || [];
+
+    /*
+      Create a stable signature.
+      If nothing changed,
+      don't rebuild anything.
+    */
+
+    const newSignature =
+      newRides.map(function(r){
+
+        return [
+
+          r.id,
+          r.status,
+          r.passenger_name,
+          r.passenger_contact,
+          r.destination,
+          r.distance_km,
+          r.estimated_fare,
+          r.rider_name,
+          r.rider_contact
+
+        ].join("|");
+
+      }).join("||");
+
+    if(
+      newSignature !==
+      bookingSignature
+    ){
+
+      rides = newRides;
+
+      bookingSignature =
+        newSignature;
+
+      /*
+        If selected ride exists,
+        update it from fresh data.
+      */
+
+      if(selectedRide){
+
+        const fresh =
+          rides.find(function(r){
+
+            return String(r.id) ===
+              String(selectedRide.id);
+
+          });
+
+        if(fresh){
+
+          selectedRide =
+            fresh;
+
+        }
+
+      }
+
+      renderBookings(false);
+
+      showSelectedBooking();
+
+    }
+
+  }finally{
+
+    loadingBookings = false;
+
+  }
+}
+
+/* =========================
+   ACCEPT RIDE
+========================= */
+
+async function acceptRide(ride){
+
+  if(!ride){
+    return;
+  }
+
+  const name =
+    document
+      .getElementById("riderName")
+      .value
+      .trim();
+
+  const contact =
+    document
+      .getElementById("riderContact")
+      .value
+      .trim();
+
+  if(!name){
+
+    alert(
+      "Enter rider name first."
+    );
+
+    return;
+  }
+
+  if(!contact){
+
+    alert(
+      "Enter rider contact."
+    );
+
+    return;
+  }
+
+  /*
+    IMPORTANT:
+    We already showed the buttons.
+    No waiting for realtime.
+  */
+
+  const {data,error} =
+    await supabaseClient
+    .from("rides")
+    .update({
+
+      rider_name:name,
+      rider_contact:contact,
+      status:"accepted"
+
+    })
+    .eq(
+      "id",
+      ride.id
+    )
+    .eq(
+      "status",
+      "searching"
+    )
+    .select()
+    .maybeSingle();
+
+  if(error){
+
+    console.error(error);
+
+    alert(
+      "Accept failed: "+
+      error.message
+    );
+
+    /*
+      Restore selected ride.
+    */
+
+    selectedRide =
+      ride;
+
+    showSelectedBooking();
+
+    return;
+  }
+
+  if(!data){
+
+    alert(
+      "This booking was already accepted by another rider."
+    );
+
+    selectedRide = null;
+
+    bookingSignature = "";
+
+    await loadBookings();
+
+    return;
+  }
+
+  /*
+    Update local data immediately.
+  */
+
+  selectedRide =
+    data;
+
+  rides =
+    rides.map(function(r){
+
+      return String(r.id) ===
+        String(data.id)
+        ? data
+        : r;
+
+    });
+
+  /*
+    Recalculate signature.
+  */
+
+  bookingSignature =
+    rides.map(function(r){
+
+      return [
+
+        r.id,
+        r.status,
+        r.passenger_name,
+        r.passenger_contact,
+        r.destination,
+        r.distance_km,
+        r.estimated_fare,
+        r.rider_name,
+        r.rider_contact
+
+      ].join("|");
+
+    }).join("||");
+
+  /*
+    Update UI immediately.
+  */
+
+  renderBookings(false);
+
+  showSelectedBooking();
+
+  showSelectedActions();
+
+  drawRideOnMap(data);
+
+  showToast(
+    "✅ Booking accepted!"
+  );
+}
+
+/* =========================
+   PICKED UP
+========================= */
+
+async function markPickedUp(){
+
+  if(!selectedRide){
+    return;
+  }
+
+  if(
+    selectedRide.status !==
+    "accepted"
+  ){
+
+    return;
+  }
+
+  const {data,error} =
+    await supabaseClient
+    .from("rides")
+    .update({
+      status:"picked_up"
+    })
+    .eq(
+      "id",
+      selectedRide.id
+    )
+    .eq(
+      "status",
+      "accepted"
+    )
+    .select()
+    .maybeSingle();
+
+  if(error){
+
+    alert(
+      error.message
+    );
+
+    return;
+  }
+
+  if(!data){
+
+    alert(
+      "Ride status already changed."
+    );
+
+    return;
+  }
+
+  selectedRide =
+    data;
+
+  updateLocalRide(data);
+
+  showSelectedBooking();
+
+  showSelectedActions();
+
+  showToast(
+    "🚗 Passenger picked up."
+  );
+}
+
+/* =========================
+   ARRIVED / DROP-OFF
+========================= */
+
+async function markArrived(){
+
+  if(!selectedRide){
+    return;
+  }
+
+  if(
+    selectedRide.status !==
+    "picked_up"
+  ){
+
+    return;
+  }
+
+  const {data,error} =
+    await supabaseClient
+    .from("rides")
+    .update({
+      status:"arrived"
+    })
+    .eq(
+      "id",
+      selectedRide.id
+    )
+    .eq(
+      "status",
+      "picked_up"
+    )
+    .select()
+    .maybeSingle();
+
+  if(error){
+
+    alert(
+      error.message
+    );
+
+    return;
+  }
+
+  if(!data){
+
+    alert(
+      "Ride status already changed."
+    );
+
+    return;
+  }
+
+  selectedRide =
+    data;
+
+  updateLocalRide(data);
+
+  showSelectedBooking();
+
+  showSelectedActions();
+
+  showToast(
+    "🏁 Arrived! Passenger can now be dropped off."
+  );
+}
+
+/* =========================
+   COMPLETE
+========================= */
+
+async function completeRide(){
+
+  if(!selectedRide){
+    return;
+  }
+
+  if(
+    selectedRide.status !==
+    "arrived"
+  ){
+
+    return;
+  }
+
+  const {data,error} =
+    await supabaseClient
+    .from("rides")
+    .update({
+      status:"completed"
+    })
+    .eq(
+      "id",
+      selectedRide.id
+    )
+    .eq(
+      "status",
+      "arrived"
+    )
+    .select()
+    .maybeSingle();
+
+  if(error){
+
+    alert(
+      error.message
+    );
+
+    return;
+  }
+
+  if(!data){
+
+    alert(
+      "Ride status already changed."
+    );
+
+    return;
+  }
+
+  /*
+    Remove completed ride
+    from active list immediately.
+  */
+
+  rides =
+    rides.filter(function(r){
+
+      return String(r.id) !==
+        String(data.id);
+
+    });
+
+  selectedRide = null;
+
+  bookingSignature = "";
+
+  document
+    .getElementById(
+      "selectedBooking"
+    )
+    .innerHTML =
+      "✅ Ride completed.";
+
+  hideAllActions();
+
+  renderBookings(false);
+
+  showToast(
+    "✅ Ride completed successfully."
+  );
+}
+
+/* =========================
+   LOCAL RIDE UPDATE
+========================= */
+
+function updateLocalRide(ride){
+
+  rides =
+    rides.map(function(r){
+
+      return String(r.id) ===
+        String(ride.id)
+        ? ride
+        : r;
+
+    });
+
+  bookingSignature =
+    rides.map(function(r){
+
+      return [
+
+        r.id,
+        r.status,
+        r.passenger_name,
+        r.passenger_contact,
+        r.destination,
+        r.distance_km,
+        r.estimated_fare,
+        r.rider_name,
+        r.rider_contact
+
+      ].join("|");
+
+    }).join("||");
+
+  renderBookings(false);
+}
+
+/* =========================
+   WAZE
+========================= */
+
+function openWaze(lat,lng){
+
+  lat =
+    Number(lat);
+
+  lng =
+    Number(lng);
+
+  if(
+    !Number.isFinite(lat) ||
+    !Number.isFinite(lng)
+  ){
+
+    alert(
+      "Invalid navigation location."
+    );
+
+    return;
+  }
+
+  const intentUrl =
+    "intent://?ll="+
+    lat+","+lng+
+    "&navigate=yes"+
+    "#Intent;scheme=waze;package=com.waze;end";
+
+  window.location.href =
+    intentUrl;
+}
+
+function wazeToPickup(){
+
+  if(!selectedRide){
+    return;
+  }
+
+  openWaze(
+    selectedRide.pickup_lat,
+    selectedRide.pickup_lng
+  );
+}
+
+function wazeToDestination(){
+
+  if(!selectedRide){
+    return;
+  }
+
+  openWaze(
+    selectedRide.destination_lat,
+    selectedRide.destination_lng
+  );
+}
+
+/* =========================
+   CALL PASSENGER
+========================= */
+
+function callPassenger(){
+
+  if(!selectedRide){
+    return;
+  }
+
+  const number =
+    selectedRide.passenger_contact;
+
+  if(!number){
+
+    alert(
+      "Passenger contact unavailable."
+    );
+
+    return;
+  }
+
+  window.location.href =
+    "tel:"+number;
+}
+
+/* =========================
+   RIDER GPS
+========================= */
+
+function toggleRiderGPS(){
+
+  if(
+    gpsWatchId !== null
+  ){
+
+    navigator.geolocation
+      .clearWatch(
+        gpsWatchId
+      );
+
+    gpsWatchId = null;
+
+    document
+      .getElementById(
+        "gpsButton"
+      )
+      .innerText =
+        "📍 START RIDER GPS";
+
+    document
+      .getElementById(
+        "gpsStatus"
+      )
+      .innerText =
+        "Rider GPS is OFF.";
+
+    return;
+  }
+
+  startRiderGPS();
+}
+
+function startRiderGPS(){
+
+  if(!navigator.geolocation){
+
+    alert(
+      "GPS is not supported."
+    );
+
+    return;
+  }
+
+  document
+    .getElementById(
+      "gpsButton"
+    )
+    .innerText =
+      "⛔ STOP RIDER GPS";
+
+  document
+    .getElementById(
+      "gpsStatus"
+    )
+    .innerText =
+      "📍 Getting rider location...";
+
+  gpsWatchId =
+    navigator.geolocation.watchPosition(
+
+      async function(position){
+
+        riderLocation = {
+
+          lat:
+            position.coords.latitude,
+
+          lng:
+            position.coords.longitude
+
+        };
+
+        updateRiderMarker();
+
+        document
+          .getElementById(
+            "gpsStatus"
+          )
+          .innerHTML =
+            "🟢 Rider GPS ON<br>"+
+            riderLocation.lat.toFixed(6)+
+            ", "+
+            riderLocation.lng.toFixed(6);
+
+        /*
+          Send rider GPS to passenger
+          while ride is active.
+        */
+
+        if(
+          selectedRide &&
+          (
+            selectedRide.status ===
+              "accepted" ||
+
+            selectedRide.status ===
+              "picked_up" ||
+
+            selectedRide.status ===
+              "arrived"
+          )
+        ){
+
+          const {data,error} =
+            await supabaseClient
+            .from("rides")
+            .update({
+
+              rider_lat:
+                riderLocation.lat,
+
+              rider_lng:
+                riderLocation.lng
+
+            })
+            .eq(
+              "id",
+              selectedRide.id
+            )
+            .select()
+            .maybeSingle();
+
+          if(
+            !error &&
+            data &&
+            selectedRide
+          ){
+
+            selectedRide =
+              data;
+
+          }
+
+        }
+
+      },
+
+      function(error){
+
+        console.log(
+          "GPS error:",
+          error
+        );
+
+        document
+          .getElementById(
+            "gpsStatus"
+          )
+          .innerText =
+            "❌ Unable to get GPS location.";
+
+      },
+
+      {
+        enableHighAccuracy:true,
+        timeout:15000,
+        maximumAge:3000
+      }
+
+    );
+}
+
+/* =========================
+   RIDER MARKER
+========================= */
+
+function updateRiderMarker(){
+
+  if(!riderLocation){
+    return;
+  }
+
+  const lat =
+    riderLocation.lat;
+
+  const lng =
+    riderLocation.lng;
+
+  if(riderMarker){
+
+    riderMarker.setLatLng(
+      [lat,lng]
+    );
+
+  }else{
+
+    riderMarker =
+      L.marker(
+        [lat,lng]
+      )
+      .addTo(map)
+      .bindPopup(
+        "🏍️ You"
+      );
+
+  }
+}
+
+/* =========================
+   RIDE MAP
+========================= */
+
+async function drawRideOnMap(ride){
+
+  if(!ride){
+    return;
+  }
+
+  const pickupLat =
+    Number(
+      ride.pickup_lat
+    );
+
+  const pickupLng =
+    Number(
+      ride.pickup_lng
+    );
+
+  const destinationLat =
+    Number(
+      ride.destination_lat
+    );
+
+  const destinationLng =
+    Number(
+      ride.destination_lng
+    );
+
+  if(
+    !Number.isFinite(pickupLat) ||
+    !Number.isFinite(pickupLng) ||
+    !Number.isFinite(destinationLat) ||
+    !Number.isFinite(destinationLng)
+  ){
+
+    return;
+  }
+
+  /*
+    Pickup marker
+  */
+
+  if(pickupMarker){
+
+    pickupMarker.setLatLng(
+      [pickupLat,pickupLng]
+    );
+
+  }else{
+
+    pickupMarker =
+      L.marker(
+        [pickupLat,pickupLng]
+      )
+      .addTo(map)
+      .bindPopup(
+        "📍 Passenger Pickup"
+      );
+
+  }
+
+  /*
+    Destination marker
+  */
+
+  if(destinationMarker){
+
+    destinationMarker.setLatLng(
+      [destinationLat,destinationLng]
+    );
+
+  }else{
+
+    destinationMarker =
+      L.marker(
+        [destinationLat,destinationLng]
+      )
+      .addTo(map)
+      .bindPopup(
+        "🎯 Destination"
+      );
+
+  }
+
+  const requestId =
+    ++routeRequestId;
+
+  try{
+
+    const url =
+      "https://router.project-osrm.org/route/v1/driving/"+
+      pickupLng+","+pickupLat+";"+
+      destinationLng+","+destinationLat+
+      "?overview=full&geometries=geojson";
+
+    const response =
+      await fetch(url);
+
+    const data =
+      await response.json();
+
+    /*
+      Ignore an old route response.
+    */
+
+    if(
+      requestId !==
+      routeRequestId
+    ){
+
+      return;
+    }
+
+    if(
+      !data.routes ||
+      !data.routes.length
+    ){
+
+      return;
+    }
+
+    if(routeLine){
+
+      map.removeLayer(
+        routeLine
+      );
+
+    }
+
+    routeLine =
+      L.geoJSON(
+        data.routes[0].geometry
+      )
+      .addTo(map);
+
+    map.fitBounds(
+      routeLine.getBounds(),
+      {
+        padding:[30,30]
+      }
+    );
+
+  }catch(error){
+
+    console.log(
+      "OSRM route error:",
+      error
+    );
+
+  }
+}
+
+/* =========================
+   REALTIME
+========================= */
+
+function subscribeRealtime(){
+
+  const channel =
+    supabaseClient
+    .channel(
+      "rider-live-rides"
+    );
+
+  /*
+    NEW BOOKING
+  */
+
+  channel.on(
+
+    "postgres_changes",
+
+    {
+      event:"INSERT",
+      schema:"public",
+      table:"rides"
+    },
+
+    function(payload){
+
+      const ride =
+        payload.new;
+
+      if(
+        ride &&
+        ride.status ===
+        "searching"
+      ){
+
+        /*
+          Add immediately
+          without waiting for SELECT.
+        */
+
+        const exists =
+          rides.some(function(r){
+
+            return String(r.id) ===
+              String(ride.id);
+
+          });
+
+        if(!exists){
+
+          rides.push(
+            ride
+          );
+
+        }
+
+        /*
+          Update signature
+        */
+
+        bookingSignature =
+          "";
+
+        renderBookings(
+          true
+        );
+
+        showToast(
+          "🔔 NEW BOOKING RECEIVED!"
+        );
+
+      }
+
+    }
+
+  );
+
+  /*
+    RIDE UPDATE
+  */
+
+  channel.on(
+
+    "postgres_changes",
+
+    {
+      event:"UPDATE",
+      schema:"public",
+      table:"rides"
+    },
+
+    function(payload){
+
+      const ride =
+        payload.new;
+
+      if(!ride){
+        return;
+      }
+
+      /*
+        If this is selected ride,
+        update it immediately.
+      */
+
+      if(
+        selectedRide &&
+        String(selectedRide.id) ===
+        String(ride.id)
+      ){
+
+        selectedRide =
+          ride;
+
+        showSelectedBooking();
+
+        showSelectedActions();
+
+      }
+
+      /*
+        Update local list.
+      */
+
+      const index =
+        rides.findIndex(
+          function(r){
+
+            return String(r.id) ===
+              String(ride.id);
+
+          }
+        );
+
+      if(index !== -1){
+
+        if(
+          ride.status ===
+            "completed" ||
+
+          ride.status ===
+            "cancelled"
+        ){
+
+          rides.splice(
+            index,
+            1
+          );
+
+        }else{
+
+          rides[index] =
+            ride;
+
+        }
+
+      }else{
+
+        /*
+          If a ride becomes active,
+          add it.
+        */
+
+        if(
+          ride.status ===
+            "searching" ||
+
+          ride.status ===
+            "accepted" ||
+
+          ride.status ===
+            "picked_up" ||
+
+          ride.status ===
+            "arrived"
+        ){
+
+          rides.push(
+            ride
+          );
+
+        }
+
+      }
+
+      bookingSignature =
+        "";
+
+      renderBookings(
+        false
+      );
+
+      /*
+        Keep selected UI
+        synchronized.
+      */
+
+      if(selectedRide){
+
+        showSelectedBooking();
+
+      }
+
+    }
+
+  );
+
+  /*
+    DELETE
+  */
+
+  channel.on(
+
+    "postgres_changes",
+
+    {
+      event:"DELETE",
+      schema:"public",
+      table:"rides"
+    },
+
+    function(payload){
+
+      const oldRide =
+        payload.old;
+
+      rides =
+        rides.filter(
+          function(r){
+
+            return String(r.id) !==
+              String(oldRide.id);
+
+          }
+        );
+
+      if(
+        selectedRide &&
+        String(selectedRide.id) ===
+        String(oldRide.id)
+      ){
+
+        selectedRide =
+          null;
+
+        document
+          .getElementById(
+            "selectedBooking"
+          )
+          .innerHTML =
+            "Booking deleted.";
+
+        hideAllActions();
+
+      }
+
+      bookingSignature =
+        "";
+
+      renderBookings(false);
+
+    }
+
+  );
+
+  channel.subscribe();
+
+}
+
+/* =========================
+   START
+========================= */
+
+initMap();
+
+subscribeRealtime();
+
+loadBookings();
+
+</script>
+
+</body>
+</html>
