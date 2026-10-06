@@ -1,16 +1,17 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 
-<title>HABAL NA V5.5.1 - Rider</title>
+<title>HABAL NA V5.5.3 - Rider</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <link rel="stylesheet"
 href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <style>
 *{
@@ -20,22 +21,28 @@ href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 body{
   margin:0;
   font-family:Arial,sans-serif;
-  background:#f3f3f3;
+  background:#f2f2f2;
   color:#222;
 }
 
 header{
   background:#8b0000;
   color:white;
-  padding:15px;
+  padding:18px;
   text-align:center;
+  font-size:24px;
+  font-weight:bold;
 }
 
-header h2{
-  margin:0 0 4px;
+header small{
+  display:block;
+  margin-top:5px;
+  font-size:13px;
+  opacity:.9;
 }
 
 .container{
+  width:100%;
   max-width:700px;
   margin:auto;
   padding:12px;
@@ -46,124 +53,216 @@ header h2{
   border-radius:14px;
   padding:15px;
   margin-bottom:12px;
-  box-shadow:0 2px 8px #0002;
+  box-shadow:0 3px 10px rgba(0,0,0,.12);
 }
 
-input,
+.card h3{
+  margin-top:0;
+  color:#8b0000;
+}
+
+input{
+  width:100%;
+  padding:13px;
+  border:1px solid #ccc;
+  border-radius:9px;
+  margin-bottom:10px;
+  font-size:16px;
+}
+
 button{
   width:100%;
-  padding:12px;
-  margin-top:8px;
-  border-radius:9px;
-  border:1px solid #ccc;
-  font-size:15px;
-}
-
-button{
+  padding:13px;
   border:0;
-  background:#8b0000;
-  color:white;
+  border-radius:10px;
+  font-size:16px;
   font-weight:bold;
   cursor:pointer;
+  margin-top:7px;
 }
 
-button:active{
-  transform:scale(.98);
+.mainBtn{
+  background:#8b0000;
+  color:white;
 }
 
-button.green{
-  background:#16823b;
+.greenBtn{
+  background:#16833b;
+  color:white;
 }
 
-button.orange{
-  background:#d97706;
+.blueBtn{
+  background:#1769aa;
+  color:white;
 }
 
-button.blue{
-  background:#2457a6;
+.orangeBtn{
+  background:#e67e00;
+  color:white;
 }
 
-button.danger{
-  background:#b00020;
+.grayBtn{
+  background:#666;
+  color:white;
 }
 
-.booking{
-  border:1px solid #ddd;
-  border-radius:12px;
-  padding:12px;
-  margin-top:10px;
-  background:#fff;
+.redBtn{
+  background:#c1121f;
+  color:white;
 }
 
-.booking.selected{
-  border:2px solid #8b0000;
-  background:#fff8f8;
-}
-
-.booking.accepted{
-  border-left:5px solid #16823b;
-}
-
-.booking h4{
-  margin:0 0 8px;
-}
-
-.info{
-  line-height:1.6;
-}
-
-.small{
-  font-size:13px;
-  color:#666;
-}
-
-.status{
-  padding:12px;
-  border-radius:10px;
-  background:#eee;
-  margin-top:10px;
-  font-weight:bold;
+button:disabled{
+  opacity:.5;
+  cursor:not-allowed;
 }
 
 #map{
-  height:330px;
+  width:100%;
+  height:350px;
   border-radius:12px;
   overflow:hidden;
 }
 
-.hidden{
-  display:none !important;
+.gpsStatus{
+  font-size:14px;
+  margin-top:5px;
+  color:#666;
+}
+
+.booking{
+  border:2px solid #eee;
+  border-radius:12px;
+  padding:12px;
+  margin-bottom:10px;
+  background:#fff;
+  transition:.2s;
+}
+
+.booking.active{
+  border-color:#8b0000;
+}
+
+.bookingTitle{
+  font-size:18px;
+  font-weight:bold;
+  color:#8b0000;
+}
+
+.bookingInfo{
+  margin-top:5px;
+  line-height:1.5;
+}
+
+.status{
+  display:inline-block;
+  padding:5px 9px;
+  border-radius:20px;
+  background:#eee;
+  font-size:12px;
+  font-weight:bold;
+  margin-top:7px;
+}
+
+.swipeArea{
+  position:relative;
+  height:52px;
+  background:#eee;
+  border-radius:30px;
+  margin-top:12px;
+  overflow:hidden;
+}
+
+.swipeText{
+  position:absolute;
+  width:100%;
+  text-align:center;
+  line-height:52px;
+  color:#666;
+  font-weight:bold;
+}
+
+.swipeButton{
+  position:absolute;
+  left:2px;
+  top:2px;
+  width:48px;
+  height:48px;
+  margin:0;
+  padding:0;
+  border-radius:50%;
+  background:#8b0000;
+  color:white;
+  z-index:2;
+}
+
+#selectedBooking{
+  display:none;
+}
+
+.selectedTitle{
+  color:#8b0000;
+  font-size:20px;
+  font-weight:bold;
 }
 
 .toast{
   position:fixed;
   top:15px;
   left:50%;
-  transform:translateX(-50%);
-  width:90%;
-  max-width:500px;
+  transform:translateX(-50%) translateY(-100px);
   background:#222;
   color:white;
-  padding:14px;
-  border-radius:10px;
-  text-align:center;
-  z-index:99999;
-  box-shadow:0 3px 12px #0005;
+  padding:13px 20px;
+  border-radius:30px;
+  z-index:9999;
+  transition:.3s;
+  box-shadow:0 4px 15px rgba(0,0,0,.3);
+  font-weight:bold;
 }
 
-.new-booking{
-  animation:popIn .2s ease;
+.toast.show{
+  transform:translateX(-50%) translateY(0);
 }
 
-@keyframes popIn{
-  from{
-    opacity:0;
-    transform:scale(.98);
-  }
-  to{
-    opacity:1;
+.newBooking{
+  animation:newBookingPulse 1s ease-in-out 3;
+}
+
+@keyframes newBookingPulse{
+  0%,100%{
     transform:scale(1);
   }
+
+  50%{
+    transform:scale(1.02);
+  }
+}
+
+.actionGroup{
+  margin-top:10px;
+}
+
+.hidden{
+  display:none !important;
+}
+
+.routeInfo{
+  background:#f7f7f7;
+  padding:10px;
+  border-radius:8px;
+  margin-top:8px;
+}
+
+@media(max-width:480px){
+
+  header{
+    font-size:21px;
+  }
+
+  #map{
+    height:300px;
+  }
+
 }
 </style>
 </head>
@@ -171,168 +270,181 @@ button.danger{
 <body>
 
 <header>
-  <h2>🏍️ HABAL NA</h2>
-  <div>Rider V5.5.1</div>
+  🏍️ HABAL NA
+  <small>
+    Rider V5.5.3 • GPS Tracking
+  </small>
 </header>
 
-<div id="toast" class="toast hidden"></div>
+<div id="toast" class="toast"></div>
 
 <div class="container">
 
 <!-- RIDER PROFILE -->
+
 <div class="card">
 
-  <h3>👤 Rider Profile</h3>
+<h3>🏍️ Rider Profile</h3>
 
-  <input
-    id="riderName"
-    placeholder="Rider Name"
-  >
+<input
+  id="riderName"
+  type="text"
+  placeholder="Rider Name"
+>
 
-  <input
-    id="riderContact"
-    placeholder="Rider Contact"
-    type="tel"
-  >
+<input
+  id="riderContact"
+  type="tel"
+  placeholder="Rider Contact"
+>
 
-  <button
-    class="green"
-    id="gpsButton"
-    onclick="toggleRiderGPS()"
-  >
-    📍 START RIDER GPS
-  </button>
+<button
+  id="gpsButton"
+  class="greenBtn"
+  onclick="toggleRiderGPS()"
+>
+  📍 START GPS
+</button>
 
-  <div
-    id="gpsStatus"
-    class="status"
-  >
-    Rider GPS is OFF.
-  </div>
+<div id="gpsStatus" class="gpsStatus">
+  GPS not started
+</div>
 
 </div>
 
-<!-- AVAILABLE BOOKINGS -->
-<div class="card">
-
-  <h3>🔔 Available Bookings</h3>
-
-  <div id="bookingList">
-    Loading bookings...
-  </div>
-
-</div>
-
-<!-- SELECTED BOOKING -->
-<div class="card">
-
-  <h3>📋 Selected Booking</h3>
-
-  <div id="selectedBooking">
-    No booking selected.
-  </div>
-
-  <!-- ACCEPT -->
-  <button
-    id="acceptBtn"
-    class="green hidden"
-    onclick="acceptSelectedRide()"
-  >
-    ✅ ACCEPT BOOKING
-  </button>
-
-  <!-- WAZE PICKUP -->
-  <button
-    id="wazePickupBtn"
-    class="blue hidden"
-    onclick="wazeToPickup()"
-  >
-    🧭 WAZE TO PICKUP
-  </button>
-
-  <!-- CALL -->
-  <button
-    id="callPassengerBtn"
-    class="blue hidden"
-    onclick="callPassenger()"
-  >
-    📞 CALL PASSENGER
-  </button>
-
-  <!-- PICKED UP -->
-  <button
-    id="pickedUpBtn"
-    class="orange hidden"
-    onclick="markPickedUp()"
-  >
-    🏍️ PASSENGER PICKED UP
-  </button>
-
-  <!-- WAZE DESTINATION -->
-  <button
-    id="wazeDestinationBtn"
-    class="blue hidden"
-    onclick="wazeToDestination()"
-  >
-    🧭 WAZE TO DESTINATION
-  </button>
-
-  <!-- ARRIVED -->
-  <button
-    id="arrivedBtn"
-    class="orange hidden"
-    onclick="markArrived()"
-  >
-    🏁 ARRIVED / DROP OFF PASSENGER
-  </button>
-
-  <!-- COMPLETE -->
-  <button
-    id="completeBtn"
-    class="green hidden"
-    onclick="completeRide()"
-  >
-    ✅ COMPLETE RIDE
-  </button>
-
-</div>
 
 <!-- MAP -->
+
 <div class="card">
 
-  <h3>🗺️ Rider Map</h3>
+<h3>🗺️ Rider Location</h3>
 
-  <div id="map"></div>
+<div id="map"></div>
+
+</div>
+
+
+<!-- AVAILABLE BOOKINGS -->
+
+<div
+  id="availableBookingsCard"
+  class="card"
+>
+
+<h3>📋 Available Bookings</h3>
+
+<div id="bookingList">
+  Loading bookings...
+</div>
+
+</div>
+
+
+<!-- SELECTED BOOKING -->
+
+<div
+  id="selectedBooking"
+  class="card"
+>
+
+<div id="selectedBookingContent"></div>
+
+<div class="actionGroup">
+
+<button
+  id="acceptBtn"
+  class="greenBtn"
+  onclick="acceptSelectedRide()"
+>
+  ✅ ACCEPT BOOKING
+</button>
+
+<button
+  id="wazePickupBtn"
+  class="blueBtn"
+  onclick="wazeToPickup()"
+>
+  📍 WAZE TO PICKUP
+</button>
+
+<button
+  id="callPassengerBtn"
+  class="orangeBtn"
+  onclick="callPassenger()"
+>
+  📞 CALL PASSENGER
+</button>
+
+<button
+  id="pickedUpBtn"
+  class="mainBtn"
+  onclick="markPickedUp()"
+>
+  🏍️ PICKED UP
+</button>
+
+<button
+  id="wazeDestinationBtn"
+  class="blueBtn"
+  onclick="wazeToDestination()"
+>
+  🗺️ WAZE TO DESTINATION
+</button>
+
+<button
+  id="arrivedBtn"
+  class="orangeBtn"
+  onclick="markArrived()"
+>
+  📍 ARRIVED
+</button>
+
+<button
+  id="completeBtn"
+  class="greenBtn"
+  onclick="completeRide()"
+>
+  ✅ COMPLETE RIDE
+</button>
 
 </div>
 
 </div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</div>
+
 
 <script>
 
+/* =========================================
+   SUPABASE
+========================================= */
+
 const SUPABASE_URL =
-"https://omkgcczffjtevwzsscwg.supabase.co";
+  "https://omkgcczffjtevwzsscwg.supabase.co";
 
 const SUPABASE_KEY =
-"sb_publishable_-7gCKDHORQ5gIACet6vJUg_X7HmdMeg";
+  "sb_publishable_-7gCKDHORQ5gIACet6vJUg_X7HmdMeg";
 
 const supabaseClient =
-supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
-);
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
 
-/* =========================
+
+/* =========================================
    VARIABLES
-========================= */
+========================================= */
 
 let map = null;
 
 let riderMarker = null;
+
 let pickupMarker = null;
+
 let destinationMarker = null;
+
 let routeLine = null;
 
 let riderLocation = null;
@@ -349,110 +461,345 @@ let routeRequestId = 0;
 
 let loadingBookings = false;
 
-/* =========================
+let waitingListHidden = false;
+
+let acceptingRideId = null;
+
+
+/* =========================================
+   BOOKING SOUND
+========================================= */
+
+let bookingAudioContext = null;
+
+
+function unlockBookingSound(){
+
+  try{
+
+    if(!bookingAudioContext){
+
+      const AudioContext =
+        window.AudioContext ||
+        window.webkitAudioContext;
+
+      if(!AudioContext){
+        return;
+      }
+
+      bookingAudioContext =
+        new AudioContext();
+
+    }
+
+    if(
+      bookingAudioContext.state ===
+      "suspended"
+    ){
+
+      bookingAudioContext.resume();
+
+    }
+
+  }catch(error){
+
+    console.log(
+      "Audio unlock error:",
+      error
+    );
+
+  }
+
+}
+
+
+function playBookingSound(){
+
+  try{
+
+    unlockBookingSound();
+
+    if(!bookingAudioContext){
+      return;
+    }
+
+    const ctx =
+      bookingAudioContext;
+
+    const now =
+      ctx.currentTime;
+
+
+    const osc1 =
+      ctx.createOscillator();
+
+    const gain1 =
+      ctx.createGain();
+
+    osc1.type =
+      "sine";
+
+    osc1.frequency.setValueAtTime(
+      880,
+      now
+    );
+
+    gain1.gain.setValueAtTime(
+      0.0001,
+      now
+    );
+
+    gain1.gain.exponentialRampToValueAtTime(
+      0.35,
+      now + 0.02
+    );
+
+    gain1.gain.exponentialRampToValueAtTime(
+      0.0001,
+      now + 0.20
+    );
+
+    osc1.connect(gain1);
+    gain1.connect(ctx.destination);
+
+    osc1.start(now);
+    osc1.stop(now + 0.22);
+
+
+    const osc2 =
+      ctx.createOscillator();
+
+    const gain2 =
+      ctx.createGain();
+
+    osc2.type =
+      "sine";
+
+    osc2.frequency.setValueAtTime(
+      1175,
+      now + 0.22
+    );
+
+    gain2.gain.setValueAtTime(
+      0.0001,
+      now + 0.22
+    );
+
+    gain2.gain.exponentialRampToValueAtTime(
+      0.35,
+      now + 0.24
+    );
+
+    gain2.gain.exponentialRampToValueAtTime(
+      0.0001,
+      now + 0.42
+    );
+
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+
+    osc2.start(now + 0.22);
+    osc2.stop(now + 0.44);
+
+
+    const osc3 =
+      ctx.createOscillator();
+
+    const gain3 =
+      ctx.createGain();
+
+    osc3.type =
+      "sine";
+
+    osc3.frequency.setValueAtTime(
+      1320,
+      now + 0.44
+    );
+
+    gain3.gain.setValueAtTime(
+      0.0001,
+      now + 0.44
+    );
+
+    gain3.gain.exponentialRampToValueAtTime(
+      0.30,
+      now + 0.46
+    );
+
+    gain3.gain.exponentialRampToValueAtTime(
+      0.0001,
+      now + 0.62
+    );
+
+    osc3.connect(gain3);
+    gain3.connect(ctx.destination);
+
+    osc3.start(now + 0.44);
+    osc3.stop(now + 0.64);
+
+  }catch(error){
+
+    console.log(
+      "Booking sound error:",
+      error
+    );
+
+  }
+
+}
+
+
+/* =========================================
    HELPERS
-========================= */
+========================================= */
 
 function escapeHTML(value){
 
-  return String(value ?? "")
+  if(
+    value === null ||
+    value === undefined
+  ){
+
+    return "";
+
+  }
+
+  return String(value)
     .replace(/&/g,"&amp;")
     .replace(/</g,"&lt;")
     .replace(/>/g,"&gt;")
     .replace(/"/g,"&quot;")
     .replace(/'/g,"&#039;");
+
 }
+
 
 function statusText(status){
 
-  const statuses = {
+  const values = {
 
-    searching:"🔎 SEARCHING",
+    searching:
+      "🔎 SEARCHING",
 
-    accepted:"🏍️ ACCEPTED",
+    accepted:
+      "✅ ACCEPTED",
 
-    picked_up:"🚗 PICKED UP",
+    picked_up:
+      "🏍️ PICKED UP",
 
-    arrived:"🏁 ARRIVED / DROP-OFF",
+    arrived:
+      "📍 ARRIVED",
 
-    completed:"✅ COMPLETED",
-
-    cancelled:"❌ CANCELLED"
+    completed:
+      "✅ COMPLETED"
 
   };
 
-  return statuses[status] || status;
+  return values[status] || status;
+
 }
+
 
 function showToast(message){
 
   const toast =
     document.getElementById("toast");
 
-  toast.innerText = message;
+  toast.textContent =
+    message;
 
-  toast.classList.remove("hidden");
+  toast.classList.add("show");
 
-  clearTimeout(showToast.timer);
-
-  showToast.timer = setTimeout(
+  setTimeout(
     function(){
 
-      toast.classList.add("hidden");
+      toast.classList.remove("show");
 
     },
-    3000
+    3500
   );
+
 }
 
-/* =========================
+
+/* =========================================
+   WAITING LIST VISIBILITY
+========================================= */
+
+function setWaitingListHidden(hidden){
+
+  waitingListHidden =
+    hidden;
+
+  const card =
+    document.getElementById(
+      "availableBookingsCard"
+    );
+
+  if(!card){
+    return;
+  }
+
+  card.style.display =
+    hidden ? "none" : "block";
+
+}
+
+
+/* =========================================
    MAP
-========================= */
+========================================= */
 
 function initMap(){
 
   map =
     L.map("map")
-    .setView(
-      [14.4086,121.0415],
-      13
-    );
+     .setView(
+       [14.4086,121.0415],
+       13
+     );
 
   L.tileLayer(
     "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
     {
       maxZoom:19,
-      attribution:"© OpenStreetMap"
+      attribution:
+        "&copy; OpenStreetMap contributors"
     }
   ).addTo(map);
+
 }
 
-/* =========================
-   BUTTON CONTROL
-========================= */
+
+/* =========================================
+   ACTION BUTTONS
+========================================= */
 
 function hideAllActions(){
 
-  const ids = [
+  document.getElementById("acceptBtn").style.display =
+    "none";
 
-    "acceptBtn",
-    "wazePickupBtn",
-    "callPassengerBtn",
-    "pickedUpBtn",
-    "wazeDestinationBtn",
-    "arrivedBtn",
-    "completeBtn"
+  document.getElementById("wazePickupBtn").style.display =
+    "none";
 
-  ];
+  document.getElementById("callPassengerBtn").style.display =
+    "none";
 
-  ids.forEach(function(id){
+  document.getElementById("pickedUpBtn").style.display =
+    "none";
 
-    document
-      .getElementById(id)
-      .classList.add("hidden");
+  document.getElementById("wazeDestinationBtn").style.display =
+    "none";
 
-  });
+  document.getElementById("arrivedBtn").style.display =
+    "none";
+
+  document.getElementById("completeBtn").style.display =
+    "none";
+
 }
+
 
 function showSelectedActions(){
 
@@ -462,108 +809,133 @@ function showSelectedActions(){
     return;
   }
 
-  /*
-    SEARCHING
-    Show ACCEPT immediately
-  */
+  const status =
+    selectedRide.status;
 
-  if(
-    selectedRide.status === "searching"
-  ){
 
-    document
-      .getElementById("acceptBtn")
-      .classList.remove("hidden");
+  if(status === "searching"){
 
-    return;
+    if(!waitingListHidden){
+
+      document.getElementById(
+        "acceptBtn"
+      ).style.display =
+        "block";
+
+    }
+
   }
 
-  /*
-    ACCEPTED
-  */
 
   if(
-    selectedRide.status === "accepted"
+    status === "accepted" ||
+    status === "picked_up" ||
+    status === "arrived"
   ){
 
-    document
-      .getElementById("wazePickupBtn")
-      .classList.remove("hidden");
+    document.getElementById(
+      "callPassengerBtn"
+    ).style.display =
+      "block";
 
-    document
-      .getElementById("callPassengerBtn")
-      .classList.remove("hidden");
-
-    document
-      .getElementById("pickedUpBtn")
-      .classList.remove("hidden");
-
-    return;
   }
 
-  /*
-    PICKED UP
-  */
 
-  if(
-    selectedRide.status === "picked_up"
-  ){
+  if(status === "accepted"){
 
-    document
-      .getElementById("callPassengerBtn")
-      .classList.remove("hidden");
+    document.getElementById(
+      "wazePickupBtn"
+    ).style.display =
+      "block";
 
-    document
-      .getElementById("wazeDestinationBtn")
-      .classList.remove("hidden");
+    document.getElementById(
+      "pickedUpBtn"
+    ).style.display =
+      "block";
 
-    document
-      .getElementById("arrivedBtn")
-      .classList.remove("hidden");
-
-    return;
   }
 
-  /*
-    ARRIVED
-  */
 
-  if(
-    selectedRide.status === "arrived"
-  ){
+  if(status === "picked_up"){
 
-    document
-      .getElementById("completeBtn")
-      .classList.remove("hidden");
+    document.getElementById(
+      "wazeDestinationBtn"
+    ).style.display =
+      "block";
 
-    return;
+    document.getElementById(
+      "arrivedBtn"
+    ).style.display =
+      "block";
+
   }
+
+
+  if(status === "arrived"){
+
+    document.getElementById(
+      "completeBtn"
+    ).style.display =
+      "block";
+
+    document.getElementById(
+      "wazeDestinationBtn"
+    ).style.display =
+      "block";
+
+  }
+
 }
 
-/* =========================
-   SELECT BOOKING
-========================= */
 
-function selectRide(ride){
+/* =========================================
+   SELECT RIDE
+========================================= */
+
+function selectRide(id){
+
+  const ride =
+    rides.find(
+      function(r){
+
+        return String(r.id) ===
+          String(id);
+
+      }
+    );
 
   if(!ride){
     return;
   }
 
-  selectedRide = ride;
+
+  if(
+    waitingListHidden &&
+    selectedRide &&
+    String(selectedRide.id) !==
+    String(ride.id)
+  ){
+
+    return;
+
+  }
+
+
+  selectedRide =
+    ride;
 
   showSelectedBooking();
 
-  showSelectedActions();
+  drawRideOnMap(
+    ride
+  );
 
-  drawRideOnMap(ride);
-
-  renderBookings(false);
 }
 
-/* =========================
-   SELECTED BOOKING UI
-========================= */
+
+/* =========================================
+   SELECTED BOOKING
+========================================= */
 
 function showSelectedBooking(){
 
@@ -572,260 +944,403 @@ function showSelectedBooking(){
       "selectedBooking"
     );
 
+  const content =
+    document.getElementById(
+      "selectedBookingContent"
+    );
+
+
   if(!selectedRide){
 
-    box.innerHTML =
-      "No booking selected.";
-
-    hideAllActions();
+    box.style.display =
+      "none";
 
     return;
+
   }
 
-  box.innerHTML = `
 
-    <div class="info">
+  box.style.display =
+    "block";
 
-      <b>Status:</b>
-      ${statusText(selectedRide.status)}
-      <br>
+
+  const ride =
+    selectedRide;
+
+
+  content.innerHTML = `
+
+    <div class="selectedTitle">
+      🚕 Selected Booking
+    </div>
+
+    <div class="bookingInfo">
 
       <b>Passenger:</b>
       ${escapeHTML(
-        selectedRide.passenger_name
+        ride.passenger_name
       )}
+
       <br>
 
       <b>Contact:</b>
       ${escapeHTML(
-        selectedRide.passenger_contact
+        ride.passenger_contact
       )}
+
+      <br>
+
+      <b>Pickup:</b>
+      ${Number(
+        ride.pickup_lat
+      ).toFixed(6)},
+      ${Number(
+        ride.pickup_lng
+      ).toFixed(6)}
+
       <br>
 
       <b>Destination:</b>
       ${escapeHTML(
-        selectedRide.destination
+        ride.destination
       )}
+
       <br>
 
       <b>Distance:</b>
       ${Number(
-        selectedRide.distance_km || 0
+        ride.distance_km || 0
       ).toFixed(2)}
       km
+
       <br>
 
-      <b>Fare:</b>
+      <b>Estimated Fare:</b>
       ₱${Number(
-        selectedRide.estimated_fare || 0
+        ride.estimated_fare || 0
       ).toFixed(2)}
+
+      <br>
+
+      <span class="status">
+        ${statusText(
+          ride.status
+        )}
+      </span>
 
     </div>
 
   `;
 
+
   showSelectedActions();
+
 }
 
-/* =========================
+
+/* =========================================
+   SWIPE ACCEPT
+========================================= */
+
+function createSwipeAccept(ride){
+
+  const wrapper =
+    document.createElement("div");
+
+  wrapper.className =
+    "swipeArea";
+
+
+  const text =
+    document.createElement("div");
+
+  text.className =
+    "swipeText";
+
+  text.textContent =
+    "👉 SWIPE TO ACCEPT";
+
+
+  const button =
+    document.createElement("button");
+
+  button.className =
+    "swipeButton";
+
+  button.textContent =
+    "➜";
+
+
+  wrapper.appendChild(text);
+  wrapper.appendChild(button);
+
+
+  let startX = 0;
+  let currentX = 0;
+  let dragging = false;
+
+
+  function moveButton(x){
+
+    const max =
+      wrapper.clientWidth - 52;
+
+    currentX =
+      Math.max(
+        0,
+        Math.min(x,max)
+      );
+
+    button.style.left =
+      (currentX + 2) + "px";
+
+  }
+
+
+  button.addEventListener(
+    "touchstart",
+    function(e){
+
+      if(acceptingRideId){
+        return;
+      }
+
+      unlockBookingSound();
+
+      dragging = true;
+
+      startX =
+        e.touches[0].clientX;
+
+    },
+    {passive:true}
+  );
+
+
+  button.addEventListener(
+    "touchmove",
+    function(e){
+
+      if(!dragging){
+        return;
+      }
+
+      const x =
+        e.touches[0].clientX -
+        startX;
+
+      moveButton(x);
+
+    },
+    {passive:true}
+  );
+
+
+  button.addEventListener(
+    "touchend",
+    function(){
+
+      dragging = false;
+
+      const max =
+        wrapper.clientWidth - 52;
+
+
+      if(currentX > max * 0.75){
+
+        moveButton(max);
+
+        acceptingRideId =
+          ride.id;
+
+        selectRide(
+          ride.id
+        );
+
+        acceptRide(
+          ride.id
+        );
+
+      }else{
+
+        moveButton(0);
+
+      }
+
+    }
+  );
+
+
+  return wrapper;
+
+}
+
+
+/* =========================================
    RENDER BOOKINGS
-========================= */
+========================================= */
 
-function renderBookings(animateNew){
+function renderBookings(
+  highlightNew = false
+){
 
-  const box =
+  if(waitingListHidden){
+
+    setWaitingListHidden(true);
+
+    return;
+
+  }
+
+
+  setWaitingListHidden(false);
+
+
+  const list =
     document.getElementById(
       "bookingList"
     );
 
+
   if(!rides.length){
 
-    box.innerHTML =
-      '<div class="small">No active bookings.</div>';
+    list.innerHTML =
+      "<p>No available bookings.</p>";
 
     return;
+
   }
 
-  /*
-    IMPORTANT:
-    We only replace the contents when
-    the data signature changed.
-    This prevents flickering.
-  */
 
-  const fragment =
-    document.createDocumentFragment();
+  list.innerHTML = "";
 
-  rides.forEach(function(ride){
 
-    const div =
-      document.createElement("div");
+  rides.forEach(
+    function(ride){
 
-    div.className =
-      "booking";
+      const div =
+        document.createElement("div");
 
-    if(
-      selectedRide &&
-      String(selectedRide.id) ===
-      String(ride.id)
-    ){
+      div.className =
+        "booking";
 
-      div.classList.add("selected");
 
-    }
-
-    if(
-      ride.status === "accepted"
-    ){
-
-      div.classList.add("accepted");
-
-    }
-
-    div.innerHTML = `
-
-      <h4>
-        ${statusText(ride.status)}
-      </h4>
-
-      <div class="info">
-
-        👤
-        <b>Passenger:</b>
-        ${escapeHTML(
-          ride.passenger_name
-        )}
-        <br>
-
-        📞
-        <b>Contact:</b>
-        ${escapeHTML(
-          ride.passenger_contact
-        )}
-        <br>
-
-        🎯
-        <b>Destination:</b>
-        ${escapeHTML(
-          ride.destination
-        )}
-        <br>
-
-        📏
-        <b>Distance:</b>
-        ${Number(
-          ride.distance_km || 0
-        ).toFixed(2)}
-        km
-        <br>
-
-        💰
-        <b>Fare:</b>
-        ₱${Number(
-          ride.estimated_fare || 0
-        ).toFixed(2)}
-
-      </div>
-
-    `;
-
-    /*
-      SEARCHING:
-      Instant ACCEPT button
-    */
-
-    if(
-      ride.status === "searching"
-    ){
-
-      const acceptButton =
-        document.createElement("button");
-
-      acceptButton.className =
-        "green";
-
-      acceptButton.innerText =
-        "✅ ACCEPT BOOKING";
-
-      acceptButton.onclick =
-        function(event){
-
-          event.stopPropagation();
-
-          selectedRide = ride;
-
-          showSelectedBooking();
-
-          /*
-            Buttons appear immediately.
-          */
-
-          showSelectedActions();
-
-          acceptRide(ride);
-
-        };
-
-      div.appendChild(
-        acceptButton
-      );
-
-    }
-
-    /*
-      For all other statuses,
-      SELECT button.
-    */
-
-    if(
-      ride.status !== "searching"
-    ){
-
-      const selectButton =
-        document.createElement("button");
-
-      selectButton.className =
-        "blue";
-
-      selectButton.innerText =
+      if(
         selectedRide &&
         String(selectedRide.id) ===
         String(ride.id)
-        ? "SELECTED"
-        : "SELECT RIDE";
+      ){
 
-      selectButton.onclick =
-        function(event){
+        div.classList.add("active");
 
-          event.stopPropagation();
+      }
 
-          selectRide(ride);
+
+      if(highlightNew){
+
+        div.classList.add(
+          "newBooking"
+        );
+
+      }
+
+
+      /*
+        IMPORTANT PRIVACY CHANGE:
+
+        Passenger NAME and CONTACT
+        are NOT shown here.
+
+        They will only appear after
+        the rider accepts the booking.
+      */
+
+      div.innerHTML = `
+
+        <div class="bookingTitle">
+          🚕 Available Passenger
+        </div>
+
+        <div class="bookingInfo">
+
+          📍 Pickup:
+          ${Number(
+            ride.pickup_lat
+          ).toFixed(5)},
+          ${Number(
+            ride.pickup_lng
+          ).toFixed(5)}
+
+          <br>
+
+          🏁 Destination:
+          ${escapeHTML(
+            ride.destination
+          )}
+
+          <br>
+
+          📏 Distance:
+          ${Number(
+            ride.distance_km || 0
+          ).toFixed(2)}
+          km
+
+          <br>
+
+          💰 Fare:
+          ₱${Number(
+            ride.estimated_fare || 0
+          ).toFixed(2)}
+
+          <br>
+
+          <span class="status">
+            ${statusText(
+              ride.status
+            )}
+          </span>
+
+        </div>
+
+      `;
+
+
+      div.onclick =
+        function(){
+
+          selectRide(
+            ride.id
+          );
 
         };
 
-      div.appendChild(
-        selectButton
-      );
+
+      if(
+        ride.status ===
+        "searching"
+      ){
+
+        div.appendChild(
+          createSwipeAccept(
+            ride
+          )
+        );
+
+      }
+
+
+      list.appendChild(div);
 
     }
-
-    fragment.appendChild(div);
-
-  });
-
-  /*
-    Only replace DOM once.
-    No repeated individual updates.
-  */
-
-  box.replaceChildren(
-    fragment
   );
+
 }
 
-/* =========================
+
+/* =========================================
    LOAD BOOKINGS
-========================= */
+========================================= */
 
 async function loadBookings(){
 
@@ -835,9 +1350,13 @@ async function loadBookings(){
 
   loadingBookings = true;
 
+
   try{
 
-    const {data,error} =
+    const {
+      data,
+      error
+    } =
       await supabaseClient
       .from("rides")
       .select("*")
@@ -853,274 +1372,399 @@ async function loadBookings(){
       .order(
         "created_at",
         {
-          ascending:true
+          ascending:false
         }
       );
 
+
     if(error){
 
-      console.error(
-        "Load bookings:",
-        error
+      console.log(error);
+
+      showToast(
+        "❌ Failed to load bookings"
       );
 
       return;
+
     }
 
-    const newRides =
+
+    rides =
       data || [];
 
-    /*
-      Create a stable signature.
-      If nothing changed,
-      don't rebuild anything.
-    */
 
-    const newSignature =
-      newRides.map(function(r){
+    const signature =
+      JSON.stringify(
+        rides.map(
+          function(r){
 
-        return [
+            return [
+              r.id,
+              r.status,
+              r.passenger_name,
+              r.destination
+            ];
 
-          r.id,
-          r.status,
-          r.passenger_name,
-          r.passenger_contact,
-          r.destination,
-          r.distance_km,
-          r.estimated_fare,
-          r.rider_name,
-          r.rider_contact
+          }
+        )
+      );
 
-        ].join("|");
-
-      }).join("||");
 
     if(
-      newSignature !==
+      signature !==
       bookingSignature
     ){
 
-      rides = newRides;
-
       bookingSignature =
-        newSignature;
+        signature;
 
-      /*
-        If selected ride exists,
-        update it from fresh data.
-      */
+      renderBookings();
+
 
       if(selectedRide){
 
-        const fresh =
-          rides.find(function(r){
+        const updated =
+          rides.find(
+            function(r){
 
-            return String(r.id) ===
-              String(selectedRide.id);
+              return String(r.id) ===
+                String(
+                  selectedRide.id
+                );
 
-          });
+            }
+          );
 
-        if(fresh){
+
+        if(updated){
 
           selectedRide =
-            fresh;
+            updated;
+
+          showSelectedBooking();
 
         }
 
       }
 
-      renderBookings(false);
-
-      showSelectedBooking();
-
     }
+
+
+  }catch(error){
+
+    console.log(error);
 
   }finally{
 
     loadingBookings = false;
 
   }
+
 }
 
-/* =========================
+
+/* =========================================
    ACCEPT RIDE
-========================= */
+========================================= */
 
-async function acceptRide(ride){
+async function acceptRide(
+  rideId
+){
 
-  if(!ride){
-    return;
+  unlockBookingSound();
+
+
+  if(
+    acceptingRideId &&
+    String(acceptingRideId) !==
+    String(rideId)
+  ){
+
+    showToast(
+      "⏳ Accepting another booking..."
+    );
+
+    return false;
+
   }
 
+
+  acceptingRideId =
+    rideId;
+
+
   const name =
-    document
-      .getElementById("riderName")
-      .value
-      .trim();
+    document.getElementById(
+      "riderName"
+    ).value.trim();
+
 
   const contact =
-    document
-      .getElementById("riderContact")
-      .value
-      .trim();
+    document.getElementById(
+      "riderContact"
+    ).value.trim();
+
 
   if(!name){
 
-    alert(
-      "Enter rider name first."
+    acceptingRideId = null;
+
+    showToast(
+      "⚠️ Enter rider name first"
     );
 
-    return;
+    return false;
+
   }
+
 
   if(!contact){
 
-    alert(
-      "Enter rider contact."
+    acceptingRideId = null;
+
+    showToast(
+      "⚠️ Enter rider contact first"
     );
 
-    return;
+    return false;
+
   }
 
-  /*
-    IMPORTANT:
-    We already showed the buttons.
-    No waiting for realtime.
-  */
 
-  const {data,error} =
-    await supabaseClient
-    .from("rides")
-    .update({
+  try{
 
-      rider_name:name,
-      rider_contact:contact,
-      status:"accepted"
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+      .from("rides")
+      .update({
 
-    })
-    .eq(
-      "id",
-      ride.id
-    )
-    .eq(
-      "status",
-      "searching"
-    )
-    .select()
-    .maybeSingle();
+        status:"accepted",
 
-  if(error){
+        rider_name:name,
 
-    console.error(error);
+        rider_contact:contact,
 
-    alert(
-      "Accept failed: "+
-      error.message
-    );
+        rider_lat:
+          riderLocation
+            ? riderLocation.lat
+            : null,
 
-    /*
-      Restore selected ride.
-    */
+        rider_lng:
+          riderLocation
+            ? riderLocation.lng
+            : null
+
+      })
+      .eq(
+        "id",
+        rideId
+      )
+      .eq(
+        "status",
+        "searching"
+      )
+      .select()
+      .maybeSingle();
+
+
+    if(error){
+
+      console.log(error);
+
+      acceptingRideId = null;
+
+      showToast(
+        "❌ Accept failed"
+      );
+
+      return false;
+
+    }
+
+
+    if(!data){
+
+      acceptingRideId = null;
+
+      showToast(
+        "⚠️ Booking already accepted"
+      );
+
+      await loadBookings();
+
+      return false;
+
+    }
+
+
+    /* SUCCESSFUL ACCEPT */
 
     selectedRide =
-      ride;
+      data;
 
-    showSelectedBooking();
 
-    return;
-  }
+    acceptingRideId =
+      null;
 
-  if(!data){
 
-    alert(
-      "This booking was already accepted by another rider."
-    );
+    /*
+      Hide waiting list immediately.
+    */
 
-    selectedRide = null;
+    setWaitingListHidden(true);
+
+
+    const index =
+      rides.findIndex(
+        function(r){
+
+          return String(r.id) ===
+            String(data.id);
+
+        }
+      );
+
+
+    if(index >= 0){
+
+      rides[index] =
+        data;
+
+    }else{
+
+      rides.push(data);
+
+    }
+
 
     bookingSignature = "";
 
-    await loadBookings();
 
-    return;
+    showSelectedBooking();
+
+    drawRideOnMap(data);
+
+
+    setWaitingListHidden(true);
+
+
+    showToast(
+      "✅ BOOKING ACCEPTED!"
+    );
+
+
+    return true;
+
+  }catch(error){
+
+    console.log(error);
+
+    acceptingRideId = null;
+
+    showToast(
+      "❌ Accept error"
+    );
+
+    return false;
+
   }
 
-  /*
-    Update local data immediately.
-  */
-
-  selectedRide =
-    data;
-
-  rides =
-    rides.map(function(r){
-
-      return String(r.id) ===
-        String(data.id)
-        ? data
-        : r;
-
-    });
-
-  /*
-    Recalculate signature.
-  */
-
-  bookingSignature =
-    rides.map(function(r){
-
-      return [
-
-        r.id,
-        r.status,
-        r.passenger_name,
-        r.passenger_contact,
-        r.destination,
-        r.distance_km,
-        r.estimated_fare,
-        r.rider_name,
-        r.rider_contact
-
-      ].join("|");
-
-    }).join("||");
-
-  /*
-    Update UI immediately.
-  */
-
-  renderBookings(false);
-
-  showSelectedBooking();
-
-  showSelectedActions();
-
-  drawRideOnMap(data);
-
-  showToast(
-    "✅ Booking accepted!"
-  );
 }
 
-/* =========================
+
+async function acceptSelectedRide(){
+
+  unlockBookingSound();
+
+
+  if(!selectedRide){
+
+    showToast(
+      "⚠️ Select a booking"
+    );
+
+    return;
+
+  }
+
+
+  await acceptRide(
+    selectedRide.id
+  );
+
+}
+
+
+/* =========================================
+   UPDATE LOCAL RIDE
+========================================= */
+
+function updateLocalRide(ride){
+
+  const index =
+    rides.findIndex(
+      function(r){
+
+        return String(r.id) ===
+          String(ride.id);
+
+      }
+    );
+
+
+  if(index >= 0){
+
+    rides[index] =
+      ride;
+
+  }else{
+
+    rides.push(ride);
+
+  }
+
+
+  bookingSignature = "";
+
+
+  if(
+    ride.status === "accepted" ||
+    ride.status === "picked_up" ||
+    ride.status === "arrived"
+  ){
+
+    setWaitingListHidden(true);
+
+  }
+
+
+  renderBookings();
+
+}
+
+
+/* =========================================
    PICKED UP
-========================= */
+========================================= */
 
 async function markPickedUp(){
+
+  unlockBookingSound();
+
 
   if(!selectedRide){
     return;
   }
 
-  if(
-    selectedRide.status !==
-    "accepted"
-  ){
 
-    return;
-  }
-
-  const {data,error} =
+  const {
+    data,
+    error
+  } =
     await supabaseClient
     .from("rides")
     .update({
@@ -1130,64 +1774,57 @@ async function markPickedUp(){
       "id",
       selectedRide.id
     )
-    .eq(
-      "status",
-      "accepted"
-    )
     .select()
-    .maybeSingle();
+    .single();
+
 
   if(error){
 
-    alert(
-      error.message
+    console.log(error);
+
+    showToast(
+      "❌ Failed"
     );
 
     return;
+
   }
 
-  if(!data){
-
-    alert(
-      "Ride status already changed."
-    );
-
-    return;
-  }
 
   selectedRide =
     data;
+
+  setWaitingListHidden(true);
 
   updateLocalRide(data);
 
   showSelectedBooking();
 
-  showSelectedActions();
-
   showToast(
-    "🚗 Passenger picked up."
+    "🏍️ Passenger picked up"
   );
+
 }
 
-/* =========================
-   ARRIVED / DROP-OFF
-========================= */
+
+/* =========================================
+   ARRIVED
+========================================= */
 
 async function markArrived(){
+
+  unlockBookingSound();
+
 
   if(!selectedRide){
     return;
   }
 
-  if(
-    selectedRide.status !==
-    "picked_up"
-  ){
 
-    return;
-  }
-
-  const {data,error} =
+  const {
+    data,
+    error
+  } =
     await supabaseClient
     .from("rides")
     .update({
@@ -1197,64 +1834,61 @@ async function markArrived(){
       "id",
       selectedRide.id
     )
-    .eq(
-      "status",
-      "picked_up"
-    )
     .select()
-    .maybeSingle();
+    .single();
+
 
   if(error){
 
-    alert(
-      error.message
+    console.log(error);
+
+    showToast(
+      "❌ Failed"
     );
 
     return;
+
   }
 
-  if(!data){
-
-    alert(
-      "Ride status already changed."
-    );
-
-    return;
-  }
 
   selectedRide =
     data;
+
+  setWaitingListHidden(true);
 
   updateLocalRide(data);
 
   showSelectedBooking();
 
-  showSelectedActions();
-
   showToast(
-    "🏁 Arrived! Passenger can now be dropped off."
+    "📍 ARRIVED! Waiting for passenger drop-off."
   );
+
 }
 
-/* =========================
-   COMPLETE
-========================= */
+
+/* =========================================
+   COMPLETE RIDE
+========================================= */
 
 async function completeRide(){
+
+  unlockBookingSound();
+
 
   if(!selectedRide){
     return;
   }
 
-  if(
-    selectedRide.status !==
-    "arrived"
-  ){
 
-    return;
-  }
+  const completedRideId =
+    selectedRide.id;
 
-  const {data,error} =
+
+  const {
+    data,
+    error
+  } =
     await supabaseClient
     .from("rides")
     .update({
@@ -1264,135 +1898,128 @@ async function completeRide(){
       "id",
       selectedRide.id
     )
-    .eq(
-      "status",
-      "arrived"
-    )
     .select()
-    .maybeSingle();
+    .single();
+
 
   if(error){
 
-    alert(
-      error.message
+    console.log(error);
+
+    showToast(
+      "❌ Failed to complete ride"
     );
 
     return;
+
   }
 
-  if(!data){
-
-    alert(
-      "Ride status already changed."
-    );
-
-    return;
-  }
-
-  /*
-    Remove completed ride
-    from active list immediately.
-  */
-
-  rides =
-    rides.filter(function(r){
-
-      return String(r.id) !==
-        String(data.id);
-
-    });
 
   selectedRide = null;
 
-  bookingSignature = "";
+  acceptingRideId = null;
 
-  document
-    .getElementById(
-      "selectedBooking"
-    )
-    .innerHTML =
-      "✅ Ride completed.";
 
-  hideAllActions();
+  document.getElementById(
+    "selectedBooking"
+  ).style.display =
+    "none";
 
-  renderBookings(false);
-
-  showToast(
-    "✅ Ride completed successfully."
-  );
-}
-
-/* =========================
-   LOCAL RIDE UPDATE
-========================= */
-
-function updateLocalRide(ride){
 
   rides =
-    rides.map(function(r){
+    rides.filter(
+      function(r){
 
-      return String(r.id) ===
-        String(ride.id)
-        ? ride
-        : r;
+        return String(r.id) !==
+          String(completedRideId);
 
-    });
+      }
+    );
 
-  bookingSignature =
-    rides.map(function(r){
 
-      return [
+  bookingSignature = "";
 
-        r.id,
-        r.status,
-        r.passenger_name,
-        r.passenger_contact,
-        r.destination,
-        r.distance_km,
-        r.estimated_fare,
-        r.rider_name,
-        r.rider_contact
 
-      ].join("|");
+  /*
+    Passenger dropped off.
+    Show Available Bookings again.
+  */
 
-    }).join("||");
+  setWaitingListHidden(false);
 
-  renderBookings(false);
+
+  await loadBookings();
+
+
+  setWaitingListHidden(false);
+
+  renderBookings();
+
+
+  showToast(
+    "✅ PASSENGER DROPPED OFF! New bookings are available."
+  );
+
 }
 
-/* =========================
+
+/* =========================================
    WAZE
-========================= */
+========================================= */
 
-function openWaze(lat,lng){
-
-  lat =
-    Number(lat);
-
-  lng =
-    Number(lng);
+function openWaze(
+  lat,
+  lng
+){
 
   if(
-    !Number.isFinite(lat) ||
-    !Number.isFinite(lng)
+    lat === null ||
+    lng === null ||
+    lat === undefined ||
+    lng === undefined
   ){
 
-    alert(
-      "Invalid navigation location."
+    showToast(
+      "⚠️ Location unavailable"
     );
 
     return;
+
   }
 
-  const intentUrl =
-    "intent://?ll="+
-    lat+","+lng+
-    "&navigate=yes"+
-    "#Intent;scheme=waze;package=com.waze;end";
 
-  window.location.href =
-    intentUrl;
+  const intentUrl =
+    "intent://?ll=" +
+    lat +
+    "," +
+    lng +
+    "&navigate=yes" +
+    "#Intent;" +
+    "scheme=waze;" +
+    "package=com.waze;" +
+    "end";
+
+
+  try{
+
+    window.location.href =
+      intentUrl;
+
+  }catch(error){
+
+    console.log(error);
+
+    window.location.href =
+      "https://waze.com/ul?ll=" +
+      lat +
+      "," +
+      lng +
+      "&navigate=yes";
+
+  }
+
 }
+
 
 function wazeToPickup(){
 
@@ -1400,11 +2027,15 @@ function wazeToPickup(){
     return;
   }
 
+  unlockBookingSound();
+
   openWaze(
     selectedRide.pickup_lat,
     selectedRide.pickup_lng
   );
+
 }
+
 
 function wazeToDestination(){
 
@@ -1412,173 +2043,181 @@ function wazeToDestination(){
     return;
   }
 
+  unlockBookingSound();
+
   openWaze(
     selectedRide.destination_lat,
     selectedRide.destination_lng
   );
+
 }
 
-/* =========================
+
+/* =========================================
    CALL PASSENGER
-========================= */
+========================================= */
 
 function callPassenger(){
+
+  unlockBookingSound();
+
 
   if(!selectedRide){
     return;
   }
 
-  const number =
+
+  const contact =
     selectedRide.passenger_contact;
 
-  if(!number){
 
-    alert(
-      "Passenger contact unavailable."
+  if(!contact){
+
+    showToast(
+      "⚠️ No passenger contact"
     );
 
     return;
+
   }
 
+
   window.location.href =
-    "tel:"+number;
+    "tel:" +
+    contact;
+
 }
 
-/* =========================
-   RIDER GPS
-========================= */
+
+/* =========================================
+   GPS
+========================================= */
 
 function toggleRiderGPS(){
 
-  if(
-    gpsWatchId !== null
-  ){
+  unlockBookingSound();
 
-    navigator.geolocation
-      .clearWatch(
-        gpsWatchId
-      );
+
+  if(gpsWatchId !== null){
+
+    navigator.geolocation.clearWatch(
+      gpsWatchId
+    );
 
     gpsWatchId = null;
 
-    document
-      .getElementById(
-        "gpsButton"
-      )
-      .innerText =
-        "📍 START RIDER GPS";
 
-    document
-      .getElementById(
-        "gpsStatus"
-      )
-      .innerText =
-        "Rider GPS is OFF.";
+    document.getElementById(
+      "gpsButton"
+    ).textContent =
+      "📍 START GPS";
+
+
+    document.getElementById(
+      "gpsStatus"
+    ).textContent =
+      "GPS stopped";
 
     return;
+
   }
 
+
   startRiderGPS();
+
 }
+
 
 function startRiderGPS(){
 
+  unlockBookingSound();
+
+
   if(!navigator.geolocation){
 
-    alert(
-      "GPS is not supported."
+    showToast(
+      "❌ GPS not supported"
     );
 
     return;
+
   }
 
-  document
-    .getElementById(
-      "gpsButton"
-    )
-    .innerText =
-      "⛔ STOP RIDER GPS";
 
-  document
-    .getElementById(
-      "gpsStatus"
-    )
-    .innerText =
-      "📍 Getting rider location...";
+  document.getElementById(
+    "gpsButton"
+  ).textContent =
+    "🛑 STOP GPS";
+
+
+  document.getElementById(
+    "gpsStatus"
+  ).textContent =
+    "Getting GPS location...";
+
 
   gpsWatchId =
     navigator.geolocation.watchPosition(
 
       async function(position){
 
+        const lat =
+          position.coords.latitude;
+
+        const lng =
+          position.coords.longitude;
+
+
         riderLocation = {
-
-          lat:
-            position.coords.latitude,
-
-          lng:
-            position.coords.longitude
-
+          lat:lat,
+          lng:lng
         };
 
-        updateRiderMarker();
 
-        document
-          .getElementById(
-            "gpsStatus"
-          )
-          .innerHTML =
-            "🟢 Rider GPS ON<br>"+
-            riderLocation.lat.toFixed(6)+
-            ", "+
-            riderLocation.lng.toFixed(6);
+        updateRiderMarker(
+          lat,
+          lng
+        );
 
-        /*
-          Send rider GPS to passenger
-          while ride is active.
-        */
 
-        if(
-          selectedRide &&
-          (
-            selectedRide.status ===
-              "accepted" ||
+        document.getElementById(
+          "gpsStatus"
+        ).textContent =
+          "GPS active: " +
+          lat.toFixed(6) +
+          ", " +
+          lng.toFixed(6);
 
-            selectedRide.status ===
-              "picked_up" ||
 
-            selectedRide.status ===
-              "arrived"
-          )
-        ){
+        if(selectedRide){
 
-          const {data,error} =
+          try{
+
             await supabaseClient
-            .from("rides")
-            .update({
+              .from("rides")
+              .update({
 
-              rider_lat:
-                riderLocation.lat,
+                rider_lat:lat,
 
-              rider_lng:
-                riderLocation.lng
+                rider_lng:lng
 
-            })
-            .eq(
-              "id",
-              selectedRide.id
-            )
-            .select()
-            .maybeSingle();
+              })
+              .eq(
+                "id",
+                selectedRide.id
+              )
+              .in(
+                "status",
+                [
+                  "accepted",
+                  "picked_up",
+                  "arrived"
+                ]
+              );
 
-          if(
-            !error &&
-            data &&
-            selectedRide
-          ){
+          }catch(error){
 
-            selectedRide =
-              data;
+            console.log(error);
 
           }
 
@@ -1588,52 +2227,46 @@ function startRiderGPS(){
 
       function(error){
 
-        console.log(
-          "GPS error:",
-          error
-        );
+        console.log(error);
 
-        document
-          .getElementById(
-            "gpsStatus"
-          )
-          .innerText =
-            "❌ Unable to get GPS location.";
+        document.getElementById(
+          "gpsStatus"
+        ).textContent =
+          "GPS error: " +
+          error.message;
+
+        showToast(
+          "❌ GPS error"
+        );
 
       },
 
       {
         enableHighAccuracy:true,
-        timeout:15000,
-        maximumAge:3000
+        maximumAge:3000,
+        timeout:15000
       }
 
     );
+
 }
 
-/* =========================
+
+/* =========================================
    RIDER MARKER
-========================= */
+========================================= */
 
-function updateRiderMarker(){
+function updateRiderMarker(
+  lat,
+  lng
+){
 
-  if(!riderLocation){
+  if(!map){
     return;
   }
 
-  const lat =
-    riderLocation.lat;
 
-  const lng =
-    riderLocation.lng;
-
-  if(riderMarker){
-
-    riderMarker.setLatLng(
-      [lat,lng]
-    );
-
-  }else{
+  if(!riderMarker){
 
     riderMarker =
       L.marker(
@@ -1641,446 +2274,479 @@ function updateRiderMarker(){
       )
       .addTo(map)
       .bindPopup(
-        "🏍️ You"
+        "🏍️ Rider"
       );
 
+  }else{
+
+    riderMarker.setLatLng(
+      [lat,lng]
+    );
+
   }
+
 }
 
-/* =========================
-   RIDE MAP
-========================= */
 
-async function drawRideOnMap(ride){
+/* =========================================
+   DRAW RIDE ON MAP
+========================================= */
 
-  if(!ride){
+async function drawRideOnMap(
+  ride
+){
+
+  if(!map){
     return;
   }
 
-  const pickupLat =
-    Number(
-      ride.pickup_lat
-    );
 
-  const pickupLng =
-    Number(
-      ride.pickup_lng
-    );
+  const currentRequest =
+    ++routeRequestId;
 
-  const destinationLat =
-    Number(
-      ride.destination_lat
-    );
-
-  const destinationLng =
-    Number(
-      ride.destination_lng
-    );
-
-  if(
-    !Number.isFinite(pickupLat) ||
-    !Number.isFinite(pickupLng) ||
-    !Number.isFinite(destinationLat) ||
-    !Number.isFinite(destinationLng)
-  ){
-
-    return;
-  }
-
-  /*
-    Pickup marker
-  */
 
   if(pickupMarker){
 
-    pickupMarker.setLatLng(
-      [pickupLat,pickupLng]
+    map.removeLayer(
+      pickupMarker
     );
-
-  }else{
-
-    pickupMarker =
-      L.marker(
-        [pickupLat,pickupLng]
-      )
-      .addTo(map)
-      .bindPopup(
-        "📍 Passenger Pickup"
-      );
 
   }
 
-  /*
-    Destination marker
-  */
 
   if(destinationMarker){
 
-    destinationMarker.setLatLng(
-      [destinationLat,destinationLng]
+    map.removeLayer(
+      destinationMarker
     );
 
-  }else{
+  }
 
-    destinationMarker =
+
+  if(routeLine){
+
+    map.removeLayer(
+      routeLine
+    );
+
+  }
+
+
+  if(
+    ride.pickup_lat &&
+    ride.pickup_lng
+  ){
+
+    pickupMarker =
       L.marker(
-        [destinationLat,destinationLng]
+        [
+          Number(ride.pickup_lat),
+          Number(ride.pickup_lng)
+        ]
       )
       .addTo(map)
       .bindPopup(
-        "🎯 Destination"
+        "📍 Pickup"
       );
 
   }
 
-  const requestId =
-    ++routeRequestId;
 
-  try{
+  if(
+    ride.destination_lat &&
+    ride.destination_lng
+  ){
+
+    destinationMarker =
+      L.marker(
+        [
+          Number(ride.destination_lat),
+          Number(ride.destination_lng)
+        ]
+      )
+      .addTo(map)
+      .bindPopup(
+        "🏁 Destination"
+      );
+
+  }
+
+
+  if(
+    ride.pickup_lat &&
+    ride.pickup_lng &&
+    ride.destination_lat &&
+    ride.destination_lng
+  ){
 
     const url =
-      "https://router.project-osrm.org/route/v1/driving/"+
-      pickupLng+","+pickupLat+";"+
-      destinationLng+","+destinationLat+
+      "https://router.project-osrm.org/route/v1/driving/" +
+      ride.pickup_lng +
+      "," +
+      ride.pickup_lat +
+      ";" +
+      ride.destination_lng +
+      "," +
+      ride.destination_lat +
       "?overview=full&geometries=geojson";
 
-    const response =
-      await fetch(url);
 
-    const data =
-      await response.json();
+    try{
 
-    /*
-      Ignore an old route response.
-    */
+      const response =
+        await fetch(url);
 
-    if(
-      requestId !==
-      routeRequestId
-    ){
+      const data =
+        await response.json();
 
-      return;
-    }
-
-    if(
-      !data.routes ||
-      !data.routes.length
-    ){
-
-      return;
-    }
-
-    if(routeLine){
-
-      map.removeLayer(
-        routeLine
-      );
-
-    }
-
-    routeLine =
-      L.geoJSON(
-        data.routes[0].geometry
-      )
-      .addTo(map);
-
-    map.fitBounds(
-      routeLine.getBounds(),
-      {
-        padding:[30,30]
-      }
-    );
-
-  }catch(error){
-
-    console.log(
-      "OSRM route error:",
-      error
-    );
-
-  }
-}
-
-/* =========================
-   REALTIME
-========================= */
-
-function subscribeRealtime(){
-
-  const channel =
-    supabaseClient
-    .channel(
-      "rider-live-rides"
-    );
-
-  /*
-    NEW BOOKING
-  */
-
-  channel.on(
-
-    "postgres_changes",
-
-    {
-      event:"INSERT",
-      schema:"public",
-      table:"rides"
-    },
-
-    function(payload){
-
-      const ride =
-        payload.new;
 
       if(
-        ride &&
-        ride.status ===
-        "searching"
+        currentRequest !==
+        routeRequestId
       ){
 
-        /*
-          Add immediately
-          without waiting for SELECT.
-        */
-
-        const exists =
-          rides.some(function(r){
-
-            return String(r.id) ===
-              String(ride.id);
-
-          });
-
-        if(!exists){
-
-          rides.push(
-            ride
-          );
-
-        }
-
-        /*
-          Update signature
-        */
-
-        bookingSignature =
-          "";
-
-        renderBookings(
-          true
-        );
-
-        showToast(
-          "🔔 NEW BOOKING RECEIVED!"
-        );
-
-      }
-
-    }
-
-  );
-
-  /*
-    RIDE UPDATE
-  */
-
-  channel.on(
-
-    "postgres_changes",
-
-    {
-      event:"UPDATE",
-      schema:"public",
-      table:"rides"
-    },
-
-    function(payload){
-
-      const ride =
-        payload.new;
-
-      if(!ride){
         return;
+
       }
 
-      /*
-        If this is selected ride,
-        update it immediately.
-      */
 
       if(
-        selectedRide &&
-        String(selectedRide.id) ===
-        String(ride.id)
+        data.routes &&
+        data.routes.length
       ){
 
-        selectedRide =
-          ride;
+        routeLine =
+          L.geoJSON(
+            data.routes[0].geometry,
+            {
+              style:{
+                weight:6
+              }
+            }
+          )
+          .addTo(map);
 
-        showSelectedBooking();
 
-        showSelectedActions();
-
-      }
-
-      /*
-        Update local list.
-      */
-
-      const index =
-        rides.findIndex(
-          function(r){
-
-            return String(r.id) ===
-              String(ride.id);
-
+        map.fitBounds(
+          routeLine.getBounds(),
+          {
+            padding:[30,30]
           }
         );
 
-      if(index !== -1){
+      }
+
+    }catch(error){
+
+      console.log(
+        "OSRM error:",
+        error
+      );
+
+    }
+
+  }
+
+}
+
+
+/* =========================================
+   REALTIME
+========================================= */
+
+function subscribeRealtime(){
+
+  supabaseClient
+    .channel(
+      "rides-realtime-rider"
+    )
+
+    .on(
+      "postgres_changes",
+      {
+        event:"INSERT",
+        schema:"public",
+        table:"rides"
+      },
+      function(payload){
+
+        const ride =
+          payload.new;
+
 
         if(
-          ride.status ===
-            "completed" ||
-
-          ride.status ===
-            "cancelled"
+          ride &&
+          ride.status === "searching"
         ){
 
-          rides.splice(
-            index,
-            1
+          const exists =
+            rides.some(
+              function(r){
+
+                return String(r.id) ===
+                  String(ride.id);
+
+              }
+            );
+
+
+          if(!exists){
+
+            rides.push(ride);
+
+            bookingSignature = "";
+
+            playBookingSound();
+
+
+            if(waitingListHidden){
+
+              showToast(
+                "🔔 NEW BOOKING WAITING"
+              );
+
+            }else{
+
+              renderBookings(true);
+
+              showToast(
+                "🔔 NEW BOOKING RECEIVED!"
+              );
+
+            }
+
+          }
+
+        }
+
+      }
+    )
+
+    .on(
+      "postgres_changes",
+      {
+        event:"UPDATE",
+        schema:"public",
+        table:"rides"
+      },
+      function(payload){
+
+        const ride =
+          payload.new;
+
+
+        if(!ride){
+          return;
+        }
+
+
+        const index =
+          rides.findIndex(
+            function(r){
+
+              return String(r.id) ===
+                String(ride.id);
+
+            }
           );
 
-        }else{
+
+        if(ride.status === "completed"){
+
+          if(index >= 0){
+
+            rides.splice(
+              index,
+              1
+            );
+
+          }
+
+
+          if(
+            selectedRide &&
+            String(selectedRide.id) ===
+            String(ride.id)
+          ){
+
+            selectedRide = null;
+
+            document.getElementById(
+              "selectedBooking"
+            ).style.display =
+              "none";
+
+          }
+
+
+          if(waitingListHidden){
+
+            setWaitingListHidden(false);
+
+            loadBookings();
+
+          }
+
+
+          bookingSignature = "";
+
+          renderBookings();
+
+          return;
+
+        }
+
+
+        if(index >= 0){
 
           rides[index] =
             ride;
 
+        }else{
+
+          rides.push(ride);
+
         }
 
-      }else{
-
-        /*
-          If a ride becomes active,
-          add it.
-        */
 
         if(
-          ride.status ===
-            "searching" ||
-
-          ride.status ===
-            "accepted" ||
-
-          ride.status ===
-            "picked_up" ||
-
-          ride.status ===
-            "arrived"
+          selectedRide &&
+          String(selectedRide.id) ===
+          String(ride.id)
         ){
 
-          rides.push(
-            ride
-          );
+          selectedRide =
+            ride;
+
+          showSelectedBooking();
+
+          drawRideOnMap(ride);
 
         }
 
+
+        if(
+          selectedRide &&
+          String(selectedRide.id) ===
+          String(ride.id) &&
+          (
+            ride.status === "accepted" ||
+            ride.status === "picked_up" ||
+            ride.status === "arrived"
+          )
+        ){
+
+          setWaitingListHidden(true);
+
+        }
+
+
+        bookingSignature = "";
+
+        renderBookings();
+
       }
+    )
 
-      bookingSignature =
-        "";
+    .on(
+      "postgres_changes",
+      {
+        event:"DELETE",
+        schema:"public",
+        table:"rides"
+      },
+      function(payload){
 
-      renderBookings(
-        false
-      );
+        const oldRide =
+          payload.old;
 
-      /*
-        Keep selected UI
-        synchronized.
-      */
 
-      if(selectedRide){
+        rides =
+          rides.filter(
+            function(r){
 
-        showSelectedBooking();
+              return String(r.id) !==
+                String(oldRide.id);
+
+            }
+          );
+
+
+        if(
+          selectedRide &&
+          String(selectedRide.id) ===
+          String(oldRide.id)
+        ){
+
+          selectedRide = null;
+
+          document.getElementById(
+            "selectedBooking"
+          ).style.display =
+            "none";
+
+          setWaitingListHidden(false);
+
+        }
+
+
+        bookingSignature = "";
+
+        renderBookings();
 
       }
+    )
 
-    }
+    .subscribe(
+      function(status){
 
-  );
-
-  /*
-    DELETE
-  */
-
-  channel.on(
-
-    "postgres_changes",
-
-    {
-      event:"DELETE",
-      schema:"public",
-      table:"rides"
-    },
-
-    function(payload){
-
-      const oldRide =
-        payload.old;
-
-      rides =
-        rides.filter(
-          function(r){
-
-            return String(r.id) !==
-              String(oldRide.id);
-
-          }
+        console.log(
+          "Realtime status:",
+          status
         );
 
-      if(
-        selectedRide &&
-        String(selectedRide.id) ===
-        String(oldRide.id)
-      ){
-
-        selectedRide =
-          null;
-
-        document
-          .getElementById(
-            "selectedBooking"
-          )
-          .innerHTML =
-            "Booking deleted.";
-
-        hideAllActions();
-
       }
-
-      bookingSignature =
-        "";
-
-      renderBookings(false);
-
-    }
-
-  );
-
-  channel.subscribe();
+    );
 
 }
 
-/* =========================
-   START
-========================= */
+
+/* =========================================
+   START APP
+========================================= */
 
 initMap();
 
 subscribeRealtime();
 
 loadBookings();
+
+
+setTimeout(
+  function(){
+
+    if(map){
+
+      map.invalidateSize();
+
+    }
+
+  },
+  500
+);
+
+
+document.addEventListener(
+  "click",
+  function(){
+
+    unlockBookingSound();
+
+  },
+  {
+    once:true
+  }
+);
 
 </script>
 
