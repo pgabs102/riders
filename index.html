@@ -163,6 +163,33 @@ button:disabled{
   margin-top:7px;
 }
 
+.pickupDistance{
+  display:inline-block;
+  margin-top:7px;
+  padding:6px 10px;
+  border-radius:20px;
+  background:#e8f5e9;
+  color:#16833b;
+  font-weight:bold;
+  font-size:14px;
+}
+
+.pickupDistance.noGps{
+  background:#eee;
+  color:#666;
+}
+
+.nearestBadge{
+  display:inline-block;
+  margin-left:5px;
+  padding:5px 8px;
+  border-radius:15px;
+  background:#fff3cd;
+  color:#856404;
+  font-size:11px;
+  font-weight:bold;
+}
+
 .swipeArea{
   position:relative;
   height:52px;
@@ -280,8 +307,6 @@ button:disabled{
 
 <div class="container">
 
-<!-- RIDER PROFILE -->
-
 <div class="card">
 
 <h3>🏍️ Rider Profile</h3>
@@ -313,8 +338,6 @@ button:disabled{
 </div>
 
 
-<!-- MAP -->
-
 <div class="card">
 
 <h3>🗺️ Rider Location</h3>
@@ -323,8 +346,6 @@ button:disabled{
 
 </div>
 
-
-<!-- AVAILABLE BOOKINGS -->
 
 <div
   id="availableBookingsCard"
@@ -339,8 +360,6 @@ button:disabled{
 
 </div>
 
-
-<!-- SELECTED BOOKING -->
 
 <div
   id="selectedBooking"
@@ -723,6 +742,209 @@ function showToast(message){
 
 
 /* =========================================
+   RIDER -> PICKUP DISTANCE
+========================================= */
+
+/*
+  Calculate straight-line distance
+  between rider GPS and pickup GPS.
+
+  Result is returned in kilometers.
+*/
+
+function calculateDistanceKm(
+  lat1,
+  lng1,
+  lat2,
+  lng2
+){
+
+  const R = 6371;
+
+  const dLat =
+    (Number(lat2) - Number(lat1))
+    * Math.PI / 180;
+
+  const dLng =
+    (Number(lng2) - Number(lng1))
+    * Math.PI / 180;
+
+  const a =
+    Math.sin(dLat / 2) *
+    Math.sin(dLat / 2) +
+
+    Math.cos(
+      Number(lat1) * Math.PI / 180
+    ) *
+
+    Math.cos(
+      Number(lat2) * Math.PI / 180
+    ) *
+
+    Math.sin(dLng / 2) *
+    Math.sin(dLng / 2);
+
+  const c =
+    2 *
+    Math.atan2(
+      Math.sqrt(a),
+      Math.sqrt(1 - a)
+    );
+
+  return R * c;
+
+}
+
+
+function getPickupDistance(
+  ride
+){
+
+  if(
+    !riderLocation ||
+    ride.pickup_lat === null ||
+    ride.pickup_lat === undefined ||
+    ride.pickup_lng === null ||
+    ride.pickup_lng === undefined
+  ){
+
+    return null;
+
+  }
+
+  return calculateDistanceKm(
+    riderLocation.lat,
+    riderLocation.lng,
+    ride.pickup_lat,
+    ride.pickup_lng
+  );
+
+}
+
+
+/*
+  Add temporary calculated distance
+  to each booking.
+
+  This value is NOT saved to Supabase.
+*/
+
+function calculateRideDistances(){
+
+  rides.forEach(
+    function(ride){
+
+      ride._pickupDistanceKm =
+        getPickupDistance(ride);
+
+    }
+  );
+
+}
+
+
+/*
+  Nearest pickup first.
+
+  Bookings without rider GPS
+  stay after bookings with distance.
+*/
+
+function sortBookingsByPickupDistance(){
+
+  calculateRideDistances();
+
+  rides.sort(
+    function(a,b){
+
+      const da =
+        a._pickupDistanceKm;
+
+      const db =
+        b._pickupDistanceKm;
+
+
+      if(
+        da === null &&
+        db === null
+      ){
+
+        return 0;
+
+      }
+
+
+      if(da === null){
+
+        return 1;
+
+      }
+
+
+      if(db === null){
+
+        return -1;
+
+      }
+
+
+      return da - db;
+
+    }
+  );
+
+}
+
+
+function pickupDistanceText(
+  ride
+){
+
+  const distance =
+    getPickupDistance(ride);
+
+
+  if(distance === null){
+
+    return `
+      <span class="pickupDistance noGps">
+        🏍️ Rider Distance: GPS OFF
+      </span>
+    `;
+
+  }
+
+
+  let text;
+
+
+  if(distance < 1){
+
+    text =
+      Math.round(
+        distance * 1000
+      ) +
+      " meters away";
+
+  }else{
+
+    text =
+      distance.toFixed(2) +
+      " km away";
+
+  }
+
+
+  return `
+    <span class="pickupDistance">
+      🏍️ ${escapeHTML(text)}
+    </span>
+  `;
+
+}
+
+
+/* =========================================
    WAITING LIST VISIBILITY
 ========================================= */
 
@@ -1000,6 +1222,10 @@ function showSelectedBooking(){
 
       <br>
 
+      ${pickupDistanceText(ride)}
+
+      <br>
+
       <b>Destination:</b>
       ${escapeHTML(
         ride.destination
@@ -1212,11 +1438,20 @@ function renderBookings(
   }
 
 
+  /*
+    NEW:
+    Calculate rider -> pickup distance
+    and sort nearest first.
+  */
+
+  sortBookingsByPickupDistance();
+
+
   list.innerHTML = "";
 
 
   rides.forEach(
-    function(ride){
+    function(ride,index){
 
       const div =
         document.createElement("div");
@@ -1245,20 +1480,40 @@ function renderBookings(
       }
 
 
+      let nearestBadge = "";
+
+
       /*
-        IMPORTANT PRIVACY CHANGE:
+        Show nearest badge only for
+        the first booking when GPS exists.
+      */
 
-        Passenger NAME and CONTACT
-        are NOT shown here.
+      if(
+        index === 0 &&
+        getPickupDistance(ride) !== null
+      ){
 
-        They will only appear after
-        the rider accepts the booking.
+        nearestBadge =
+          `
+          <span class="nearestBadge">
+            ⭐ NEAREST
+          </span>
+          `;
+
+      }
+
+
+      /*
+        IMPORTANT PRIVACY:
+        Passenger name/contact remain
+        hidden until accepted.
       */
 
       div.innerHTML = `
 
         <div class="bookingTitle">
           🚕 Available Passenger
+          ${nearestBadge}
         </div>
 
         <div class="bookingInfo">
@@ -1273,6 +1528,10 @@ function renderBookings(
 
           <br>
 
+          ${pickupDistanceText(ride)}
+
+          <br>
+
           🏁 Destination:
           ${escapeHTML(
             ride.destination
@@ -1280,7 +1539,7 @@ function renderBookings(
 
           <br>
 
-          📏 Distance:
+          📏 Trip Distance:
           ${Number(
             ride.distance_km || 0
           ).toFixed(2)}
@@ -1448,6 +1707,19 @@ async function loadBookings(){
 
       }
 
+    }else{
+
+      /*
+        Even if Supabase data did not change,
+        rider GPS may have changed.
+      */
+
+      if(!waitingListHidden){
+
+        renderBookings();
+
+      }
+
     }
 
 
@@ -1601,8 +1873,6 @@ async function acceptRide(
     }
 
 
-    /* SUCCESSFUL ACCEPT */
-
     selectedRide =
       data;
 
@@ -1610,10 +1880,6 @@ async function acceptRide(
     acceptingRideId =
       null;
 
-
-    /*
-      Hide waiting list immediately.
-    */
 
     setWaitingListHidden(true);
 
@@ -1940,11 +2206,6 @@ async function completeRide(){
   bookingSignature = "";
 
 
-  /*
-    Passenger dropped off.
-    Show Available Bookings again.
-  */
-
   setWaitingListHidden(false);
 
 
@@ -2118,6 +2379,20 @@ function toggleRiderGPS(){
     ).textContent =
       "GPS stopped";
 
+
+    /*
+      Re-render so distance changes
+      to GPS OFF.
+    */
+
+    calculateRideDistances();
+
+    if(!waitingListHidden){
+
+      renderBookings();
+
+    }
+
     return;
 
   }
@@ -2187,6 +2462,28 @@ function startRiderGPS(){
           lat.toFixed(6) +
           ", " +
           lng.toFixed(6);
+
+
+        /*
+          NEW:
+          Recalculate every booking's
+          Rider -> Pickup distance.
+        */
+
+        calculateRideDistances();
+
+
+        /*
+          NEW:
+          Automatically move nearest
+          pickup to the top.
+        */
+
+        if(!waitingListHidden){
+
+          renderBookings();
+
+        }
 
 
         if(selectedRide){
@@ -2497,6 +2794,14 @@ function subscribeRealtime(){
             bookingSignature = "";
 
             playBookingSound();
+
+
+            /*
+              Sort new booking according
+              to rider distance.
+            */
+
+            sortBookingsByPickupDistance();
 
 
             if(waitingListHidden){
