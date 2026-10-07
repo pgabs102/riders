@@ -9,7 +9,7 @@
   content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"
 >
 
-<title>HABAL NA V5.5.4 - Rider</title>
+<title>HABAL NA V5.5.5 - Rider</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -106,7 +106,7 @@ header{
 
 
 /* =========================================
-   SQUARE MENU BUTTON
+   MENU
 ========================================= */
 
 .menuButton{
@@ -141,11 +141,6 @@ header{
 .menuButton:active{
   transform:scale(.94);
 }
-
-
-/* =========================================
-   RIDER MENU
-========================================= */
 
 .riderMenu{
   position:fixed;
@@ -299,7 +294,7 @@ button:disabled{
 
 
 /* =========================================
-   GPS STATUS
+   GPS
 ========================================= */
 
 .gpsStatus{
@@ -315,7 +310,7 @@ button:disabled{
 
 
 /* =========================================
-   MAP AREA
+   MAP
 ========================================= */
 
 .container{
@@ -331,11 +326,6 @@ button:disabled{
   overflow:hidden;
   z-index:1;
 }
-
-
-/* =========================================
-   MAP CARD
-========================================= */
 
 .mapCard{
   position:absolute;
@@ -356,11 +346,6 @@ button:disabled{
   display:none;
 }
 
-
-/* =========================================
-   MAP
-========================================= */
-
 #map{
   position:absolute;
 
@@ -375,11 +360,6 @@ button:disabled{
   border-radius:0;
   overflow:hidden;
 }
-
-
-/* =========================================
-   MAP GPS STATUS
-========================================= */
 
 .mapGpsStatus{
   position:absolute;
@@ -419,7 +399,7 @@ button:disabled{
 
 
 /* =========================================
-   BOOKING BOTTOM SHEET
+   BOOKING SHEET
 ========================================= */
 
 #availableBookingsCard{
@@ -467,11 +447,6 @@ button:disabled{
   isolation:isolate;
 }
 
-
-/* =========================================
-   EXPANDED SHEET
-========================================= */
-
 #availableBookingsCard.expanded{
   height:
     min(
@@ -479,11 +454,6 @@ button:disabled{
       560px
     );
 }
-
-
-/* =========================================
-   SHEET HANDLE
-========================================= */
 
 .bookingHandleArea{
   width:100%;
@@ -521,11 +491,6 @@ button:disabled{
     inset 0 1px 2px
     rgba(0,0,0,.15);
 }
-
-
-/* =========================================
-   SHEET HEADER
-========================================= */
 
 .bookingSheetHeader{
   height:50px;
@@ -581,11 +546,6 @@ button:disabled{
   font-weight:bold;
 }
 
-
-/* =========================================
-   BOOKING LIST
-========================================= */
-
 #bookingList{
   height:
     calc(
@@ -614,11 +574,6 @@ button:disabled{
   background:#aaa;
   border-radius:10px;
 }
-
-
-/* =========================================
-   SELECTED BOOKING
-========================================= */
 
 #selectedBooking{
   height:
@@ -785,7 +740,7 @@ button:disabled{
 
 
 /* =========================================
-   SWIPE ACCEPT
+   SWIPE
 ========================================= */
 
 .swipeArea{
@@ -857,7 +812,6 @@ button:disabled{
 
 /* =========================================
    TOAST
-   FIXED VERSION
 ========================================= */
 
 .toast{
@@ -947,7 +901,7 @@ button:disabled{
 
 
 /* =========================================
-   ROUTE INFO
+   ROUTE
 ========================================= */
 
 .routeInfo{
@@ -1016,6 +970,243 @@ button:disabled{
 .leaflet-top,
 .leaflet-bottom{
   z-index:900;
+}
+
+
+/* =========================================
+   CHAT
+========================================= */
+
+.chatModal{
+  position:fixed;
+
+  inset:0;
+
+  z-index:20000;
+
+  display:none;
+
+  align-items:flex-end;
+  justify-content:center;
+
+  background:
+    rgba(0,0,0,.48);
+}
+
+.chatModal.open{
+  display:flex;
+}
+
+.chatBox{
+  width:
+    min(
+      700px,
+      100%
+    );
+
+  height:
+    min(
+      76vh,
+      620px
+    );
+
+  background:white;
+
+  border-radius:
+    20px
+    20px
+    0
+    0;
+
+  display:flex;
+  flex-direction:column;
+
+  overflow:hidden;
+
+  box-shadow:
+    0 -8px 30px
+    rgba(0,0,0,.35);
+}
+
+.chatHeader{
+  min-height:62px;
+
+  padding:
+    10px
+    12px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #650000,
+      #8b0000,
+      #b3131b
+    );
+
+  color:white;
+
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.chatHeaderTitle{
+  font-size:17px;
+  font-weight:900;
+}
+
+.chatHeaderSmall{
+  font-size:11px;
+  opacity:.85;
+  margin-top:3px;
+}
+
+.chatClose{
+  width:42px !important;
+  min-width:42px !important;
+  height:42px;
+
+  margin:0 !important;
+  padding:0 !important;
+
+  border-radius:50%;
+
+  background:
+    rgba(255,255,255,.18);
+
+  color:white;
+
+  font-size:26px;
+}
+
+.chatMessages{
+  flex:1;
+
+  overflow-y:auto;
+
+  padding:12px;
+
+  background:#f3f3f3;
+
+  -webkit-overflow-scrolling:touch;
+}
+
+.chatEmpty{
+  text-align:center;
+
+  color:#777;
+
+  padding:35px 15px;
+
+  font-size:14px;
+}
+
+.chatRow{
+  display:flex;
+
+  width:100%;
+
+  margin-bottom:9px;
+}
+
+.chatRow.me{
+  justify-content:flex-end;
+}
+
+.chatRow.other{
+  justify-content:flex-start;
+}
+
+.chatBubble{
+  max-width:82%;
+
+  padding:
+    9px
+    12px;
+
+  border-radius:15px;
+
+  background:white;
+
+  color:#222;
+
+  box-shadow:
+    0 2px 6px
+    rgba(0,0,0,.10);
+
+  word-break:break-word;
+
+  line-height:1.4;
+
+  font-size:14px;
+}
+
+.chatRow.me .chatBubble{
+  background:#8b0000;
+  color:white;
+
+  border-bottom-right-radius:4px;
+}
+
+.chatRow.other .chatBubble{
+  border-bottom-left-radius:4px;
+}
+
+.chatSender{
+  font-size:11px;
+
+  font-weight:bold;
+
+  margin-bottom:3px;
+
+  opacity:.8;
+}
+
+.chatText{
+  white-space:normal;
+}
+
+.chatMeta{
+  margin-top:5px;
+
+  font-size:9px;
+
+  opacity:.65;
+
+  text-align:right;
+}
+
+.chatInputArea{
+  display:flex;
+
+  gap:8px;
+
+  padding:
+    10px;
+
+  background:white;
+
+  border-top:
+    1px solid #ddd;
+}
+
+#chatInput{
+  flex:1;
+
+  width:auto;
+
+  margin:0;
+
+  min-width:0;
+}
+
+#chatSendBtn{
+  width:88px !important;
+  min-width:88px !important;
+
+  margin:0;
+
+  padding:11px 8px;
 }
 
 
@@ -1090,12 +1281,11 @@ button:disabled{
     left:10px;
   }
 
+  .chatBox{
+    height:80vh;
+  }
+
 }
-
-
-/* =========================================
-   SHORT SCREEN
-========================================= */
 
 @media(max-height:650px){
 
@@ -1108,11 +1298,6 @@ button:disabled{
   }
 
 }
-
-
-/* =========================================
-   VERY SMALL WIDTH
-========================================= */
 
 @media(max-width:360px){
 
@@ -1131,11 +1316,6 @@ button:disabled{
   }
 
 }
-
-
-/* =========================================
-   PREVENT PAGE SCROLL
-========================================= */
 
 body.sheet-dragging{
   overflow:hidden;
@@ -1156,7 +1336,7 @@ body.sheet-dragging{
     🏍️ HABAL NA
 
     <small>
-      Rider V5.5.4 • GPS Tracking
+      Rider V5.5.5 • GPS Tracking + Chat
     </small>
 
   </div>
@@ -1339,6 +1519,17 @@ body.sheet-dragging{
       </button>
 
 
+      <!-- CHAT BUTTON -->
+
+      <button
+        id="chatBtn"
+        class="blueBtn"
+        onclick="openChat()"
+      >
+        💬 CHAT PASSENGER
+      </button>
+
+
       <button
         id="pickedUpBtn"
         class="mainBtn"
@@ -1380,6 +1571,81 @@ body.sheet-dragging{
 
 </div>
 
+
+<!-- =========================================
+     CHAT MODAL
+========================================= -->
+
+<div
+  id="chatModal"
+  class="chatModal"
+  onclick="chatBackdropClose(event)"
+>
+
+  <div class="chatBox">
+
+    <div class="chatHeader">
+
+      <div>
+
+        <div class="chatHeaderTitle">
+          💬 Chat with Passenger
+        </div>
+
+        <div
+          id="chatRideLabel"
+          class="chatHeaderSmall"
+        >
+          Ride
+        </div>
+
+      </div>
+
+
+      <button
+        class="chatClose"
+        onclick="closeChat()"
+      >
+        ×
+      </button>
+
+    </div>
+
+
+    <div
+      id="chatMessages"
+      class="chatMessages"
+    >
+
+      <div class="chatEmpty">
+        No messages yet.
+      </div>
+
+    </div>
+
+
+    <div class="chatInputArea">
+
+      <input
+        id="chatInput"
+        type="text"
+        maxlength="500"
+        placeholder="Type a message..."
+      >
+
+      <button
+        id="chatSendBtn"
+        class="blueBtn"
+        onclick="sendChatMessage()"
+      >
+        SEND
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
 
 
 <script>
@@ -1434,6 +1700,19 @@ let waitingListHidden = false;
 let acceptingRideId = null;
 
 let toastTimer = null;
+
+
+/* =========================================
+   CHAT VARIABLES
+========================================= */
+
+let chatChannel = null;
+
+let chatRideId = null;
+
+let chatMessagesSeen = new Set();
+
+let chatLoading = false;
 
 
 /* =========================================
@@ -1704,7 +1983,6 @@ function statusText(status){
 
 /* =========================================
    TOAST
-   5 SECOND + SINGLE TIMER
 ========================================= */
 
 function showToast(message){
@@ -2510,6 +2788,7 @@ function hideAllActions(){
     "acceptBtn",
     "wazePickupBtn",
     "callPassengerBtn",
+    "chatBtn",
     "pickedUpBtn",
     "wazeDestinationBtn",
     "arrivedBtn",
@@ -2562,6 +2841,12 @@ function showSelectedActions(){
 
     document.getElementById(
       "callPassengerBtn"
+    ).style.display =
+      "block";
+
+
+    document.getElementById(
+      "chatBtn"
     ).style.display =
       "block";
 
@@ -3786,6 +4071,9 @@ async function completeRide(){
   }
 
 
+  closeChat();
+
+
   selectedRide =
     null;
 
@@ -3952,6 +4240,760 @@ function callPassenger(){
     contact;
 
 }
+
+
+/* =========================================
+   CHAT
+========================================= */
+
+function formatChatTime(value){
+
+  if(!value){
+    return "";
+  }
+
+
+  try{
+
+    const date =
+      new Date(value);
+
+
+    return date.toLocaleTimeString(
+      [],
+      {
+        hour:"numeric",
+        minute:"2-digit"
+      }
+    );
+
+  }catch(error){
+
+    return "";
+
+  }
+
+}
+
+
+function appendChatMessage(message){
+
+  if(!message){
+    return;
+  }
+
+
+  if(
+    chatRideId === null ||
+    String(message.ride_id) !==
+    String(chatRideId)
+  ){
+
+    return;
+
+  }
+
+
+  const messageId =
+    String(message.id);
+
+
+  if(
+    chatMessagesSeen.has(
+      messageId
+    )
+  ){
+
+    return;
+
+  }
+
+
+  chatMessagesSeen.add(
+    messageId
+  );
+
+
+  const container =
+    document.getElementById(
+      "chatMessages"
+    );
+
+
+  if(!container){
+    return;
+  }
+
+
+  const empty =
+    container.querySelector(
+      ".chatEmpty"
+    );
+
+
+  if(empty){
+    empty.remove();
+  }
+
+
+  const row =
+    document.createElement(
+      "div"
+    );
+
+
+  const isMe =
+    message.sender_type ===
+    "rider";
+
+
+  row.className =
+    "chatRow " +
+    (
+      isMe
+        ? "me"
+        : "other"
+    );
+
+
+  const bubble =
+    document.createElement(
+      "div"
+    );
+
+
+  bubble.className =
+    "chatBubble";
+
+
+  const sender =
+    document.createElement(
+      "div"
+    );
+
+
+  sender.className =
+    "chatSender";
+
+  sender.textContent =
+    isMe
+      ? "You"
+      : (
+        message.sender_name ||
+        "Passenger"
+      );
+
+
+  const text =
+    document.createElement(
+      "div"
+    );
+
+
+  text.className =
+    "chatText";
+
+
+  text.innerHTML =
+    escapeHTML(
+      message.message || ""
+    ).replace(
+      /\n/g,
+      "<br>"
+    );
+
+
+  const meta =
+    document.createElement(
+      "div"
+    );
+
+
+  meta.className =
+    "chatMeta";
+
+  meta.textContent =
+    formatChatTime(
+      message.created_at
+    );
+
+
+  bubble.appendChild(
+    sender
+  );
+
+  bubble.appendChild(
+    text
+  );
+
+  bubble.appendChild(
+    meta
+  );
+
+  row.appendChild(
+    bubble
+  );
+
+  container.appendChild(
+    row
+  );
+
+
+  container.scrollTop =
+    container.scrollHeight;
+
+}
+
+
+async function loadChatMessages(rideId){
+
+  if(!rideId){
+    return;
+  }
+
+
+  chatLoading =
+    true;
+
+
+  const container =
+    document.getElementById(
+      "chatMessages"
+    );
+
+
+  if(container){
+
+    container.innerHTML = `
+      <div class="chatEmpty">
+        Loading messages...
+      </div>
+    `;
+
+  }
+
+
+  chatMessagesSeen.clear();
+
+
+  try{
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+      .from("ride_messages")
+      .select("*")
+      .eq(
+        "ride_id",
+        rideId
+      )
+      .order(
+        "created_at",
+        {
+          ascending:true
+        }
+      );
+
+
+    if(error){
+
+      console.log(
+        "Chat load error:",
+        error
+      );
+
+
+      if(container){
+
+        container.innerHTML = `
+          <div class="chatEmpty">
+            ❌ Failed to load messages.
+          </div>
+        `;
+
+      }
+
+      return;
+
+    }
+
+
+    if(!data || !data.length){
+
+      if(container){
+
+        container.innerHTML = `
+          <div class="chatEmpty">
+            💬 No messages yet.<br>
+            Start the conversation.
+          </div>
+        `;
+
+      }
+
+      return;
+
+    }
+
+
+    if(container){
+
+      container.innerHTML = "";
+
+    }
+
+
+    data.forEach(
+      function(message){
+
+        appendChatMessage(
+          message
+        );
+
+      }
+    );
+
+
+  }catch(error){
+
+    console.log(
+      "Chat load exception:",
+      error
+    );
+
+
+  }finally{
+
+    chatLoading =
+      false;
+
+  }
+
+}
+
+
+function subscribeChat(rideId){
+
+  if(chatChannel){
+
+    supabaseClient.removeChannel(
+      chatChannel
+    );
+
+    chatChannel =
+      null;
+
+  }
+
+
+  chatRideId =
+    rideId;
+
+
+  const channelName =
+    "ride-chat-rider-" +
+    rideId +
+    "-" +
+    Date.now();
+
+
+  chatChannel =
+    supabaseClient
+      .channel(
+        channelName
+      )
+      .on(
+        "postgres_changes",
+        {
+          event:"INSERT",
+          schema:"public",
+          table:"ride_messages",
+          filter:
+            "ride_id=eq." +
+            rideId
+        },
+        function(payload){
+
+          appendChatMessage(
+            payload.new
+          );
+
+        }
+      )
+      .subscribe(
+        function(status){
+
+          console.log(
+            "Chat realtime:",
+            status
+          );
+
+        }
+      );
+
+}
+
+
+function openChat(){
+
+  if(!selectedRide){
+
+    showToast(
+      "⚠️ No selected booking"
+    );
+
+    return;
+
+  }
+
+
+  const allowedStatuses = [
+    "accepted",
+    "picked_up",
+    "arrived"
+  ];
+
+
+  if(
+    !allowedStatuses.includes(
+      selectedRide.status
+    )
+  ){
+
+    showToast(
+      "⚠️ Chat is available after accepting the booking."
+    );
+
+    return;
+
+  }
+
+
+  const modal =
+    document.getElementById(
+      "chatModal"
+    );
+
+
+  const label =
+    document.getElementById(
+      "chatRideLabel"
+    );
+
+
+  chatRideId =
+    selectedRide.id;
+
+
+  if(label){
+
+    label.textContent =
+      "Ride #" +
+      selectedRide.id +
+      " • " +
+      (
+        selectedRide.passenger_name ||
+        "Passenger"
+      );
+
+  }
+
+
+  if(modal){
+
+    modal.classList.add(
+      "open"
+    );
+
+  }
+
+
+  subscribeChat(
+    selectedRide.id
+  );
+
+
+  loadChatMessages(
+    selectedRide.id
+  );
+
+
+  setTimeout(
+    function(){
+
+      const input =
+        document.getElementById(
+          "chatInput"
+        );
+
+      if(input){
+
+        input.focus();
+
+      }
+
+    },
+    150
+  );
+
+}
+
+
+function closeChat(){
+
+  const modal =
+    document.getElementById(
+      "chatModal"
+    );
+
+
+  if(modal){
+
+    modal.classList.remove(
+      "open"
+    );
+
+  }
+
+
+  if(chatChannel){
+
+    supabaseClient.removeChannel(
+      chatChannel
+    );
+
+    chatChannel =
+      null;
+
+  }
+
+
+  chatRideId =
+    null;
+
+
+  chatMessagesSeen.clear();
+
+
+  const input =
+    document.getElementById(
+      "chatInput"
+    );
+
+
+  if(input){
+
+    input.value = "";
+
+  }
+
+}
+
+
+function chatBackdropClose(event){
+
+  if(
+    event.target &&
+    event.target.id ===
+    "chatModal"
+  ){
+
+    closeChat();
+
+  }
+
+}
+
+
+async function sendChatMessage(){
+
+  if(
+    !selectedRide ||
+    !chatRideId
+  ){
+
+    return;
+
+  }
+
+
+  const input =
+    document.getElementById(
+      "chatInput"
+    );
+
+
+  const button =
+    document.getElementById(
+      "chatSendBtn"
+    );
+
+
+  if(!input){
+    return;
+  }
+
+
+  const message =
+    input.value.trim();
+
+
+  if(!message){
+    return;
+  }
+
+
+  const riderName =
+    document.getElementById(
+      "riderName"
+    ).value.trim();
+
+
+  const senderName =
+    riderName ||
+    selectedRide.rider_name ||
+    "Rider";
+
+
+  if(button){
+
+    button.disabled =
+      true;
+
+    button.textContent =
+      "SENDING...";
+
+  }
+
+
+  try{
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+      .from("ride_messages")
+      .insert({
+
+        ride_id:
+          Number(
+            chatRideId
+          ),
+
+        sender_type:
+          "rider",
+
+        sender_name:
+          senderName,
+
+        message:
+          message
+
+      })
+      .select()
+      .single();
+
+
+    if(error){
+
+      console.log(
+        "Chat send error:",
+        error
+      );
+
+
+      showToast(
+        "❌ Message failed to send"
+      );
+
+      return;
+
+    }
+
+
+    input.value = "";
+
+
+    if(data){
+
+      appendChatMessage(
+        data
+      );
+
+    }
+
+
+  }catch(error){
+
+    console.log(
+      "Chat send exception:",
+      error
+    );
+
+
+    showToast(
+      "❌ Message failed to send"
+    );
+
+
+  }finally{
+
+    if(button){
+
+      button.disabled =
+        false;
+
+      button.textContent =
+        "SEND";
+
+    }
+
+  }
+
+}
+
+
+/* =========================================
+   CHAT ENTER KEY
+========================================= */
+
+document.addEventListener(
+  "DOMContentLoaded",
+  function(){
+
+    const input =
+      document.getElementById(
+        "chatInput"
+      );
+
+
+    if(input){
+
+      input.addEventListener(
+        "keydown",
+        function(event){
+
+          if(
+            event.key ===
+            "Enter"
+          ){
+
+            event.preventDefault();
+
+            sendChatMessage();
+
+          }
+
+        }
+      );
+
+    }
+
+  }
+);
 
 
 /* =========================================
@@ -4560,6 +5602,8 @@ function subscribeRealtime(){
             String(ride.id)
           ){
 
+            closeChat();
+
             selectedRide =
               null;
 
@@ -4679,6 +5723,8 @@ function subscribeRealtime(){
           String(selectedRide.id) ===
           String(oldRide.id)
         ){
+
+          closeChat();
 
           selectedRide =
             null;
