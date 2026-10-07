@@ -1,84 +1,270 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
 
-<title>HABAL NA V5.5.3 - Rider</title>
+<meta charset="UTF-8">
+
+<meta
+  name="viewport"
+  content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"
+>
+
+<title>HABAL NA V5.5.4 - Rider</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<link rel="stylesheet"
-href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
+
 <style>
+
+/* =========================================
+   GLOBAL
+========================================= */
+
 *{
   box-sizing:border-box;
+  -webkit-tap-highlight-color:transparent;
+}
+
+html,
+body{
+  margin:0;
+  padding:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
 }
 
 body{
-  margin:0;
-  font-family:Arial,sans-serif;
-  background:#f2f2f2;
+  font-family:
+    "Trebuchet MS",
+    Arial,
+    sans-serif;
+
+  background:#f1f1f1;
   color:#222;
 }
 
+
+/* =========================================
+   TOP HEADER
+========================================= */
+
 header{
-  background:#8b0000;
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  height:68px;
+  z-index:7000;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+
+  padding:
+    8px
+    10px
+    8px
+    14px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #650000,
+      #8b0000,
+      #b3131b
+    );
+
   color:white;
-  padding:18px;
-  text-align:center;
-  font-size:24px;
-  font-weight:bold;
+
+  box-shadow:
+    0 3px 12px
+    rgba(0,0,0,.30);
 }
 
-header small{
+.headerBrand{
+  font-size:22px;
+  font-weight:900;
+  letter-spacing:.5px;
+  line-height:1.05;
+}
+
+.headerBrand small{
   display:block;
   margin-top:5px;
-  font-size:13px;
+  font-size:11px;
+  font-weight:normal;
   opacity:.9;
+  letter-spacing:.3px;
 }
 
-.container{
-  width:100%;
-  max-width:700px;
-  margin:auto;
-  padding:12px;
+
+/* =========================================
+   SQUARE MENU BUTTON
+========================================= */
+
+.menuButton{
+  width:46px !important;
+  min-width:46px !important;
+  height:46px;
+  margin:0 !important;
+  padding:0 !important;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border-radius:12px;
+
+  border:
+    1px solid
+    rgba(255,255,255,.35);
+
+  background:
+    rgba(255,255,255,.16);
+
+  color:white;
+  font-size:25px;
+  line-height:1;
+
+  box-shadow:
+    0 2px 8px
+    rgba(0,0,0,.18);
 }
 
-.card{
+.menuButton:active{
+  transform:scale(.94);
+}
+
+
+/* =========================================
+   RIDER MENU
+========================================= */
+
+.riderMenu{
+  position:fixed;
+  top:76px;
+  right:10px;
+
+  width:
+    min(
+      340px,
+      calc(100% - 20px)
+    );
+
+  z-index:8000;
+  display:none;
+}
+
+.riderMenu.open{
+  display:block;
+}
+
+.menuPanel{
   background:white;
-  border-radius:14px;
+  border-radius:17px;
   padding:15px;
-  margin-bottom:12px;
-  box-shadow:0 3px 10px rgba(0,0,0,.12);
+
+  box-shadow:
+    0 8px 30px
+    rgba(0,0,0,.30);
+
+  border:
+    1px solid
+    rgba(0,0,0,.08);
 }
 
-.card h3{
-  margin-top:0;
+.menuPanelTitle{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:12px;
+
   color:#8b0000;
+  font-size:18px;
+  font-weight:900;
 }
+
+.closeMenu{
+  width:38px !important;
+  min-width:38px !important;
+  height:38px;
+  margin:0 !important;
+  padding:0 !important;
+
+  border-radius:10px;
+
+  background:#f0f0f0;
+  color:#555;
+  font-size:22px;
+}
+
+
+/* =========================================
+   INPUT
+========================================= */
 
 input{
   width:100%;
   padding:13px;
-  border:1px solid #ccc;
-  border-radius:9px;
+
+  border:
+    1px solid #ccc;
+
+  border-radius:10px;
   margin-bottom:10px;
   font-size:16px;
+  outline:none;
+  background:#fafafa;
 }
+
+input:focus{
+  border-color:#8b0000;
+
+  box-shadow:
+    0 0 0 2px
+    rgba(139,0,0,.08);
+}
+
+
+/* =========================================
+   BUTTON
+========================================= */
 
 button{
   width:100%;
   padding:13px;
   border:0;
   border-radius:10px;
+
   font-size:16px;
   font-weight:bold;
   cursor:pointer;
   margin-top:7px;
+
+  font-family:
+    "Trebuchet MS",
+    Arial,
+    sans-serif;
+
+  transition:
+    transform .12s,
+    opacity .12s;
+}
+
+button:active{
+  transform:scale(.98);
+}
+
+button:disabled{
+  opacity:.5;
+  cursor:not-allowed;
 }
 
 .mainBtn{
@@ -111,67 +297,459 @@ button{
   color:white;
 }
 
-button:disabled{
-  opacity:.5;
-  cursor:not-allowed;
+
+/* =========================================
+   GPS STATUS
+========================================= */
+
+.gpsStatus{
+  font-size:12px;
+  margin-top:8px;
+  color:#666;
+  word-break:break-word;
+
+  background:#f5f5f5;
+  padding:9px;
+  border-radius:9px;
 }
 
-#map{
+
+/* =========================================
+   MAP AREA
+========================================= */
+
+.container{
+  position:fixed;
+  top:68px;
+  left:0;
+  right:0;
+  bottom:0;
+
   width:100%;
-  height:350px;
-  border-radius:12px;
+  padding:0;
+  margin:0;
+  overflow:hidden;
+  z-index:1;
+}
+
+
+/* =========================================
+   MAP CARD
+========================================= */
+
+.mapCard{
+  position:absolute;
+  inset:0;
+
+  margin:0;
+  padding:0;
+
+  border-radius:0;
+
+  background:#ddd;
+  box-shadow:none;
+
+  z-index:1;
+}
+
+.mapCard h3{
+  display:none;
+}
+
+
+/* =========================================
+   MAP
+========================================= */
+
+#map{
+  position:absolute;
+
+  top:0;
+  left:0;
+  right:0;
+  bottom:0;
+
+  width:100%;
+  height:100%;
+
+  border-radius:0;
   overflow:hidden;
 }
 
-.gpsStatus{
-  font-size:14px;
-  margin-top:5px;
-  color:#666;
+
+/* =========================================
+   MAP GPS STATUS
+========================================= */
+
+.mapGpsStatus{
+  position:absolute;
+
+  top:12px;
+  left:12px;
+
+  z-index:1000;
+
+  background:
+    rgba(255,255,255,.95);
+
+  color:#555;
+
+  padding:
+    8px
+    12px;
+
+  border-radius:20px;
+
+  font-size:12px;
+  font-weight:bold;
+
+  box-shadow:
+    0 2px 10px
+    rgba(0,0,0,.20);
+
+  pointer-events:none;
 }
 
+.mapGpsStatus.active{
+  color:#16833b;
+
+  background:
+    rgba(255,255,255,.96);
+}
+
+
+/* =========================================
+   BOOKING BOTTOM SHEET
+========================================= */
+
+#availableBookingsCard{
+  position:fixed;
+
+  left:50%;
+  bottom:0;
+
+  transform:
+    translateX(-50%);
+
+  width:
+    min(
+      700px,
+      calc(100% - 8px)
+    );
+
+  height:110px;
+
+  margin:0;
+  padding:0;
+
+  z-index:5000;
+
+  border-radius:
+    20px
+    20px
+    0
+    0;
+
+  background:
+    rgba(255,255,255,.98);
+
+  box-shadow:
+    0 -5px 25px
+    rgba(0,0,0,.28);
+
+  overflow:hidden;
+
+  transition:
+    height .28s
+    cubic-bezier(.25,.8,.25,1);
+
+  touch-action:none;
+  isolation:isolate;
+}
+
+
+/* =========================================
+   EXPANDED SHEET
+========================================= */
+
+#availableBookingsCard.expanded{
+  height:
+    min(
+      68vh,
+      560px
+    );
+}
+
+
+/* =========================================
+   SHEET HANDLE
+========================================= */
+
+.bookingHandleArea{
+  width:100%;
+  height:38px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  background:
+    linear-gradient(
+      to bottom,
+      #fff,
+      #fafafa
+    );
+
+  cursor:grab;
+  touch-action:none;
+  user-select:none;
+  -webkit-user-select:none;
+}
+
+.bookingHandleArea:active{
+  cursor:grabbing;
+}
+
+.bookingHandle{
+  width:58px;
+  height:6px;
+
+  border-radius:20px;
+  background:#aaa;
+
+  box-shadow:
+    inset 0 1px 2px
+    rgba(0,0,0,.15);
+}
+
+
+/* =========================================
+   SHEET HEADER
+========================================= */
+
+.bookingSheetHeader{
+  height:50px;
+
+  padding:
+    7px
+    15px;
+
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+
+  background:
+    linear-gradient(
+      135deg,
+      #650000,
+      #8b0000,
+      #a90012
+    );
+
+  color:white;
+
+  user-select:none;
+  -webkit-user-select:none;
+  touch-action:none;
+}
+
+.bookingSheetTitle{
+  font-size:16px;
+  font-weight:900;
+}
+
+.bookingCount{
+  min-width:30px;
+  height:30px;
+
+  padding:
+    0
+    8px;
+
+  border-radius:20px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  background:
+    rgba(255,255,255,.20);
+
+  color:white;
+
+  font-size:13px;
+  font-weight:bold;
+}
+
+
+/* =========================================
+   BOOKING LIST
+========================================= */
+
+#bookingList{
+  height:
+    calc(
+      100%
+      - 88px
+    );
+
+  overflow-y:auto;
+  overflow-x:hidden;
+
+  padding:
+    10px
+    10px
+    25px;
+
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+  touch-action:pan-y;
+}
+
+#bookingList::-webkit-scrollbar{
+  width:4px;
+}
+
+#bookingList::-webkit-scrollbar-thumb{
+  background:#aaa;
+  border-radius:10px;
+}
+
+
+/* =========================================
+   SELECTED BOOKING
+========================================= */
+
+#selectedBooking{
+  height:
+    calc(
+      100%
+      - 88px
+    );
+
+  overflow-y:auto;
+  overflow-x:hidden;
+
+  display:none;
+
+  padding:
+    12px
+    12px
+    25px;
+
+  background:white;
+
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+  touch-action:pan-y;
+}
+
+#selectedBooking::-webkit-scrollbar{
+  width:4px;
+}
+
+#selectedBooking::-webkit-scrollbar-thumb{
+  background:#aaa;
+  border-radius:10px;
+}
+
+.selectedTitle{
+  color:#8b0000;
+  font-size:20px;
+  font-weight:900;
+  margin-bottom:6px;
+}
+
+.actionGroup{
+  margin-top:10px;
+}
+
+
+/* =========================================
+   BOOKING
+========================================= */
+
 .booking{
-  border:2px solid #eee;
-  border-radius:12px;
+  border:
+    2px solid #eee;
+
+  border-radius:13px;
+
   padding:12px;
   margin-bottom:10px;
+
   background:#fff;
-  transition:.2s;
+
+  transition:
+    border-color .2s,
+    box-shadow .2s,
+    transform .2s;
 }
 
 .booking.active{
   border-color:#8b0000;
+
+  box-shadow:
+    0 3px 12px
+    rgba(139,0,0,.15);
 }
 
 .bookingTitle{
-  font-size:18px;
-  font-weight:bold;
+  font-size:17px;
+  font-weight:900;
   color:#8b0000;
 }
 
 .bookingInfo{
   margin-top:5px;
-  line-height:1.5;
+  line-height:1.55;
+  font-size:14px;
 }
+
+
+/* =========================================
+   STATUS
+========================================= */
 
 .status{
   display:inline-block;
-  padding:5px 9px;
+
+  padding:
+    5px
+    9px;
+
   border-radius:20px;
+
   background:#eee;
-  font-size:12px;
+
+  font-size:11px;
   font-weight:bold;
+
   margin-top:7px;
 }
 
+
+/* =========================================
+   PICKUP DISTANCE
+========================================= */
+
 .pickupDistance{
   display:inline-block;
+
   margin-top:7px;
-  padding:6px 10px;
+
+  padding:
+    6px
+    10px;
+
   border-radius:20px;
+
   background:#e8f5e9;
+
   color:#16833b;
+
   font-weight:bold;
-  font-size:14px;
+  font-size:13px;
 }
 
 .pickupDistance.noGps{
@@ -179,170 +757,501 @@ button:disabled{
   color:#666;
 }
 
+
+/* =========================================
+   NEAREST
+========================================= */
+
 .nearestBadge{
   display:inline-block;
+
   margin-left:5px;
-  padding:5px 8px;
+
+  padding:
+    5px
+    8px;
+
   border-radius:15px;
+
   background:#fff3cd;
+
   color:#856404;
-  font-size:11px;
+
+  font-size:10px;
   font-weight:bold;
+
+  vertical-align:middle;
 }
+
+
+/* =========================================
+   SWIPE ACCEPT
+========================================= */
 
 .swipeArea{
   position:relative;
+
   height:52px;
-  background:#eee;
+
+  background:#eeeeee;
+
   border-radius:30px;
+
   margin-top:12px;
+
   overflow:hidden;
+
+  touch-action:none;
 }
 
 .swipeText{
   position:absolute;
+
   width:100%;
+
   text-align:center;
+
   line-height:52px;
+
   color:#666;
+
   font-weight:bold;
+  font-size:13px;
+
+  pointer-events:none;
 }
 
 .swipeButton{
   position:absolute;
+
   left:2px;
   top:2px;
+
   width:48px;
   height:48px;
+
   margin:0;
   padding:0;
+
   border-radius:50%;
-  background:#8b0000;
+
+  background:
+    linear-gradient(
+      135deg,
+      #650000,
+      #8b0000,
+      #c1121f
+    );
+
   color:white;
+
   z-index:2;
+
+  box-shadow:
+    0 2px 6px
+    rgba(0,0,0,.25);
+
+  touch-action:none;
 }
 
-#selectedBooking{
-  display:none;
-}
 
-.selectedTitle{
-  color:#8b0000;
-  font-size:20px;
-  font-weight:bold;
-}
+/* =========================================
+   TOAST
+   FIXED VERSION
+========================================= */
 
 .toast{
   position:fixed;
-  top:15px;
+
+  top:78px;
   left:50%;
-  transform:translateX(-50%) translateY(-100px);
+
+  transform:
+    translateX(-50%)
+    translateY(-120px);
+
   background:#222;
   color:white;
-  padding:13px 20px;
+
+  padding:
+    13px
+    20px;
+
   border-radius:30px;
-  z-index:9999;
-  transition:.3s;
-  box-shadow:0 4px 15px rgba(0,0,0,.3);
+
+  z-index:99999;
+
+  box-shadow:
+    0 4px 15px
+    rgba(0,0,0,.3);
+
   font-weight:bold;
+
+  max-width:
+    calc(100% - 30px);
+
+  text-align:center;
+
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+
+  transition:
+    opacity .25s ease,
+    transform .25s ease,
+    visibility 0s linear .25s;
 }
 
 .toast.show{
-  transform:translateX(-50%) translateY(0);
+  opacity:1;
+
+  visibility:visible;
+
+  pointer-events:none;
+
+  transform:
+    translateX(-50%)
+    translateY(0);
+
+  transition:
+    opacity .25s ease,
+    transform .25s ease,
+    visibility 0s;
 }
 
+
+/* =========================================
+   NEW BOOKING
+========================================= */
+
 .newBooking{
-  animation:newBookingPulse 1s ease-in-out 3;
+  animation:
+    newBookingPulse
+    1s
+    ease-in-out
+    3;
 }
 
 @keyframes newBookingPulse{
-  0%,100%{
+
+  0%,
+  100%{
     transform:scale(1);
   }
 
   50%{
     transform:scale(1.02);
   }
+
 }
 
-.actionGroup{
-  margin-top:10px;
+
+/* =========================================
+   ROUTE INFO
+========================================= */
+
+.routeInfo{
+  background:#f7f7f7;
+
+  padding:10px;
+
+  border-radius:8px;
+
+  margin-top:8px;
 }
+
+
+/* =========================================
+   EMPTY
+========================================= */
+
+.emptyBookings{
+  text-align:center;
+
+  padding:
+    20px
+    10px;
+
+  color:#777;
+
+  font-size:14px;
+}
+
+
+/* =========================================
+   HIDDEN
+========================================= */
 
 .hidden{
   display:none !important;
 }
 
-.routeInfo{
-  background:#f7f7f7;
-  padding:10px;
-  border-radius:8px;
-  margin-top:8px;
+
+/* =========================================
+   SHEET DRAG
+========================================= */
+
+.sheet-dragging{
+  user-select:none !important;
+  -webkit-user-select:none !important;
 }
+
+#availableBookingsCard.dragging{
+  transition:none !important;
+}
+
+
+/* =========================================
+   LEAFLET
+========================================= */
+
+.leaflet-container{
+  z-index:1;
+}
+
+.leaflet-control{
+  z-index:900;
+}
+
+.leaflet-top,
+.leaflet-bottom{
+  z-index:900;
+}
+
+
+/* =========================================
+   MOBILE
+========================================= */
 
 @media(max-width:480px){
 
   header{
-    font-size:21px;
+    height:64px;
+
+    padding:
+      7px
+      9px
+      7px
+      12px;
   }
 
-  #map{
-    height:300px;
+  .headerBrand{
+    font-size:20px;
+  }
+
+  .headerBrand small{
+    font-size:10px;
+  }
+
+  .menuButton{
+    width:44px !important;
+    min-width:44px !important;
+    height:44px;
+  }
+
+  .container{
+    top:64px;
+  }
+
+  #availableBookingsCard{
+    height:105px;
+
+    width:
+      calc(100% - 6px);
+  }
+
+  #availableBookingsCard.expanded{
+    height:70vh;
+  }
+
+  .bookingHandleArea{
+    height:36px;
+  }
+
+  .bookingSheetHeader{
+    height:48px;
+  }
+
+  .bookingSheetTitle{
+    font-size:15px;
+  }
+
+  #bookingList,
+  #selectedBooking{
+    height:
+      calc(
+        100%
+        - 84px
+      );
+  }
+
+  .mapGpsStatus{
+    top:10px;
+    left:10px;
   }
 
 }
+
+
+/* =========================================
+   SHORT SCREEN
+========================================= */
+
+@media(max-height:650px){
+
+  #availableBookingsCard{
+    height:100px;
+  }
+
+  #availableBookingsCard.expanded{
+    height:72vh;
+  }
+
+}
+
+
+/* =========================================
+   VERY SMALL WIDTH
+========================================= */
+
+@media(max-width:360px){
+
+  .headerBrand{
+    font-size:18px;
+  }
+
+  .headerBrand small{
+    font-size:9px;
+  }
+
+  .menuButton{
+    width:42px !important;
+    min-width:42px !important;
+    height:42px;
+  }
+
+}
+
+
+/* =========================================
+   PREVENT PAGE SCROLL
+========================================= */
+
+body.sheet-dragging{
+  overflow:hidden;
+}
+
 </style>
+
 </head>
+
 
 <body>
 
+
 <header>
-  🏍️ HABAL NA
-  <small>
-    Rider V5.5.3 • GPS Tracking
-  </small>
+
+  <div class="headerBrand">
+
+    🏍️ HABAL NA
+
+    <small>
+      Rider V5.5.4 • GPS Tracking
+    </small>
+
+  </div>
+
+
+  <button
+    id="menuButton"
+    class="menuButton"
+    onclick="toggleRiderMenu(event)"
+    aria-label="Open rider menu"
+  >
+    ☰
+  </button>
+
 </header>
 
-<div id="toast" class="toast"></div>
+
+<div
+  id="riderMenu"
+  class="riderMenu"
+>
+
+  <div class="menuPanel">
+
+    <div class="menuPanelTitle">
+
+      <span>
+        🏍️ Rider Profile
+      </span>
+
+      <button
+        class="closeMenu"
+        onclick="closeRiderMenu()"
+      >
+        ×
+      </button>
+
+    </div>
+
+
+    <input
+      id="riderName"
+      type="text"
+      placeholder="Rider Name"
+    >
+
+
+    <input
+      id="riderContact"
+      type="tel"
+      placeholder="Rider Contact"
+    >
+
+
+    <button
+      id="gpsButton"
+      class="greenBtn"
+      onclick="toggleRiderGPS()"
+    >
+      📍 START GPS
+    </button>
+
+
+    <div
+      id="gpsStatus"
+      class="gpsStatus"
+    >
+      GPS not started
+    </div>
+
+  </div>
+
+</div>
+
+
+<div
+  id="toast"
+  class="toast"
+></div>
+
 
 <div class="container">
 
-<div class="card">
+  <div class="mapCard">
 
-<h3>🏍️ Rider Profile</h3>
+    <div id="map"></div>
 
-<input
-  id="riderName"
-  type="text"
-  placeholder="Rider Name"
->
+    <div
+      id="mapGpsStatus"
+      class="mapGpsStatus"
+    >
+      📍 GPS OFF
+    </div>
 
-<input
-  id="riderContact"
-  type="tel"
-  placeholder="Rider Contact"
->
-
-<button
-  id="gpsButton"
-  class="greenBtn"
-  onclick="toggleRiderGPS()"
->
-  📍 START GPS
-</button>
-
-<div id="gpsStatus" class="gpsStatus">
-  GPS not started
-</div>
-
-</div>
-
-
-<div class="card">
-
-<h3>🗺️ Rider Location</h3>
-
-<div id="map"></div>
+  </div>
 
 </div>
 
@@ -352,85 +1261,125 @@ button:disabled{
   class="card"
 >
 
-<h3>📋 Available Bookings</h3>
+  <div
+    id="bookingHandleArea"
+    class="bookingHandleArea"
+  >
 
-<div id="bookingList">
-  Loading bookings...
+    <div
+      id="bookingHandle"
+      class="bookingHandle"
+    ></div>
+
+  </div>
+
+
+  <div
+    id="bookingSheetHeader"
+    class="bookingSheetHeader"
+  >
+
+    <div
+      id="bookingSheetTitle"
+      class="bookingSheetTitle"
+    >
+      📋 Available Bookings
+    </div>
+
+    <div
+      id="bookingCount"
+      class="bookingCount"
+    >
+      0
+    </div>
+
+  </div>
+
+
+  <div id="bookingList">
+
+    <div class="emptyBookings">
+      Loading bookings...
+    </div>
+
+  </div>
+
+
+  <div id="selectedBooking">
+
+    <div id="selectedBookingContent"></div>
+
+
+    <div class="actionGroup">
+
+      <button
+        id="acceptBtn"
+        class="greenBtn"
+        onclick="acceptSelectedRide()"
+      >
+        ✅ ACCEPT BOOKING
+      </button>
+
+
+      <button
+        id="wazePickupBtn"
+        class="blueBtn"
+        onclick="wazeToPickup()"
+      >
+        📍 WAZE TO PICKUP
+      </button>
+
+
+      <button
+        id="callPassengerBtn"
+        class="orangeBtn"
+        onclick="callPassenger()"
+      >
+        📞 CALL PASSENGER
+      </button>
+
+
+      <button
+        id="pickedUpBtn"
+        class="mainBtn"
+        onclick="markPickedUp()"
+      >
+        🏍️ PICKED UP
+      </button>
+
+
+      <button
+        id="wazeDestinationBtn"
+        class="blueBtn"
+        onclick="wazeToDestination()"
+      >
+        🗺️ WAZE TO DESTINATION
+      </button>
+
+
+      <button
+        id="arrivedBtn"
+        class="orangeBtn"
+        onclick="markArrived()"
+      >
+        📍 ARRIVED
+      </button>
+
+
+      <button
+        id="completeBtn"
+        class="greenBtn"
+        onclick="completeRide()"
+      >
+        ✅ COMPLETE RIDE
+      </button>
+
+    </div>
+
+  </div>
+
 </div>
 
-</div>
-
-
-<div
-  id="selectedBooking"
-  class="card"
->
-
-<div id="selectedBookingContent"></div>
-
-<div class="actionGroup">
-
-<button
-  id="acceptBtn"
-  class="greenBtn"
-  onclick="acceptSelectedRide()"
->
-  ✅ ACCEPT BOOKING
-</button>
-
-<button
-  id="wazePickupBtn"
-  class="blueBtn"
-  onclick="wazeToPickup()"
->
-  📍 WAZE TO PICKUP
-</button>
-
-<button
-  id="callPassengerBtn"
-  class="orangeBtn"
-  onclick="callPassenger()"
->
-  📞 CALL PASSENGER
-</button>
-
-<button
-  id="pickedUpBtn"
-  class="mainBtn"
-  onclick="markPickedUp()"
->
-  🏍️ PICKED UP
-</button>
-
-<button
-  id="wazeDestinationBtn"
-  class="blueBtn"
-  onclick="wazeToDestination()"
->
-  🗺️ WAZE TO DESTINATION
-</button>
-
-<button
-  id="arrivedBtn"
-  class="orangeBtn"
-  onclick="markArrived()"
->
-  📍 ARRIVED
-</button>
-
-<button
-  id="completeBtn"
-  class="greenBtn"
-  onclick="completeRide()"
->
-  ✅ COMPLETE RIDE
-</button>
-
-</div>
-
-</div>
-
-</div>
 
 
 <script>
@@ -483,6 +1432,95 @@ let loadingBookings = false;
 let waitingListHidden = false;
 
 let acceptingRideId = null;
+
+let toastTimer = null;
+
+
+/* =========================================
+   MENU
+========================================= */
+
+function toggleRiderMenu(event){
+
+  if(event){
+    event.stopPropagation();
+  }
+
+  const menu =
+    document.getElementById(
+      "riderMenu"
+    );
+
+  menu.classList.toggle(
+    "open"
+  );
+
+  invalidateMap();
+
+}
+
+
+function closeRiderMenu(){
+
+  const menu =
+    document.getElementById(
+      "riderMenu"
+    );
+
+  menu.classList.remove(
+    "open"
+  );
+
+  invalidateMap();
+
+}
+
+
+document.addEventListener(
+  "click",
+  function(event){
+
+    const menu =
+      document.getElementById(
+        "riderMenu"
+      );
+
+    const button =
+      document.getElementById(
+        "menuButton"
+      );
+
+
+    if(
+      !menu.contains(event.target) &&
+      !button.contains(event.target)
+    ){
+
+      closeRiderMenu();
+
+    }
+
+  }
+);
+
+
+/* =========================================
+   BOOKING SHEET VARIABLES
+========================================= */
+
+let bookingSheetExpanded = false;
+
+let sheetStartY = 0;
+
+let sheetCurrentY = 0;
+
+let sheetDragging = false;
+
+let sheetMoved = false;
+
+let sheetStartTime = 0;
+
+let sheetStartHeight = 110;
 
 
 /* =========================================
@@ -549,112 +1587,61 @@ function playBookingSound(){
       ctx.currentTime;
 
 
-    const osc1 =
-      ctx.createOscillator();
+    const tones = [
+      [880,0,.20],
+      [1175,.22,.42],
+      [1320,.44,.64]
+    ];
 
-    const gain1 =
-      ctx.createGain();
 
-    osc1.type =
-      "sine";
+    tones.forEach(
+      function(tone){
 
-    osc1.frequency.setValueAtTime(
-      880,
-      now
+        const osc =
+          ctx.createOscillator();
+
+        const gain =
+          ctx.createGain();
+
+        osc.type =
+          "sine";
+
+        osc.frequency.setValueAtTime(
+          tone[0],
+          now + tone[1]
+        );
+
+        gain.gain.setValueAtTime(
+          0.0001,
+          now + tone[1]
+        );
+
+        gain.gain.exponentialRampToValueAtTime(
+          0.35,
+          now + tone[1] + .02
+        );
+
+        gain.gain.exponentialRampToValueAtTime(
+          0.0001,
+          now + tone[2]
+        );
+
+        osc.connect(gain);
+
+        gain.connect(
+          ctx.destination
+        );
+
+        osc.start(
+          now + tone[1]
+        );
+
+        osc.stop(
+          now + tone[2] + .02
+        );
+
+      }
     );
-
-    gain1.gain.setValueAtTime(
-      0.0001,
-      now
-    );
-
-    gain1.gain.exponentialRampToValueAtTime(
-      0.35,
-      now + 0.02
-    );
-
-    gain1.gain.exponentialRampToValueAtTime(
-      0.0001,
-      now + 0.20
-    );
-
-    osc1.connect(gain1);
-    gain1.connect(ctx.destination);
-
-    osc1.start(now);
-    osc1.stop(now + 0.22);
-
-
-    const osc2 =
-      ctx.createOscillator();
-
-    const gain2 =
-      ctx.createGain();
-
-    osc2.type =
-      "sine";
-
-    osc2.frequency.setValueAtTime(
-      1175,
-      now + 0.22
-    );
-
-    gain2.gain.setValueAtTime(
-      0.0001,
-      now + 0.22
-    );
-
-    gain2.gain.exponentialRampToValueAtTime(
-      0.35,
-      now + 0.24
-    );
-
-    gain2.gain.exponentialRampToValueAtTime(
-      0.0001,
-      now + 0.42
-    );
-
-    osc2.connect(gain2);
-    gain2.connect(ctx.destination);
-
-    osc2.start(now + 0.22);
-    osc2.stop(now + 0.44);
-
-
-    const osc3 =
-      ctx.createOscillator();
-
-    const gain3 =
-      ctx.createGain();
-
-    osc3.type =
-      "sine";
-
-    osc3.frequency.setValueAtTime(
-      1320,
-      now + 0.44
-    );
-
-    gain3.gain.setValueAtTime(
-      0.0001,
-      now + 0.44
-    );
-
-    gain3.gain.exponentialRampToValueAtTime(
-      0.30,
-      now + 0.46
-    );
-
-    gain3.gain.exponentialRampToValueAtTime(
-      0.0001,
-      now + 0.62
-    );
-
-    osc3.connect(gain3);
-    gain3.connect(ctx.destination);
-
-    osc3.start(now + 0.44);
-    osc3.stop(now + 0.64);
 
   }catch(error){
 
@@ -697,60 +1684,83 @@ function statusText(status){
 
   const values = {
 
-    searching:
-      "🔎 SEARCHING",
+    searching:"🔎 SEARCHING",
 
-    accepted:
-      "✅ ACCEPTED",
+    accepted:"✅ ACCEPTED",
 
-    picked_up:
-      "🏍️ PICKED UP",
+    picked_up:"🏍️ PICKED UP",
 
-    arrived:
-      "📍 ARRIVED",
+    arrived:"📍 ARRIVED",
 
-    completed:
-      "✅ COMPLETED"
+    completed:"✅ COMPLETED"
 
   };
 
-  return values[status] || status;
-
-}
-
-
-function showToast(message){
-
-  const toast =
-    document.getElementById("toast");
-
-  toast.textContent =
-    message;
-
-  toast.classList.add("show");
-
-  setTimeout(
-    function(){
-
-      toast.classList.remove("show");
-
-    },
-    3500
-  );
+  return values[status] ||
+    status;
 
 }
 
 
 /* =========================================
-   RIDER -> PICKUP DISTANCE
+   TOAST
+   5 SECOND + SINGLE TIMER
 ========================================= */
 
-/*
-  Calculate straight-line distance
-  between rider GPS and pickup GPS.
+function showToast(message){
 
-  Result is returned in kilometers.
-*/
+  const toast =
+    document.getElementById(
+      "toast"
+    );
+
+  if(!toast){
+    return;
+  }
+
+
+  if(toastTimer !== null){
+
+    clearTimeout(
+      toastTimer
+    );
+
+    toastTimer =
+      null;
+
+  }
+
+
+  toast.textContent =
+    message;
+
+
+  toast.classList.add(
+    "show"
+  );
+
+
+  toastTimer =
+    setTimeout(
+      function(){
+
+        toast.classList.remove(
+          "show"
+        );
+
+        toastTimer =
+          null;
+
+      },
+      5000
+    );
+
+}
+
+
+/* =========================================
+   DISTANCE
+========================================= */
 
 function calculateDistanceKm(
   lat1,
@@ -762,11 +1772,13 @@ function calculateDistanceKm(
   const R = 6371;
 
   const dLat =
-    (Number(lat2) - Number(lat1))
+    (Number(lat2) -
+      Number(lat1))
     * Math.PI / 180;
 
   const dLng =
-    (Number(lng2) - Number(lng1))
+    (Number(lng2) -
+      Number(lng1))
     * Math.PI / 180;
 
   const a =
@@ -774,11 +1786,13 @@ function calculateDistanceKm(
     Math.sin(dLat / 2) +
 
     Math.cos(
-      Number(lat1) * Math.PI / 180
+      Number(lat1) *
+      Math.PI / 180
     ) *
 
     Math.cos(
-      Number(lat2) * Math.PI / 180
+      Number(lat2) *
+      Math.PI / 180
     ) *
 
     Math.sin(dLng / 2) *
@@ -796,9 +1810,7 @@ function calculateDistanceKm(
 }
 
 
-function getPickupDistance(
-  ride
-){
+function getPickupDistance(ride){
 
   if(
     !riderLocation ||
@@ -822,33 +1834,21 @@ function getPickupDistance(
 }
 
 
-/*
-  Add temporary calculated distance
-  to each booking.
-
-  This value is NOT saved to Supabase.
-*/
-
 function calculateRideDistances(){
 
   rides.forEach(
     function(ride){
 
       ride._pickupDistanceKm =
-        getPickupDistance(ride);
+        getPickupDistance(
+          ride
+        );
 
     }
   );
 
 }
 
-
-/*
-  Nearest pickup first.
-
-  Bookings without rider GPS
-  stay after bookings with distance.
-*/
 
 function sortBookingsByPickupDistance(){
 
@@ -875,18 +1875,12 @@ function sortBookingsByPickupDistance(){
 
 
       if(da === null){
-
         return 1;
-
       }
-
 
       if(db === null){
-
         return -1;
-
       }
-
 
       return da - db;
 
@@ -896,12 +1890,12 @@ function sortBookingsByPickupDistance(){
 }
 
 
-function pickupDistanceText(
-  ride
-){
+function pickupDistanceText(ride){
 
   const distance =
-    getPickupDistance(ride);
+    getPickupDistance(
+      ride
+    );
 
 
   if(distance === null){
@@ -945,7 +1939,416 @@ function pickupDistanceText(
 
 
 /* =========================================
-   WAITING LIST VISIBILITY
+   MAP SIZE
+========================================= */
+
+function invalidateMap(){
+
+  if(!map){
+    return;
+  }
+
+  setTimeout(
+    function(){
+
+      map.invalidateSize({
+        animate:false,
+        pan:false
+      });
+
+    },
+    80
+  );
+
+}
+
+
+/* =========================================
+   BOOKING SHEET
+========================================= */
+
+function openBookingSheet(){
+
+  const sheet =
+    document.getElementById(
+      "availableBookingsCard"
+    );
+
+  if(!sheet){
+    return;
+  }
+
+  bookingSheetExpanded =
+    true;
+
+  sheet.classList.add(
+    "expanded"
+  );
+
+  invalidateMap();
+
+}
+
+
+function closeBookingSheet(){
+
+  const sheet =
+    document.getElementById(
+      "availableBookingsCard"
+    );
+
+  if(!sheet){
+    return;
+  }
+
+  bookingSheetExpanded =
+    false;
+
+  sheet.classList.remove(
+    "expanded"
+  );
+
+  invalidateMap();
+
+}
+
+
+function toggleBookingSheet(){
+
+  if(bookingSheetExpanded){
+
+    closeBookingSheet();
+
+  }else{
+
+    openBookingSheet();
+
+  }
+
+}
+
+
+/* =========================================
+   BOOKING SHEET SWIPE
+========================================= */
+
+function setupBookingSheetSwipe(){
+
+  const sheet =
+    document.getElementById(
+      "availableBookingsCard"
+    );
+
+  const handleArea =
+    document.getElementById(
+      "bookingHandleArea"
+    );
+
+  const headerArea =
+    document.getElementById(
+      "bookingSheetHeader"
+    );
+
+
+  if(
+    !sheet ||
+    !handleArea ||
+    !headerArea
+  ){
+
+    return;
+
+  }
+
+
+  function startDrag(clientY){
+
+    sheetDragging = true;
+
+    sheetMoved = false;
+
+    sheetStartY =
+      clientY;
+
+    sheetCurrentY =
+      clientY;
+
+    sheetStartTime =
+      Date.now();
+
+    sheetStartHeight =
+      sheet.getBoundingClientRect()
+        .height;
+
+    sheet.classList.add(
+      "dragging"
+    );
+
+    document.body.classList.add(
+      "sheet-dragging"
+    );
+
+  }
+
+
+  function moveDrag(clientY){
+
+    if(!sheetDragging){
+      return;
+    }
+
+    sheetCurrentY =
+      clientY;
+
+    const delta =
+      sheetStartY -
+      sheetCurrentY;
+
+
+    if(Math.abs(delta) > 5){
+
+      sheetMoved = true;
+
+    }
+
+
+    const minHeight =
+      window.innerWidth <= 480
+        ? 105
+        : 110;
+
+
+    const maxHeight =
+      Math.min(
+        window.innerHeight * .70,
+        560
+      );
+
+
+    let newHeight =
+      sheetStartHeight +
+      delta;
+
+
+    newHeight =
+      Math.max(
+        minHeight,
+        Math.min(
+          newHeight,
+          maxHeight
+        )
+      );
+
+
+    sheet.style.height =
+      newHeight + "px";
+
+  }
+
+
+  function endDrag(){
+
+    if(!sheetDragging){
+      return;
+    }
+
+
+    const delta =
+      sheetStartY -
+      sheetCurrentY;
+
+
+    const elapsed =
+      Math.max(
+        1,
+        Date.now() -
+        sheetStartTime
+      );
+
+
+    const velocity =
+      Math.abs(delta) /
+      elapsed;
+
+
+    sheetDragging =
+      false;
+
+
+    sheet.classList.remove(
+      "dragging"
+    );
+
+    document.body.classList.remove(
+      "sheet-dragging"
+    );
+
+
+    sheet.style.height =
+      "";
+
+
+    if(
+      delta > 45 ||
+      (
+        delta > 15 &&
+        velocity > .35
+      )
+    ){
+
+      openBookingSheet();
+
+      sheetMoved = false;
+
+      return;
+
+    }
+
+
+    if(
+      delta < -45 ||
+      (
+        delta < -15 &&
+        velocity > .35
+      )
+    ){
+
+      closeBookingSheet();
+
+      sheetMoved = false;
+
+      return;
+
+    }
+
+
+    if(!sheetMoved){
+
+      toggleBookingSheet();
+
+    }
+
+
+    sheetMoved = false;
+
+  }
+
+
+  function cancelDrag(){
+
+    sheetDragging =
+      false;
+
+    sheet.style.height =
+      "";
+
+    sheet.classList.remove(
+      "dragging"
+    );
+
+    document.body.classList.remove(
+      "sheet-dragging"
+    );
+
+    sheetMoved = false;
+
+  }
+
+
+  function attachPointerEvents(element){
+
+    element.addEventListener(
+      "pointerdown",
+      function(e){
+
+        if(
+          e.pointerType === "mouse" &&
+          e.button !== 0
+        ){
+
+          return;
+
+        }
+
+        startDrag(
+          e.clientY
+        );
+
+        try{
+
+          element.setPointerCapture(
+            e.pointerId
+          );
+
+        }catch(error){}
+
+      }
+    );
+
+
+    element.addEventListener(
+      "pointermove",
+      function(e){
+
+        if(!sheetDragging){
+          return;
+        }
+
+        moveDrag(
+          e.clientY
+        );
+
+      }
+    );
+
+
+    element.addEventListener(
+      "pointerup",
+      function(e){
+
+        if(!sheetDragging){
+          return;
+        }
+
+        try{
+
+          element.releasePointerCapture(
+            e.pointerId
+          );
+
+        }catch(error){}
+
+        endDrag();
+
+      }
+    );
+
+
+    element.addEventListener(
+      "pointercancel",
+      function(){
+
+        cancelDrag();
+
+      }
+    );
+
+  }
+
+
+  attachPointerEvents(
+    handleArea
+  );
+
+  attachPointerEvents(
+    headerArea
+  );
+
+}
+
+
+/* =========================================
+   WAITING / SELECTED MODE
 ========================================= */
 
 function setWaitingListHidden(hidden){
@@ -953,17 +2356,106 @@ function setWaitingListHidden(hidden){
   waitingListHidden =
     hidden;
 
+
   const card =
     document.getElementById(
       "availableBookingsCard"
     );
 
+  const list =
+    document.getElementById(
+      "bookingList"
+    );
+
+  const selectedBox =
+    document.getElementById(
+      "selectedBooking"
+    );
+
+  const title =
+    document.getElementById(
+      "bookingSheetTitle"
+    );
+
+  const count =
+    document.getElementById(
+      "bookingCount"
+    );
+
+
   if(!card){
     return;
   }
 
+
   card.style.display =
-    hidden ? "none" : "block";
+    "block";
+
+
+  if(hidden){
+
+    list.style.display =
+      "none";
+
+    selectedBox.style.display =
+      selectedRide
+        ? "block"
+        : "none";
+
+    title.textContent =
+      "🚕 Selected Booking";
+
+    count.style.display =
+      "none";
+
+  }else{
+
+    list.style.display =
+      "block";
+
+    selectedBox.style.display =
+      "none";
+
+    title.textContent =
+      "📋 Available Bookings";
+
+    count.style.display =
+      "flex";
+
+  }
+
+}
+
+
+/* =========================================
+   BOOKING COUNT
+========================================= */
+
+function updateBookingCount(){
+
+  const count =
+    document.getElementById(
+      "bookingCount"
+    );
+
+  if(!count){
+    return;
+  }
+
+
+  const searchingCount =
+    rides.filter(
+      function(ride){
+
+        return ride.status ===
+          "searching";
+
+      }
+    ).length;
+
+
+  count.textContent =
+    searchingCount;
 
 }
 
@@ -981,14 +2473,29 @@ function initMap(){
        13
      );
 
+
   L.tileLayer(
     "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
     {
       maxZoom:19,
+
       attribution:
         "&copy; OpenStreetMap contributors"
     }
   ).addTo(map);
+
+
+  setTimeout(
+    function(){
+
+      map.invalidateSize({
+        animate:false,
+        pan:false
+      });
+
+    },
+    300
+  );
 
 }
 
@@ -999,26 +2506,24 @@ function initMap(){
 
 function hideAllActions(){
 
-  document.getElementById("acceptBtn").style.display =
-    "none";
+  [
+    "acceptBtn",
+    "wazePickupBtn",
+    "callPassengerBtn",
+    "pickedUpBtn",
+    "wazeDestinationBtn",
+    "arrivedBtn",
+    "completeBtn"
+  ].forEach(
+    function(id){
 
-  document.getElementById("wazePickupBtn").style.display =
-    "none";
+      document.getElementById(
+        id
+      ).style.display =
+        "none";
 
-  document.getElementById("callPassengerBtn").style.display =
-    "none";
-
-  document.getElementById("pickedUpBtn").style.display =
-    "none";
-
-  document.getElementById("wazeDestinationBtn").style.display =
-    "none";
-
-  document.getElementById("arrivedBtn").style.display =
-    "none";
-
-  document.getElementById("completeBtn").style.display =
-    "none";
+    }
+  );
 
 }
 
@@ -1027,24 +2532,24 @@ function showSelectedActions(){
 
   hideAllActions();
 
+
   if(!selectedRide){
     return;
   }
+
 
   const status =
     selectedRide.status;
 
 
-  if(status === "searching"){
+  if(
+    status === "searching"
+  ){
 
-    if(!waitingListHidden){
-
-      document.getElementById(
-        "acceptBtn"
-      ).style.display =
-        "block";
-
-    }
+    document.getElementById(
+      "acceptBtn"
+    ).style.display =
+      "block";
 
   }
 
@@ -1126,6 +2631,7 @@ function selectRide(id){
       }
     );
 
+
   if(!ride){
     return;
   }
@@ -1146,11 +2652,21 @@ function selectRide(id){
   selectedRide =
     ride;
 
+
+  setWaitingListHidden(
+    true
+  );
+
+
   showSelectedBooking();
+
 
   drawRideOnMap(
     ride
   );
+
+
+  openBookingSheet();
 
 }
 
@@ -1222,7 +2738,9 @@ function showSelectedBooking(){
 
       <br>
 
-      ${pickupDistanceText(ride)}
+      ${pickupDistanceText(
+        ride
+      )}
 
       <br>
 
@@ -1261,6 +2779,11 @@ function showSelectedBooking(){
 
   showSelectedActions();
 
+
+  setWaitingListHidden(
+    true
+  );
+
 }
 
 
@@ -1271,14 +2794,18 @@ function showSelectedBooking(){
 function createSwipeAccept(ride){
 
   const wrapper =
-    document.createElement("div");
+    document.createElement(
+      "div"
+    );
 
   wrapper.className =
     "swipeArea";
 
 
   const text =
-    document.createElement("div");
+    document.createElement(
+      "div"
+    );
 
   text.className =
     "swipeText";
@@ -1288,7 +2815,9 @@ function createSwipeAccept(ride){
 
 
   const button =
-    document.createElement("button");
+    document.createElement(
+      "button"
+    );
 
   button.className =
     "swipeButton";
@@ -1297,28 +2826,43 @@ function createSwipeAccept(ride){
     "➜";
 
 
-  wrapper.appendChild(text);
-  wrapper.appendChild(button);
+  wrapper.appendChild(
+    text
+  );
+
+  wrapper.appendChild(
+    button
+  );
 
 
   let startX = 0;
+
   let currentX = 0;
+
   let dragging = false;
 
 
   function moveButton(x){
 
     const max =
-      wrapper.clientWidth - 52;
+      wrapper.clientWidth -
+      52;
+
 
     currentX =
       Math.max(
         0,
-        Math.min(x,max)
+        Math.min(
+          x,
+          max
+        )
       );
 
+
     button.style.left =
-      (currentX + 2) + "px";
+      (
+        currentX + 2
+      ) + "px";
 
   }
 
@@ -1339,7 +2883,9 @@ function createSwipeAccept(ride){
         e.touches[0].clientX;
 
     },
-    {passive:true}
+    {
+      passive:true
+    }
   );
 
 
@@ -1358,7 +2904,9 @@ function createSwipeAccept(ride){
       moveButton(x);
 
     },
-    {passive:true}
+    {
+      passive:true
+    }
   );
 
 
@@ -1368,20 +2916,27 @@ function createSwipeAccept(ride){
 
       dragging = false;
 
+
       const max =
-        wrapper.clientWidth - 52;
+        wrapper.clientWidth -
+        52;
 
 
-      if(currentX > max * 0.75){
+      if(
+        currentX >
+        max * .75
+      ){
 
         moveButton(max);
 
         acceptingRideId =
           ride.id;
 
+
         selectRide(
           ride.id
         );
+
 
         acceptRide(
           ride.id
@@ -1412,14 +2967,11 @@ function renderBookings(
 
   if(waitingListHidden){
 
-    setWaitingListHidden(true);
+    updateBookingCount();
 
     return;
 
   }
-
-
-  setWaitingListHidden(false);
 
 
   const list =
@@ -1430,19 +2982,18 @@ function renderBookings(
 
   if(!rides.length){
 
-    list.innerHTML =
-      "<p>No available bookings.</p>";
+    list.innerHTML = `
+      <div class="emptyBookings">
+        📭 No available bookings.
+      </div>
+    `;
+
+    updateBookingCount();
 
     return;
 
   }
 
-
-  /*
-    NEW:
-    Calculate rider -> pickup distance
-    and sort nearest first.
-  */
 
   sortBookingsByPickupDistance();
 
@@ -1453,8 +3004,21 @@ function renderBookings(
   rides.forEach(
     function(ride,index){
 
+      if(
+        ride.status !==
+        "searching"
+      ){
+
+        return;
+
+      }
+
+
       const div =
-        document.createElement("div");
+        document.createElement(
+          "div"
+        );
+
 
       div.className =
         "booking";
@@ -1466,7 +3030,9 @@ function renderBookings(
         String(ride.id)
       ){
 
-        div.classList.add("active");
+        div.classList.add(
+          "active"
+        );
 
       }
 
@@ -1483,56 +3049,53 @@ function renderBookings(
       let nearestBadge = "";
 
 
-      /*
-        Show nearest badge only for
-        the first booking when GPS exists.
-      */
-
       if(
         index === 0 &&
         getPickupDistance(ride) !== null
       ){
 
-        nearestBadge =
-          `
+        nearestBadge = `
           <span class="nearestBadge">
             ⭐ NEAREST
           </span>
-          `;
+        `;
 
       }
 
 
-      /*
-        IMPORTANT PRIVACY:
-        Passenger name/contact remain
-        hidden until accepted.
-      */
-
       div.innerHTML = `
 
         <div class="bookingTitle">
+
           🚕 Available Passenger
+
           ${nearestBadge}
+
         </div>
+
 
         <div class="bookingInfo">
 
           📍 Pickup:
+
           ${Number(
             ride.pickup_lat
           ).toFixed(5)},
+
           ${Number(
             ride.pickup_lng
           ).toFixed(5)}
 
           <br>
 
-          ${pickupDistanceText(ride)}
+          ${pickupDistanceText(
+            ride
+          )}
 
           <br>
 
           🏁 Destination:
+
           ${escapeHTML(
             ride.destination
           )}
@@ -1540,14 +3103,17 @@ function renderBookings(
           <br>
 
           📏 Trip Distance:
+
           ${Number(
             ride.distance_km || 0
           ).toFixed(2)}
+
           km
 
           <br>
 
           💰 Fare:
+
           ₱${Number(
             ride.estimated_fare || 0
           ).toFixed(2)}
@@ -1555,9 +3121,11 @@ function renderBookings(
           <br>
 
           <span class="status">
+
             ${statusText(
               ride.status
             )}
+
           </span>
 
         </div>
@@ -1589,10 +3157,15 @@ function renderBookings(
       }
 
 
-      list.appendChild(div);
+      list.appendChild(
+        div
+      );
 
     }
   );
+
+
+  updateBookingCount();
 
 }
 
@@ -1607,7 +3180,9 @@ async function loadBookings(){
     return;
   }
 
-  loadingBookings = true;
+
+  loadingBookings =
+    true;
 
 
   try{
@@ -1678,6 +3253,7 @@ async function loadBookings(){
       bookingSignature =
         signature;
 
+
       renderBookings();
 
 
@@ -1688,9 +3264,7 @@ async function loadBookings(){
             function(r){
 
               return String(r.id) ===
-                String(
-                  selectedRide.id
-                );
+                String(selectedRide.id);
 
             }
           );
@@ -1709,11 +3283,6 @@ async function loadBookings(){
 
     }else{
 
-      /*
-        Even if Supabase data did not change,
-        rider GPS may have changed.
-      */
-
       if(!waitingListHidden){
 
         renderBookings();
@@ -1729,7 +3298,8 @@ async function loadBookings(){
 
   }finally{
 
-    loadingBookings = false;
+    loadingBookings =
+      false;
 
   }
 
@@ -1740,9 +3310,7 @@ async function loadBookings(){
    ACCEPT RIDE
 ========================================= */
 
-async function acceptRide(
-  rideId
-){
+async function acceptRide(rideId){
 
   unlockBookingSound();
 
@@ -1780,7 +3348,10 @@ async function acceptRide(
 
   if(!name){
 
-    acceptingRideId = null;
+    acceptingRideId =
+      null;
+
+    openRiderMenu();
 
     showToast(
       "⚠️ Enter rider name first"
@@ -1793,7 +3364,10 @@ async function acceptRide(
 
   if(!contact){
 
-    acceptingRideId = null;
+    acceptingRideId =
+      null;
+
+    openRiderMenu();
 
     showToast(
       "⚠️ Enter rider contact first"
@@ -1847,7 +3421,8 @@ async function acceptRide(
 
       console.log(error);
 
-      acceptingRideId = null;
+      acceptingRideId =
+        null;
 
       showToast(
         "❌ Accept failed"
@@ -1860,7 +3435,8 @@ async function acceptRide(
 
     if(!data){
 
-      acceptingRideId = null;
+      acceptingRideId =
+        null;
 
       showToast(
         "⚠️ Booking already accepted"
@@ -1876,12 +3452,13 @@ async function acceptRide(
     selectedRide =
       data;
 
-
     acceptingRideId =
       null;
 
 
-    setWaitingListHidden(true);
+    setWaitingListHidden(
+      true
+    );
 
 
     const index =
@@ -1902,20 +3479,22 @@ async function acceptRide(
 
     }else{
 
-      rides.push(data);
+      rides.push(
+        data
+      );
 
     }
 
 
-    bookingSignature = "";
+    bookingSignature =
+      "";
 
 
     showSelectedBooking();
 
-    drawRideOnMap(data);
-
-
-    setWaitingListHidden(true);
+    drawRideOnMap(
+      data
+    );
 
 
     showToast(
@@ -1929,7 +3508,8 @@ async function acceptRide(
 
     console.log(error);
 
-    acceptingRideId = null;
+    acceptingRideId =
+      null;
 
     showToast(
       "❌ Accept error"
@@ -1966,7 +3546,7 @@ async function acceptSelectedRide(){
 
 
 /* =========================================
-   UPDATE LOCAL RIDE
+   LOCAL RIDE
 ========================================= */
 
 function updateLocalRide(ride){
@@ -1989,12 +3569,15 @@ function updateLocalRide(ride){
 
   }else{
 
-    rides.push(ride);
+    rides.push(
+      ride
+    );
 
   }
 
 
-  bookingSignature = "";
+  bookingSignature =
+    "";
 
 
   if(
@@ -2003,12 +3586,18 @@ function updateLocalRide(ride){
     ride.status === "arrived"
   ){
 
-    setWaitingListHidden(true);
+    setWaitingListHidden(
+      true
+    );
 
   }
 
 
-  renderBookings();
+  if(!waitingListHidden){
+
+    renderBookings();
+
+  }
 
 }
 
@@ -2060,11 +3649,19 @@ async function markPickedUp(){
   selectedRide =
     data;
 
-  setWaitingListHidden(true);
 
-  updateLocalRide(data);
+  setWaitingListHidden(
+    true
+  );
+
+
+  updateLocalRide(
+    data
+  );
+
 
   showSelectedBooking();
+
 
   showToast(
     "🏍️ Passenger picked up"
@@ -2120,11 +3717,19 @@ async function markArrived(){
   selectedRide =
     data;
 
-  setWaitingListHidden(true);
 
-  updateLocalRide(data);
+  setWaitingListHidden(
+    true
+  );
+
+
+  updateLocalRide(
+    data
+  );
+
 
   showSelectedBooking();
+
 
   showToast(
     "📍 ARRIVED! Waiting for passenger drop-off."
@@ -2181,15 +3786,16 @@ async function completeRide(){
   }
 
 
-  selectedRide = null;
+  selectedRide =
+    null;
 
-  acceptingRideId = null;
+  acceptingRideId =
+    null;
 
 
-  document.getElementById(
-    "selectedBooking"
-  ).style.display =
-    "none";
+  setWaitingListHidden(
+    false
+  );
 
 
   rides =
@@ -2203,16 +3809,17 @@ async function completeRide(){
     );
 
 
-  bookingSignature = "";
-
-
-  setWaitingListHidden(false);
+  bookingSignature =
+    "";
 
 
   await loadBookings();
 
 
-  setWaitingListHidden(false);
+  setWaitingListHidden(
+    false
+  );
+
 
   renderBookings();
 
@@ -2228,10 +3835,7 @@ async function completeRide(){
    WAZE
 ========================================= */
 
-function openWaze(
-  lat,
-  lng
-){
+function openWaze(lat,lng){
 
   if(
     lat === null ||
@@ -2315,7 +3919,7 @@ function wazeToDestination(){
 
 
 /* =========================================
-   CALL PASSENGER
+   CALL
 ========================================= */
 
 function callPassenger(){
@@ -2354,38 +3958,103 @@ function callPassenger(){
    GPS
 ========================================= */
 
+function updateGpsUI(
+  active,
+  text
+){
+
+  const button =
+    document.getElementById(
+      "gpsButton"
+    );
+
+  const status =
+    document.getElementById(
+      "gpsStatus"
+    );
+
+  const mapStatus =
+    document.getElementById(
+      "mapGpsStatus"
+    );
+
+
+  if(active){
+
+    button.textContent =
+      "🛑 STOP GPS";
+
+    status.textContent =
+      text;
+
+    mapStatus.textContent =
+      "📍 GPS ACTIVE";
+
+    mapStatus.classList.add(
+      "active"
+    );
+
+  }else{
+
+    button.textContent =
+      "📍 START GPS";
+
+    status.textContent =
+      text;
+
+    mapStatus.textContent =
+      "📍 GPS OFF";
+
+    mapStatus.classList.remove(
+      "active"
+    );
+
+  }
+
+}
+
+
+function openRiderMenu(){
+
+  const menu =
+    document.getElementById(
+      "riderMenu"
+    );
+
+  menu.classList.add(
+    "open"
+  );
+
+  invalidateMap();
+
+}
+
+
 function toggleRiderGPS(){
 
   unlockBookingSound();
 
 
-  if(gpsWatchId !== null){
+  if(
+    gpsWatchId !== null
+  ){
 
     navigator.geolocation.clearWatch(
       gpsWatchId
     );
 
-    gpsWatchId = null;
+    gpsWatchId =
+      null;
 
 
-    document.getElementById(
-      "gpsButton"
-    ).textContent =
-      "📍 START GPS";
+    updateGpsUI(
+      false,
+      "GPS stopped"
+    );
 
-
-    document.getElementById(
-      "gpsStatus"
-    ).textContent =
-      "GPS stopped";
-
-
-    /*
-      Re-render so distance changes
-      to GPS OFF.
-    */
 
     calculateRideDistances();
+
 
     if(!waitingListHidden){
 
@@ -2408,7 +4077,9 @@ function startRiderGPS(){
   unlockBookingSound();
 
 
-  if(!navigator.geolocation){
+  if(
+    !navigator.geolocation
+  ){
 
     showToast(
       "❌ GPS not supported"
@@ -2419,16 +4090,10 @@ function startRiderGPS(){
   }
 
 
-  document.getElementById(
-    "gpsButton"
-  ).textContent =
-    "🛑 STOP GPS";
-
-
-  document.getElementById(
-    "gpsStatus"
-  ).textContent =
-    "Getting GPS location...";
+  updateGpsUI(
+    true,
+    "Getting GPS location..."
+  );
 
 
   gpsWatchId =
@@ -2455,29 +4120,17 @@ function startRiderGPS(){
         );
 
 
-        document.getElementById(
-          "gpsStatus"
-        ).textContent =
+        updateGpsUI(
+          true,
           "GPS active: " +
           lat.toFixed(6) +
           ", " +
-          lng.toFixed(6);
+          lng.toFixed(6)
+        );
 
-
-        /*
-          NEW:
-          Recalculate every booking's
-          Rider -> Pickup distance.
-        */
 
         calculateRideDistances();
 
-
-        /*
-          NEW:
-          Automatically move nearest
-          pickup to the top.
-        */
 
         if(!waitingListHidden){
 
@@ -2522,21 +4175,25 @@ function startRiderGPS(){
 
       },
 
+
       function(error){
 
         console.log(error);
 
-        document.getElementById(
-          "gpsStatus"
-        ).textContent =
+
+        updateGpsUI(
+          false,
           "GPS error: " +
-          error.message;
+          error.message
+        );
+
 
         showToast(
           "❌ GPS error"
         );
 
       },
+
 
       {
         enableHighAccuracy:true,
@@ -2553,10 +4210,7 @@ function startRiderGPS(){
    RIDER MARKER
 ========================================= */
 
-function updateRiderMarker(
-  lat,
-  lng
-){
+function updateRiderMarker(lat,lng){
 
   if(!map){
     return;
@@ -2586,12 +4240,10 @@ function updateRiderMarker(
 
 
 /* =========================================
-   DRAW RIDE ON MAP
+   DRAW RIDE
 ========================================= */
 
-async function drawRideOnMap(
-  ride
-){
+async function drawRideOnMap(ride){
 
   if(!map){
     return;
@@ -2637,8 +4289,12 @@ async function drawRideOnMap(
     pickupMarker =
       L.marker(
         [
-          Number(ride.pickup_lat),
-          Number(ride.pickup_lng)
+          Number(
+            ride.pickup_lat
+          ),
+          Number(
+            ride.pickup_lng
+          )
         ]
       )
       .addTo(map)
@@ -2657,8 +4313,12 @@ async function drawRideOnMap(
     destinationMarker =
       L.marker(
         [
-          Number(ride.destination_lat),
-          Number(ride.destination_lng)
+          Number(
+            ride.destination_lat
+          ),
+          Number(
+            ride.destination_lng
+          )
         ]
       )
       .addTo(map)
@@ -2678,13 +4338,17 @@ async function drawRideOnMap(
 
     const url =
       "https://router.project-osrm.org/route/v1/driving/" +
+
       ride.pickup_lng +
       "," +
       ride.pickup_lat +
+
       ";" +
+
       ride.destination_lng +
       "," +
       ride.destination_lat +
+
       "?overview=full&geometries=geojson";
 
 
@@ -2692,6 +4356,7 @@ async function drawRideOnMap(
 
       const response =
         await fetch(url);
+
 
       const data =
         await response.json();
@@ -2727,7 +4392,15 @@ async function drawRideOnMap(
         map.fitBounds(
           routeLine.getBounds(),
           {
-            padding:[30,30]
+            paddingTopLeft:[
+              30,
+              80
+            ],
+
+            paddingBottomRight:[
+              30,
+              150
+            ]
           }
         );
 
@@ -2754,17 +4427,20 @@ async function drawRideOnMap(
 function subscribeRealtime(){
 
   supabaseClient
+
     .channel(
       "rides-realtime-rider"
     )
 
     .on(
       "postgres_changes",
+
       {
         event:"INSERT",
         schema:"public",
         table:"rides"
       },
+
       function(payload){
 
         const ride =
@@ -2773,7 +4449,8 @@ function subscribeRealtime(){
 
         if(
           ride &&
-          ride.status === "searching"
+          ride.status ===
+          "searching"
         ){
 
           const exists =
@@ -2789,17 +4466,17 @@ function subscribeRealtime(){
 
           if(!exists){
 
-            rides.push(ride);
+            rides.push(
+              ride
+            );
 
-            bookingSignature = "";
+
+            bookingSignature =
+              "";
+
 
             playBookingSound();
 
-
-            /*
-              Sort new booking according
-              to rider distance.
-            */
 
             sortBookingsByPickupDistance();
 
@@ -2812,7 +4489,10 @@ function subscribeRealtime(){
 
             }else{
 
-              renderBookings(true);
+              renderBookings(
+                true
+              );
+
 
               showToast(
                 "🔔 NEW BOOKING RECEIVED!"
@@ -2827,13 +4507,16 @@ function subscribeRealtime(){
       }
     )
 
+
     .on(
       "postgres_changes",
+
       {
         event:"UPDATE",
         schema:"public",
         table:"rides"
       },
+
       function(payload){
 
         const ride =
@@ -2856,7 +4539,10 @@ function subscribeRealtime(){
           );
 
 
-        if(ride.status === "completed"){
+        if(
+          ride.status ===
+          "completed"
+        ){
 
           if(index >= 0){
 
@@ -2874,26 +4560,19 @@ function subscribeRealtime(){
             String(ride.id)
           ){
 
-            selectedRide = null;
+            selectedRide =
+              null;
 
-            document.getElementById(
-              "selectedBooking"
-            ).style.display =
-              "none";
-
-          }
-
-
-          if(waitingListHidden){
-
-            setWaitingListHidden(false);
-
-            loadBookings();
+            setWaitingListHidden(
+              false
+            );
 
           }
 
 
-          bookingSignature = "";
+          bookingSignature =
+            "";
+
 
           renderBookings();
 
@@ -2909,7 +4588,9 @@ function subscribeRealtime(){
 
         }else{
 
-          rides.push(ride);
+          rides.push(
+            ride
+          );
 
         }
 
@@ -2923,9 +4604,13 @@ function subscribeRealtime(){
           selectedRide =
             ride;
 
+
           showSelectedBooking();
 
-          drawRideOnMap(ride);
+
+          drawRideOnMap(
+            ride
+          );
 
         }
 
@@ -2934,6 +4619,7 @@ function subscribeRealtime(){
           selectedRide &&
           String(selectedRide.id) ===
           String(ride.id) &&
+
           (
             ride.status === "accepted" ||
             ride.status === "picked_up" ||
@@ -2941,25 +4627,36 @@ function subscribeRealtime(){
           )
         ){
 
-          setWaitingListHidden(true);
+          setWaitingListHidden(
+            true
+          );
 
         }
 
 
-        bookingSignature = "";
+        bookingSignature =
+          "";
 
-        renderBookings();
+
+        if(!waitingListHidden){
+
+          renderBookings();
+
+        }
 
       }
     )
 
+
     .on(
       "postgres_changes",
+
       {
         event:"DELETE",
         schema:"public",
         table:"rides"
       },
+
       function(payload){
 
         const oldRide =
@@ -2983,24 +4680,26 @@ function subscribeRealtime(){
           String(oldRide.id)
         ){
 
-          selectedRide = null;
+          selectedRide =
+            null;
 
-          document.getElementById(
-            "selectedBooking"
-          ).style.display =
-            "none";
 
-          setWaitingListHidden(false);
+          setWaitingListHidden(
+            false
+          );
 
         }
 
 
-        bookingSignature = "";
+        bookingSignature =
+          "";
+
 
         renderBookings();
 
       }
     )
+
 
     .subscribe(
       function(status){
@@ -3017,10 +4716,26 @@ function subscribeRealtime(){
 
 
 /* =========================================
+   RESIZE
+========================================= */
+
+window.addEventListener(
+  "resize",
+  function(){
+
+    invalidateMap();
+
+  }
+);
+
+
+/* =========================================
    START APP
 ========================================= */
 
 initMap();
+
+setupBookingSheetSwipe();
 
 subscribeRealtime();
 
@@ -3032,7 +4747,10 @@ setTimeout(
 
     if(map){
 
-      map.invalidateSize();
+      map.invalidateSize({
+        animate:false,
+        pan:false
+      });
 
     }
 
