@@ -1407,6 +1407,63 @@ body.sheet-dragging{
       GPS not started
     </div>
 
+
+    <!-- =========================================
+         ADDED: RIDE HISTORY
+         Walang binago sa existing CSS/layout.
+    ========================================== -->
+
+    <button
+      id="historyButton"
+      class="grayBtn"
+      onclick="toggleRideHistory()"
+    >
+      🧾 RIDE HISTORY
+    </button>
+
+
+    <div
+      id="historyPanel"
+      style="
+        display:none;
+        margin-top:10px;
+        background:#f7f7f7;
+        border-radius:10px;
+        padding:10px;
+        max-height:300px;
+        overflow-y:auto;
+      "
+    >
+
+      <div
+        style="
+          font-size:15px;
+          font-weight:900;
+          color:#8b0000;
+          margin-bottom:8px;
+        "
+      >
+        🧾 Completed Rides
+      </div>
+
+
+      <div id="historyList">
+
+        <div
+          style="
+            text-align:center;
+            color:#777;
+            padding:12px 5px;
+            font-size:13px;
+          "
+        >
+          Loading history...
+        </div>
+
+      </div>
+
+    </div>
+
   </div>
 
 </div>
@@ -1518,8 +1575,6 @@ body.sheet-dragging{
         📞 CALL PASSENGER
       </button>
 
-
-      <!-- CHAT BUTTON -->
 
       <button
         id="chatBtn"
@@ -1668,6 +1723,17 @@ const supabaseClient =
 
 
 /* =========================================
+   ADDED: LOCAL STORAGE KEYS
+========================================= */
+
+const RIDER_PROFILE_KEY =
+  "HABAL_NA_RIDER_PROFILE_V555";
+
+const ACTIVE_RIDE_KEY =
+  "HABAL_NA_ACTIVE_RIDE_V555";
+
+
+/* =========================================
    VARIABLES
 ========================================= */
 
@@ -1703,6 +1769,15 @@ let toastTimer = null;
 
 
 /* =========================================
+   ADDED: RECOVERY VARIABLES
+========================================= */
+
+let restoringActiveRide = false;
+
+let riderHistory = [];
+
+
+/* =========================================
    CHAT VARIABLES
 ========================================= */
 
@@ -1735,6 +1810,15 @@ function toggleRiderMenu(event){
   );
 
   invalidateMap();
+
+
+  /* ADDED */
+
+  if(menu.classList.contains("open")){
+
+    loadRideHistory();
+
+  }
 
 }
 
@@ -1781,6 +1865,887 @@ document.addEventListener(
 
   }
 );
+
+
+/* =========================================
+   ADDED: RIDER PROFILE SAVE / RESTORE
+========================================= */
+
+function saveRiderProfile(){
+
+  try{
+
+    const name =
+      document.getElementById(
+        "riderName"
+      )?.value.trim() || "";
+
+    const contact =
+      document.getElementById(
+        "riderContact"
+      )?.value.trim() || "";
+
+
+    localStorage.setItem(
+      RIDER_PROFILE_KEY,
+      JSON.stringify({
+        name:name,
+        contact:contact
+      })
+    );
+
+  }catch(error){
+
+    console.log(
+      "Save rider profile error:",
+      error
+    );
+
+  }
+
+}
+
+
+function restoreRiderProfile(){
+
+  try{
+
+    const saved =
+      localStorage.getItem(
+        RIDER_PROFILE_KEY
+      );
+
+
+    if(!saved){
+      return;
+    }
+
+
+    const profile =
+      JSON.parse(saved);
+
+
+    const nameInput =
+      document.getElementById(
+        "riderName"
+      );
+
+    const contactInput =
+      document.getElementById(
+        "riderContact"
+      );
+
+
+    if(
+      nameInput &&
+      profile &&
+      profile.name
+    ){
+
+      nameInput.value =
+        profile.name;
+
+    }
+
+
+    if(
+      contactInput &&
+      profile &&
+      profile.contact
+    ){
+
+      contactInput.value =
+        profile.contact;
+
+    }
+
+  }catch(error){
+
+    console.log(
+      "Restore rider profile error:",
+      error
+    );
+
+  }
+
+}
+
+
+function setupRiderProfilePersistence(){
+
+  const nameInput =
+    document.getElementById(
+      "riderName"
+    );
+
+  const contactInput =
+    document.getElementById(
+      "riderContact"
+    );
+
+
+  if(nameInput){
+
+    nameInput.addEventListener(
+      "input",
+      saveRiderProfile
+    );
+
+  }
+
+
+  if(contactInput){
+
+    contactInput.addEventListener(
+      "input",
+      saveRiderProfile
+    );
+
+  }
+
+}
+
+
+/* =========================================
+   ADDED: ACTIVE RIDE STORAGE
+========================================= */
+
+function isActiveRideStatus(status){
+
+  return (
+    status === "accepted" ||
+    status === "picked_up" ||
+    status === "arrived"
+  );
+
+}
+
+
+function saveActiveRide(ride){
+
+  if(!ride){
+    return;
+  }
+
+
+  if(
+    !isActiveRideStatus(
+      ride.status
+    )
+  ){
+
+    return;
+
+  }
+
+
+  try{
+
+    localStorage.setItem(
+      ACTIVE_RIDE_KEY,
+      JSON.stringify({
+        id:ride.id,
+        status:ride.status,
+        rider_name:ride.rider_name || "",
+        rider_contact:ride.rider_contact || "",
+        saved_at:Date.now()
+      })
+    );
+
+
+    console.log(
+      "Active ride saved:",
+      ride.id
+    );
+
+  }catch(error){
+
+    console.log(
+      "Save active ride error:",
+      error
+    );
+
+  }
+
+}
+
+
+function clearActiveRide(){
+
+  try{
+
+    localStorage.removeItem(
+      ACTIVE_RIDE_KEY
+    );
+
+  }catch(error){
+
+    console.log(
+      "Clear active ride error:",
+      error
+    );
+
+  }
+
+}
+
+
+function getSavedActiveRide(){
+
+  try{
+
+    const saved =
+      localStorage.getItem(
+        ACTIVE_RIDE_KEY
+      );
+
+
+    if(!saved){
+      return null;
+    }
+
+
+    return JSON.parse(
+      saved
+    );
+
+  }catch(error){
+
+    console.log(
+      "Get saved active ride error:",
+      error
+    );
+
+    return null;
+
+  }
+
+}
+
+
+/* =========================================
+   ADDED: RESTORE ACTIVE RIDE
+========================================= */
+
+async function restoreActiveRide(){
+
+  if(restoringActiveRide){
+    return;
+  }
+
+
+  restoringActiveRide =
+    true;
+
+
+  try{
+
+    const saved =
+      getSavedActiveRide();
+
+
+    if(!saved || !saved.id){
+
+      return;
+
+    }
+
+
+    console.log(
+      "Trying to restore ride:",
+      saved.id
+    );
+
+
+    /*
+      First try exact ride ID.
+    */
+
+    let restoredRide = null;
+
+
+    const exactResult =
+      await supabaseClient
+      .from("rides")
+      .select("*")
+      .eq(
+        "id",
+        saved.id
+      )
+      .maybeSingle();
+
+
+    if(
+      !exactResult.error &&
+      exactResult.data
+    ){
+
+      const ride =
+        exactResult.data;
+
+
+      if(
+        isActiveRideStatus(
+          ride.status
+        )
+      ){
+
+        restoredRide =
+          ride;
+
+      }
+
+    }
+
+
+    /*
+      If exact ID cannot be restored,
+      search active rides using rider
+      name + contact.
+    */
+
+    if(!restoredRide){
+
+      const riderName =
+        saved.rider_name ||
+        document.getElementById(
+          "riderName"
+        ).value.trim();
+
+
+      const riderContact =
+        saved.rider_contact ||
+        document.getElementById(
+          "riderContact"
+        ).value.trim();
+
+
+      if(
+        riderName &&
+        riderContact
+      ){
+
+        const fallbackResult =
+          await supabaseClient
+          .from("rides")
+          .select("*")
+          .eq(
+            "rider_name",
+            riderName
+          )
+          .eq(
+            "rider_contact",
+            riderContact
+          )
+          .in(
+            "status",
+            [
+              "accepted",
+              "picked_up",
+              "arrived"
+            ]
+          )
+          .order(
+            "created_at",
+            {
+              ascending:false
+            }
+          )
+          .limit(1);
+
+
+        if(
+          !fallbackResult.error &&
+          fallbackResult.data &&
+          fallbackResult.data.length
+        ){
+
+          restoredRide =
+            fallbackResult.data[0];
+
+        }
+
+      }
+
+    }
+
+
+    /*
+      Nothing active anymore.
+      Remove old local recovery data.
+    */
+
+    if(!restoredRide){
+
+      clearActiveRide();
+
+      return;
+
+    }
+
+
+    /*
+      Restore rider profile from the
+      actual active booking too.
+    */
+
+    const nameInput =
+      document.getElementById(
+        "riderName"
+      );
+
+    const contactInput =
+      document.getElementById(
+        "riderContact"
+      );
+
+
+    if(
+      nameInput &&
+      restoredRide.rider_name
+    ){
+
+      nameInput.value =
+        restoredRide.rider_name;
+
+    }
+
+
+    if(
+      contactInput &&
+      restoredRide.rider_contact
+    ){
+
+      contactInput.value =
+        restoredRide.rider_contact;
+
+    }
+
+
+    saveRiderProfile();
+
+
+    /*
+      Put recovered ride into local list.
+    */
+
+    const existingIndex =
+      rides.findIndex(
+        function(r){
+
+          return String(r.id) ===
+            String(restoredRide.id);
+
+        }
+      );
+
+
+    if(existingIndex >= 0){
+
+      rides[existingIndex] =
+        restoredRide;
+
+    }else{
+
+      rides.push(
+        restoredRide
+      );
+
+    }
+
+
+    selectedRide =
+      restoredRide;
+
+
+    saveActiveRide(
+      restoredRide
+    );
+
+
+    bookingSignature =
+      "";
+
+
+    setWaitingListHidden(
+      true
+    );
+
+
+    showSelectedBooking();
+
+
+    drawRideOnMap(
+      restoredRide
+    );
+
+
+    openBookingSheet();
+
+
+    showToast(
+      "🔄 ACTIVE BOOKING RESTORED!"
+    );
+
+
+    console.log(
+      "Active ride restored:",
+      restoredRide
+    );
+
+
+  }catch(error){
+
+    console.log(
+      "Restore active ride error:",
+      error
+    );
+
+  }finally{
+
+    restoringActiveRide =
+      false;
+
+  }
+
+}
+
+
+/* =========================================
+   ADDED: RIDE HISTORY
+========================================= */
+
+function toggleRideHistory(){
+
+  const panel =
+    document.getElementById(
+      "historyPanel"
+    );
+
+
+  if(!panel){
+    return;
+  }
+
+
+  if(
+    panel.style.display ===
+    "none" ||
+    panel.style.display === ""
+  ){
+
+    panel.style.display =
+      "block";
+
+
+    loadRideHistory();
+
+  }else{
+
+    panel.style.display =
+      "none";
+
+  }
+
+}
+
+
+async function loadRideHistory(){
+
+  const list =
+    document.getElementById(
+      "historyList"
+    );
+
+
+  if(!list){
+    return;
+  }
+
+
+  const riderName =
+    document.getElementById(
+      "riderName"
+    ).value.trim();
+
+
+  const riderContact =
+    document.getElementById(
+      "riderContact"
+    ).value.trim();
+
+
+  if(
+    !riderName ||
+    !riderContact
+  ){
+
+    list.innerHTML = `
+      <div
+        style="
+          text-align:center;
+          color:#777;
+          padding:12px 5px;
+          font-size:13px;
+        "
+      >
+        Enter rider name and contact first.
+      </div>
+    `;
+
+    return;
+
+  }
+
+
+  list.innerHTML = `
+    <div
+      style="
+        text-align:center;
+        color:#777;
+        padding:12px 5px;
+        font-size:13px;
+      "
+    >
+      Loading history...
+    </div>
+  `;
+
+
+  try{
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+      .from("rides")
+      .select("*")
+      .eq(
+        "status",
+        "completed"
+      )
+      .eq(
+        "rider_name",
+        riderName
+      )
+      .eq(
+        "rider_contact",
+        riderContact
+      )
+      .order(
+        "created_at",
+        {
+          ascending:false
+        }
+      );
+
+
+    if(error){
+
+      console.log(
+        "History error:",
+        error
+      );
+
+
+      list.innerHTML = `
+        <div
+          style="
+            text-align:center;
+            color:#c1121f;
+            padding:12px 5px;
+            font-size:13px;
+          "
+        >
+          ❌ Failed to load history.
+        </div>
+      `;
+
+      return;
+
+    }
+
+
+    riderHistory =
+      data || [];
+
+
+    renderRideHistory();
+
+
+  }catch(error){
+
+    console.log(
+      "History exception:",
+      error
+    );
+
+
+    list.innerHTML = `
+      <div
+        style="
+          text-align:center;
+          color:#c1121f;
+          padding:12px 5px;
+          font-size:13px;
+        "
+      >
+        ❌ History loading error.
+      </div>
+    `;
+
+  }
+
+}
+
+
+function renderRideHistory(){
+
+  const list =
+    document.getElementById(
+      "historyList"
+    );
+
+
+  if(!list){
+    return;
+  }
+
+
+  if(!riderHistory.length){
+
+    list.innerHTML = `
+      <div
+        style="
+          text-align:center;
+          color:#777;
+          padding:12px 5px;
+          font-size:13px;
+        "
+      >
+        📭 No completed rides yet.
+      </div>
+    `;
+
+    return;
+
+  }
+
+
+  list.innerHTML = "";
+
+
+  riderHistory.forEach(
+    function(ride,index){
+
+      const item =
+        document.createElement(
+          "div"
+        );
+
+
+      item.style.cssText = `
+        background:#fff;
+        border:1px solid #ddd;
+        border-radius:10px;
+        padding:10px;
+        margin-bottom:8px;
+        font-size:12px;
+        line-height:1.55;
+      `;
+
+
+      let dateText =
+        "";
+
+
+      if(ride.created_at){
+
+        try{
+
+          dateText =
+            new Date(
+              ride.created_at
+            ).toLocaleString();
+
+        }catch(error){
+
+          dateText =
+            ride.created_at;
+
+        }
+
+      }
+
+
+      item.innerHTML = `
+
+        <div
+          style="
+            font-size:14px;
+            font-weight:900;
+            color:#8b0000;
+            margin-bottom:4px;
+          "
+        >
+          ✅ Ride #${escapeHTML(
+            ride.id
+          )}
+        </div>
+
+        <div>
+          <b>Passenger:</b>
+          ${escapeHTML(
+            ride.passenger_name
+          )}
+        </div>
+
+        <div>
+          <b>Destination:</b>
+          ${escapeHTML(
+            ride.destination
+          )}
+        </div>
+
+        <div>
+          <b>Distance:</b>
+          ${Number(
+            ride.distance_km || 0
+          ).toFixed(2)}
+          km
+        </div>
+
+        <div>
+          <b>Fare:</b>
+          ₱${Number(
+            ride.estimated_fare || 0
+          ).toFixed(2)}
+        </div>
+
+        <div
+          style="
+            color:#777;
+            font-size:10px;
+            margin-top:3px;
+          "
+        >
+          ${escapeHTML(
+            dateText
+          )}
+        </div>
+
+      `;
+
+
+      list.appendChild(
+        item
+      );
+
+    }
+  );
+
+}
 
 
 /* =========================================
@@ -2938,6 +3903,24 @@ function selectRide(id){
     ride;
 
 
+  /*
+    ADDED:
+    Save selected active ride.
+  */
+
+  if(
+    isActiveRideStatus(
+      ride.status
+    )
+  ){
+
+    saveActiveRide(
+      ride
+    );
+
+  }
+
+
   setWaitingListHidden(
     true
   );
@@ -2979,6 +3962,25 @@ function showSelectedBooking(){
       "none";
 
     return;
+
+  }
+
+
+  /*
+    ADDED:
+    Keep active ride saved whenever
+    selected booking is displayed.
+  */
+
+  if(
+    isActiveRideStatus(
+      selectedRide.status
+    )
+  ){
+
+    saveActiveRide(
+      selectedRide
+    );
 
   }
 
@@ -3560,6 +4562,25 @@ async function loadBookings(){
           selectedRide =
             updated;
 
+
+          /*
+            ADDED:
+            Keep recovered/active ride saved.
+          */
+
+          if(
+            isActiveRideStatus(
+              updated.status
+            )
+          ){
+
+            saveActiveRide(
+              updated
+            );
+
+          }
+
+
           showSelectedBooking();
 
         }
@@ -3663,6 +4684,11 @@ async function acceptRide(rideId){
   }
 
 
+  /* ADDED */
+
+  saveRiderProfile();
+
+
   try{
 
     const {
@@ -3739,6 +4765,16 @@ async function acceptRide(rideId){
 
     acceptingRideId =
       null;
+
+
+    /*
+      ADDED:
+      Save accepted booking immediately.
+    */
+
+    saveActiveRide(
+      data
+    );
 
 
     setWaitingListHidden(
@@ -3871,9 +4907,30 @@ function updateLocalRide(ride){
     ride.status === "arrived"
   ){
 
+    /*
+      ADDED:
+      Save active booking on every
+      active status change.
+    */
+
+    saveActiveRide(
+      ride
+    );
+
+
     setWaitingListHidden(
       true
     );
+
+  }
+
+
+  if(
+    ride.status ===
+    "completed"
+  ){
+
+    clearActiveRide();
 
   }
 
@@ -3933,6 +4990,15 @@ async function markPickedUp(){
 
   selectedRide =
     data;
+
+
+  /*
+    ADDED
+  */
+
+  saveActiveRide(
+    data
+  );
 
 
   setWaitingListHidden(
@@ -4003,6 +5069,15 @@ async function markArrived(){
     data;
 
 
+  /*
+    ADDED
+  */
+
+  saveActiveRide(
+    data
+  );
+
+
   setWaitingListHidden(
     true
   );
@@ -4071,6 +5146,16 @@ async function completeRide(){
   }
 
 
+  /*
+    ADDED:
+    Remove active recovery immediately.
+    The completed ride remains in Supabase
+    and will appear in Rider History.
+  */
+
+  clearActiveRide();
+
+
   closeChat();
 
 
@@ -4110,6 +5195,26 @@ async function completeRide(){
 
 
   renderBookings();
+
+
+  /*
+    Refresh history if menu is open.
+  */
+
+  const menu =
+    document.getElementById(
+      "riderMenu"
+    );
+
+
+  if(
+    menu &&
+    menu.classList.contains("open")
+  ){
+
+    loadRideHistory();
+
+  }
 
 
   showToast(
@@ -5586,6 +6691,23 @@ function subscribeRealtime(){
           "completed"
         ){
 
+          /*
+            ADDED:
+            Completed ride is no longer
+            an active recovered ride.
+          */
+
+          if(
+            selectedRide &&
+            String(selectedRide.id) ===
+            String(ride.id)
+          ){
+
+            clearActiveRide();
+
+          }
+
+
           if(index >= 0){
 
             rides.splice(
@@ -5620,6 +6742,27 @@ function subscribeRealtime(){
 
           renderBookings();
 
+
+          /*
+            Refresh history if menu is open.
+          */
+
+          const menu =
+            document.getElementById(
+              "riderMenu"
+            );
+
+
+          if(
+            menu &&
+            menu.classList.contains("open")
+          ){
+
+            loadRideHistory();
+
+          }
+
+
           return;
 
         }
@@ -5633,6 +6776,26 @@ function subscribeRealtime(){
         }else{
 
           rides.push(
+            ride
+          );
+
+        }
+
+
+        /*
+          ADDED:
+          Save active booking on realtime
+          status changes.
+        */
+
+        if(
+          isActiveRideStatus(
+            ride.status
+          ) &&
+          ride.rider_name
+        ){
+
+          saveActiveRide(
             ride
           );
 
@@ -5724,6 +6887,14 @@ function subscribeRealtime(){
           String(oldRide.id)
         ){
 
+          /*
+            ADDED:
+            Booking no longer exists.
+          */
+
+          clearActiveRide();
+
+
           closeChat();
 
           selectedRide =
@@ -5783,9 +6954,37 @@ initMap();
 
 setupBookingSheetSwipe();
 
+
+/*
+  ADDED:
+  Restore rider profile before
+  trying to recover active booking.
+*/
+
+restoreRiderProfile();
+
+setupRiderProfilePersistence();
+
+
 subscribeRealtime();
 
 loadBookings();
+
+
+/*
+  ADDED:
+  Give Supabase and local profile
+  a moment, then recover active ride.
+*/
+
+setTimeout(
+  function(){
+
+    restoreActiveRide();
+
+  },
+  1200
+);
 
 
 setTimeout(
