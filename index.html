@@ -264,6 +264,7 @@ body.nav-active .mapGpsStatus {
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: transform 0.25s linear; /* Smooth Rotation Filter */
 }
 
 .flashlight-beam {
@@ -1725,7 +1726,7 @@ function lockMapTo3DView(lng, lat, heading) {
     pitch: 60,         
     bearing: heading,  
     offset: [0, 160],  
-    duration: 600,
+    duration: 500,
     easing: (t) => t
   });
 }
@@ -1738,14 +1739,14 @@ function triggerAcceptFlashTransition(ride) {
   showToast("⚡ 3D Navigation Active!");
 }
 
-function smoothAngle(currentAngle, targetAngle, alpha = 0.3) {
+function smoothAngle(currentAngle, targetAngle, alpha = 0.25) {
   let diff = targetAngle - currentAngle;
   while (diff < -180) diff += 360;
   while (diff > 180) diff -= 360;
   return currentAngle + alpha * diff;
 }
 
-/* SNAP-TO-ROUTE ALGORITHM (Aligns marker precisely to the route line) */
+/* STABLE ROUTE SNAPPING & DYNAMIC ROUTE LINE FADING */
 function getClosestPointOnSegment(p, a, b) {
   const x = p.lng, y = p.lat;
   const x1 = a[0], y1 = a[1];
@@ -1755,7 +1756,7 @@ function getClosestPointOnSegment(p, a, b) {
   const dy = y2 - y1;
 
   if (dx === 0 && dy === 0) {
-    return { lng: x1, lat: y1, distance: calculateDistanceMeters(y, x, y1, x1) };
+    return { lng: x1, lat: y1, distance: calculateDistanceMeters(y, x, y1, x1), segmentIndex: 0 };
   }
 
   const t = Math.max(0, Math.min(1, ((x - x1) * dx + (y - y1) * dy) / (dx * dx + dy * dy)));
@@ -1769,13 +1770,14 @@ function getClosestPointOnSegment(p, a, b) {
   };
 }
 
-function snapToRoute(rawLocation) {
+function snapToRouteAndFadePassedLine(rawLocation) {
   if (!currentRouteCoordinates || currentRouteCoordinates.length < 2) {
     return rawLocation; 
   }
 
   let minDistance = Infinity;
   let snappedPoint = rawLocation;
+  let closestSegmentIdx = 0;
 
   for (let i = 0; i < currentRouteCoordinates.length - 1; i++) {
     const ptA = currentRouteCoordinates[i];
@@ -1786,11 +1788,32 @@ function snapToRoute(rawLocation) {
     if (result.distance < minDistance) {
       minDistance = result.distance;
       snappedPoint = { lat: result.lat, lng: result.lng };
+      closestSegmentIdx = i;
     }
   }
 
-  // Snap to route if within 30 meters threshold
-  return (minDistance <= 30) ? snappedPoint : rawLocation;
+  // Snap to route line center if within 35 meters
+  if (minDistance <= 35) {
+    // Dynamic Fading: Trim coordinates that are already passed
+    if (closestSegmentIdx > 0) {
+      currentRouteCoordinates.splice(0, closestSegmentIdx);
+      currentRouteCoordinates[0] = [snappedPoint.lng, snappedPoint.lat];
+
+      if (map && map.getSource('route')) {
+        map.getSource('route').setData({
+          type: 'Feature',
+          properties: {},
+          geometry: {
+            type: 'LineString',
+            coordinates: currentRouteCoordinates
+          }
+        });
+      }
+    }
+    return snappedPoint;
+  }
+
+  return rawLocation;
 }
 
 function startRiderGPS(){  
@@ -1812,20 +1835,22 @@ function startRiderGPS(){
 
     if (riderLocation) {
       const movedMeters = calculateDistanceMeters(riderLocation.lat, riderLocation.lng, lat, lng);
-      if (movedMeters < 2) return; 
+      
+      // Filter out micro-movements to eliminate shaking/jittering
+      if (movedMeters < 1.5) return; 
 
       let targetHeading = rawHeading;
       if (targetHeading == null || isNaN(targetHeading)) {  
         targetHeading = calculateBearing(riderLocation.lat, riderLocation.lng, lat, lng);  
       }
-      smoothHeading = smoothAngle(smoothHeading, targetHeading, 0.35);
+      smoothHeading = smoothAngle(smoothHeading, targetHeading, 0.25);
       lastHeading = smoothHeading;
     } else {
       if (rawHeading && !isNaN(rawHeading)) smoothHeading = rawHeading;
     }
 
     const rawLoc = { lat, lng };
-    riderLocation = snapToRoute(rawLoc);  
+    riderLocation = snapToRouteAndFadePassedLine(rawLoc);  
 
     updateRiderMarker(riderLocation.lng, riderLocation.lat, lastHeading);  
     
@@ -1844,7 +1869,7 @@ function startRiderGPS(){
     }  
   }, error => {  
     showGPSRequiredOverlay(true);
-  }, { enableHighAccuracy: true, maximumAge: 1500, timeout: 10000 });  
+  }, { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 });  
 }  
 
 function calculateBearing(lat1, lon1, lat2, lon2) {  
