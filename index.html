@@ -3,7 +3,7 @@
 <head>  
 <meta charset="UTF-8">  
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">  
-<title>T U K L A S - V5.6.3 - Mapbox 3D Navigation</title>  
+<title>T U K L A S - V5.7.0 - Mapbox 3D Navigation Pro</title>  
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>  
 <!-- Mapbox GL JS CSS & JS -->
 <link href="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css" rel="stylesheet">
@@ -160,6 +160,30 @@ header.hiddenHeader {
   font-size:22px;  
 }  
 
+/* EARNINGS DASHBOARD IN RIDER PROFILE */
+.earnings-card {
+  background: linear-gradient(135deg, #18191c, #2b2c30);
+  color: #fff;
+  border-radius: 16px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.earnings-val {
+  font-size: 20px;
+  font-weight: 900;
+  color: #28a745;
+}
+.earnings-lbl {
+  font-size: 11px;
+  color: #aaa;
+  text-transform: uppercase;
+  font-weight: bold;
+}
+
 input{  
   width:100%;  
   padding:13px;  
@@ -236,6 +260,45 @@ body.nav-active .mapGpsStatus {
   color:#198754;  
 }  
 
+/* SPEEDOMETER HUD */
+.speedometer-badge {
+  position: absolute;
+  top: 80px;
+  left: 12px;
+  z-index: 4500;
+  background: rgba(18, 18, 18, 0.9);
+  color: #fff;
+  border: 2px solid rgba(255,255,255,0.2);
+  border-radius: 18px;
+  padding: 6px 12px;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+  transition: top 0.3s ease, border-color 0.3s ease, background 0.3s ease;
+}
+body.nav-active .speedometer-badge {
+  top: 180px;
+}
+.speedometer-value {
+  font-size: 20px;
+  font-weight: 900;
+  line-height: 1;
+}
+.speedometer-label {
+  font-size: 9px;
+  color: #aaa;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+.speedometer-badge.warning {
+  background: rgba(220, 53, 69, 0.95) !important;
+  border-color: #ff4d4d !important;
+  animation: flashWarning 0.8s infinite alternate;
+}
+@keyframes flashWarning {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.08); }
+}
+
 .mapModeBtn {
   position:absolute;
   top:180px;
@@ -254,6 +317,23 @@ body.nav-active .mapGpsStatus {
   gap:6px;
   width:auto !important;
   margin:0 !important;
+}
+
+/* SOS EMERGENCY BUTTON */
+.sosBtn {
+  position: absolute;
+  top: 232px;
+  right: 12px;
+  z-index: 4500;
+  background: linear-gradient(135deg, #dc3545, #8b0000);
+  color: white;
+  border: 2px solid rgba(255,255,255,0.4);
+  border-radius: 14px;
+  padding: 9px 14px;
+  font-size: 12px;
+  font-weight: 900;
+  box-shadow: 0 4px 15px rgba(220,53,69,0.5);
+  cursor: pointer;
 }
 
 /* BLUE NAVIGATION MARKER WITH FLASHLIGHT BEAM */
@@ -642,6 +722,7 @@ body.nav-active .mapGpsStatus {
   box-shadow: 0 4px 15px rgba(220, 53, 69, 0.5);
 }
 
+/* CHAT & RECEIPT MODALS */
 .chatModal{  
   position:fixed;  
   inset:0;  
@@ -708,6 +789,42 @@ body.nav-active .mapGpsStatus {
 .chatInputArea{ display:flex; gap:8px; padding:12px; background:white; border-top:1px solid #dee2e6; }  
 #chatInput{ flex:1; margin:0; }  
 #chatSendBtn{ width:88px !important; min-width:88px !important; margin:0; padding:11px 8px; }  
+
+/* RECEIPT MODAL STYLES */
+.receiptModal {
+  position: fixed;
+  inset: 0;
+  z-index: 25000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.7);
+  padding: 16px;
+}
+.receiptModal.open {
+  display: flex;
+}
+.receiptCard {
+  background: white;
+  border-radius: 24px;
+  width: min(420px, 100%);
+  padding: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+.receiptRow {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+.receiptTotal {
+  font-size: 18px;
+  font-weight: 900;
+  color: #7A0000;
+  border-top: 2px dashed #ccc;
+  padding-top: 10px;
+  margin-top: 10px;
+}
 </style>  
 </head>  
 <body>  
@@ -724,7 +841,7 @@ body.nav-active .mapGpsStatus {
 <header id="topHeader">  
   <div class="headerBrand">  
     🏍️ HABAL NA  
-    <small>Rider V5.6.3 • Mapbox 3D Navigation</small>  
+    <small>Rider V5.7.0 • Mapbox 3D Navigation Pro</small>  
   </div>  
   
   <div class="statusIndicator" onclick="toggleOnlineStatus()">
@@ -741,6 +858,19 @@ body.nav-active .mapGpsStatus {
       <span>🏍️ Rider Profile</span>  
       <button class="closeMenu" onclick="closeRiderMenu()">×</button>  
     </div>  
+
+    <!-- DAILY EARNINGS DASHBOARD -->
+    <div class="earnings-card">
+      <div>
+        <div class="earnings-lbl">Daily Earnings</div>
+        <div class="earnings-val" id="dailyEarningsVal">₱0.00</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="earnings-lbl">Completed Rides</div>
+        <div style="font-size:18px; font-weight:900;" id="dailyRidesVal">0</div>
+      </div>
+    </div>
+
     <input id="riderName" type="text" placeholder="Rider Name">  
     <input id="riderContact" type="tel" placeholder="Rider Contact">  
     <div id="gpsStatus" class="gpsStatus">GPS Always Active</div>  
@@ -760,7 +890,14 @@ body.nav-active .mapGpsStatus {
   <div class="mapCard" id="mapCard">  
     <div id="map"></div>  
     
+    <!-- SPEEDOMETER HUD -->
+    <div id="speedometerBadge" class="speedometer-badge">
+      <div id="speedometerValue" class="speedometer-value">0</div>
+      <div class="speedometer-label">KM/H</div>
+    </div>
+
     <button id="mapModeBtn" class="mapModeBtn" onclick="toggleMapMode()">🧭 3D LOCK</button>
+    <button id="sosBtn" class="sosBtn" onclick="triggerSOSAlert()">🚨 SOS</button>
 
     <div id="voiceNav">  
       <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
@@ -827,13 +964,14 @@ body.nav-active .mapGpsStatus {
         <span class="btnLabel">Arrived</span>
       </div>
       <div id="completeWrapper" class="btnWrapper" style="display:none;">
-        <button id="completeBtn" class="circleActionBtn btnComplete" onclick="completeRide()" title="Finish">🏁</button>  
+        <button id="completeBtn" class="circleActionBtn btnComplete" onclick="openReceiptModal()" title="Finish">🏁</button>  
         <span class="btnLabel">Finish</span>
       </div>
     </div>  
   </div>  
 </div>  
 
+<!-- CHAT MODAL -->
 <div id="chatModal" class="chatModal" onclick="chatBackdropClose(event)">  
   <div class="chatBox">  
     <div class="chatHeader">  
@@ -852,6 +990,24 @@ body.nav-active .mapGpsStatus {
     </div>  
   </div>  
 </div>  
+
+<!-- TRIP RECEIPT BREAKDOWN MODAL -->
+<div id="receiptModal" class="receiptModal">
+  <div class="receiptCard">
+    <div style="font-size:20px; font-weight:900; color:#7A0000; margin-bottom:12px; text-align:center;">🧾 Trip Receipt</div>
+    <div class="receiptRow"><span>Distance:</span><span id="recDistance">0 km</span></div>
+    <div class="receiptRow"><span>Base Fare:</span><span id="recBase">₱50.00</span></div>
+    <div class="receiptRow"><span>Tip / Extra:</span><input id="recTip" type="number" value="0" style="width:80px; padding:4px; text-align:right; margin:0;" oninput="updateReceiptTotal()"></div>
+    <div class="receiptRow"><span>Payment Method:</span>
+      <select id="recPayment" style="padding:4px; border-radius:8px;">
+        <option value="Cash">Cash</option>
+        <option value="GCash">GCash</option>
+      </select>
+    </div>
+    <div class="receiptRow receiptTotal"><span>Total Fare:</span><span id="recTotal">₱50.00</span></div>
+    <button class="gps-overlay-btn" style="background:linear-gradient(135deg, #11998e, #38ef7d); margin-top:14px;" onclick="confirmCompleteRide()">CONFIRM & FINISH RIDE</button>
+  </div>
+</div>
 
 <script>  
 mapboxgl.accessToken = 'pk.eyJ1IjoicGdhYnMxMDIiLCJhIjoiY212YjFzZGlvMGJsOTJ3b3Bzb2g1cGxkYSJ9.Suudm4I9Q6eREsyo9M6YtA';  
@@ -895,6 +1051,40 @@ let currentMapMode = 'headup';
 let lastSpokenInstruction = "";
 let isRiderOnline = false;
 let heartbeatInterval = null;
+
+// WEB AUDIO SYNTHESIZER SOUND SYSTEM
+function playAudioAlert(type) {
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    const ctx = new AudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    if (type === 'new_booking') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(587.33, ctx.currentTime); 
+      osc.frequency.setValueAtTime(880, ctx.currentTime + 0.15); 
+      gain.gain.setValueAtTime(0.3, ctx.currentTime);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.4);
+    } else if (type === 'chat') {
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(440, ctx.currentTime);
+      gain.gain.setValueAtTime(0.2, ctx.currentTime);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.2);
+    } else if (type === 'speed_warning') {
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(800, ctx.currentTime);
+      gain.gain.setValueAtTime(0.4, ctx.currentTime);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.15);
+    }
+  } catch (e) {}
+}
 
 function updateStatusUI(status) {
   const dot = document.getElementById("statusDot");
@@ -979,6 +1169,17 @@ function toggleMapMode() {
     currentMapMode = 'headup';
     btn.textContent = "🧭 3D LOCK";
     if (riderLocation) lockMapTo3DView(riderLocation.lng, riderLocation.lat, lastHeading);
+  }
+}
+
+function triggerSOSAlert() {
+  if (confirm("🚨 EMERGENCY SOS:\nNais mo bang tumawag sa Emergency hotline (911) o i-share ang iyong kinaroroonan?")) {
+    if (riderLocation) {
+      const locUrl = `https://maps.google.com/?q=${riderLocation.lat},${riderLocation.lng}`;
+      navigator.clipboard?.writeText(locUrl);
+      showToast("📍 Live location copied to clipboard!");
+    }
+    window.location.href = "tel:911";
   }
 }
 
@@ -1102,10 +1303,30 @@ async function loadRideHistory(){
     if(error){ list.innerHTML = `<div style="text-align:center; color:#dc3545; padding:12px;">Failed to load history.</div>`; return; }  
     riderHistory = data || [];  
     renderRideHistory();  
+    updateDailyEarningsDashboard();
   }catch(e){  
     list.innerHTML = `<div style="text-align:center; color:#dc3545; padding:12px;">History error.</div>`;  
   }  
 }  
+
+function updateDailyEarningsDashboard() {
+  const todayStr = new Date().toDateString();
+  let totalEarnings = 0;
+  let todayRidesCount = 0;
+  
+  riderHistory.forEach(ride => {
+    if (ride.created_at && new Date(ride.created_at).toDateString() === todayStr) {
+      totalEarnings += Number(ride.estimated_fare || 0);
+      todayRidesCount++;
+    }
+  });
+
+  const valEl = document.getElementById("dailyEarningsVal");
+  const countEl = document.getElementById("dailyRidesVal");
+  if (valEl) valEl.textContent = "₱" + totalEarnings.toFixed(2);
+  if (countEl) countEl.textContent = todayRidesCount;
+}
+
 function renderRideHistory(){  
   const list = document.getElementById("historyList");  
   if(!list) return;  
@@ -1261,7 +1482,6 @@ function updateBookingCount(){
   count.textContent = rides.filter(r => r.status === "searching").length;  
 }  
 
-// Initialize Mapbox 3D Map
 function initMap(){  
   map = new mapboxgl.Map({  
     container: 'map',  
@@ -1556,6 +1776,30 @@ async function markArrived(){
   showSelectedBooking();  
 }  
 
+/* TRIP RECEIPT & COMPLETE RIDE */
+function openReceiptModal() {
+  if (!selectedRide) return;
+  const baseFare = Number(selectedRide.estimated_fare || 50);
+  document.getElementById("recDistance").textContent = Number(selectedRide.distance_km || 0).toFixed(2) + " km";
+  document.getElementById("recBase").textContent = "₱" + baseFare.toFixed(2);
+  document.getElementById("recTip").value = 0;
+  document.getElementById("recTotal").textContent = "₱" + baseFare.toFixed(2);
+  document.getElementById("receiptModal").classList.add("open");
+}
+
+function updateReceiptTotal() {
+  if (!selectedRide) return;
+  const baseFare = Number(selectedRide.estimated_fare || 50);
+  const tip = Number(document.getElementById("recTip").value || 0);
+  const total = baseFare + tip;
+  document.getElementById("recTotal").textContent = "₱" + total.toFixed(2);
+}
+
+async function confirmCompleteRide() {
+  document.getElementById("receiptModal").classList.remove("open");
+  await completeRide();
+}
+
 async function completeRide(){  
   if(!selectedRide) return;  
   const completedId = selectedRide.id;  
@@ -1610,6 +1854,7 @@ function appendChatMessage(message){
   row.appendChild(bubble);  
   container.appendChild(row);  
   container.scrollTop = container.scrollHeight;  
+  if (!isMe) playAudioAlert('chat');
 }  
 
 async function loadChatMessages(rideId){  
@@ -1700,7 +1945,6 @@ function speakInstruction(text) {
   window.speechSynthesis.speak(utterance);
 }
 
-/* MANDATORY AUTO-START GPS SYSTEM */
 function showGPSRequiredOverlay(show) {
   const overlay = document.getElementById("gpsRequiredOverlay");
   if (!overlay) return;
@@ -1759,6 +2003,19 @@ function startRiderGPS(){
     const lat = position.coords.latitude;  
     const lng = position.coords.longitude;  
     const rawHeading = position.coords.heading;  
+    
+    /* SPEEDOMETER & OVER-SPEED LIMIT ALERT */
+    const speedKmh = position.coords.speed ? Math.round(position.coords.speed * 3.6) : 0;
+    const speedValEl = document.getElementById("speedometerValue");
+    const speedBadgeEl = document.getElementById("speedometerBadge");
+    if (speedValEl) speedValEl.textContent = speedKmh;
+    
+    if (speedKmh > 60) {
+      if (speedBadgeEl) speedBadgeEl.classList.add("warning");
+      playAudioAlert('speed_warning');
+    } else {
+      if (speedBadgeEl) speedBadgeEl.classList.remove("warning");
+    }
 
     if (riderLocation) {
       const movedMeters = calculateDistanceMeters(riderLocation.lat, riderLocation.lng, lat, lng);
@@ -1980,9 +2237,21 @@ async function drawRideOnMap(ride){
   }  
 }  
 
+/* AUTOMATIC RE-ROUTING SYSTEM */
 function updateNavigationProgress(){  
   if(!navigationTarget || !riderLocation || !navigationSteps.length) return;  
   updateNavigationDisplay();  
+  
+  const currentStep = navigationSteps[navigationStepIndex];
+  if (currentStep && currentStep.maneuver && currentStep.maneuver.location) {
+    const stepLoc = currentStep.maneuver.location;
+    const distToStep = calculateDistanceMeters(riderLocation.lat, riderLocation.lng, stepLoc[1], stepLoc[0]);
+    if (distToStep > 50 && navigationStepIndex === 0) {
+      if (selectedRide) drawRideOnMap(selectedRide);
+      return;
+    }
+  }
+
   while(navigationStepIndex < navigationSteps.length - 1){  
     const step = navigationSteps[navigationStepIndex];  
     const loc = step && step.maneuver && step.maneuver.location;  
@@ -2020,6 +2289,7 @@ function subscribeRealtime(){
         if(!rides.some(x => String(x.id) === String(r.id))){  
           rides.push(r); bookingSignature = ""; sortBookingsByPickupDistance();  
           if(!waitingListHidden) renderBookings();  
+          playAudioAlert('new_booking');
         }  
       }  
     })  
@@ -2060,7 +2330,6 @@ setupRiderProfilePersistence();
 subscribeRealtime();  
 loadBookings();  
 
-// Mandatory auto-start GPS instantly upon open
 startRiderGPS();
 
 setTimeout(() => { restoreActiveRide(); }, 1200);  
