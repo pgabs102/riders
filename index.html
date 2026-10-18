@@ -3,7 +3,7 @@
 <head>  
 <meta charset="UTF-8">  
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">  
-<title>T U K L A S - V5.8.12 - Stable Navigation & Online Heartbeat</title>  
+<title>T U K L A S - V5.8.13 - Zero-Blink Stable Navigation</title>  
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>  
 <link href="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css" rel="stylesheet">
 <script src="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js"></script>
@@ -148,7 +148,7 @@ body.nav-active .speedometer-badge { top: 180px; }
 <header id="topHeader">  
   <div class="headerBrand">  
     🏍️ HABAL NA  
-    <small>Rider V5.8.12 • Stable Route & Heartbeat</small>  
+    <small>Rider V5.8.13 • Zero-Blink Navigation</small>  
   </div>  
   <div class="statusIndicator" onclick="toggleOnlineStatus()">
     <div id="statusDot" class="statusDot"></div>
@@ -307,6 +307,7 @@ let currentMapMode = 'headup';
 let isRiderOnline = false;
 let heartbeatInterval = null;
 let audioCtx = null;
+let isDrawingRoute = false;
 
 function initAudioContext() {
   if (!audioCtx) {
@@ -382,9 +383,8 @@ function toggleOnlineStatus() {
 async function sendHeartbeat() {
   const riderName = document.getElementById("riderName")?.value.trim();
   const riderContact = document.getElementById("riderContact")?.value.trim();
-  if (!isRiderOnline || !riderName || !riderContact) return;
+  if (!isRiderOnline || !riderName || !riderContact) return;  
   
-  // Awtomatikong i-update sa UI na ONLINE kaagad kapag pumasok
   updateStatusUI("online");
 
   try {
@@ -812,11 +812,10 @@ async function acceptRide(rideId){
     if(idx >= 0) rides[idx] = data; else rides.push(data);  
     bookingSignature = ""; showSelectedBooking(); 
 
-    // STABLE MAP & ROUTE DRAW
     setTimeout(() => {
       drawRideOnMap(data);  
       lockMapTo3DView(Number(data.pickup_lng), Number(data.pickup_lat), lastHeading);
-    }, 200);
+    }, 150);
 
     showToast("⚡ 3D Navigation Active!");
     return true;  
@@ -1025,7 +1024,7 @@ function formatNavDistance(meters){
 }  
 
 function updateNavigationProgress(currentLat, currentLng) {
-  if (!fullRouteCoordinates || fullRouteCoordinates.length === 0) return;
+  if (!fullRouteCoordinates || fullRouteCoordinates.length === 0 || !map) return;
 
   let closestIndex = 0; let minDistance = Infinity;
   for (let i = 0; i < fullRouteCoordinates.length; i++) {
@@ -1036,7 +1035,8 @@ function updateNavigationProgress(currentLat, currentLng) {
   const passedCoords = fullRouteCoordinates.slice(0, closestIndex + 1);
   const remainingCoords = fullRouteCoordinates.slice(closestIndex);
 
-  if (passedCoords.length >= 2 && map) {
+  // 1. PASSED ROUTE (Green Line) - Smooth update nang walang blinking
+  if (passedCoords.length >= 2) {
     const passedGeoJSON = { type: 'Feature', geometry: { type: 'LineString', coordinates: passedCoords } };
     if (map.getSource('route-passed')) {
       map.getSource('route-passed').setData(passedGeoJSON);
@@ -1052,7 +1052,8 @@ function updateNavigationProgress(currentLat, currentLng) {
     }
   }
 
-  if (remainingCoords.length >= 2 && map) {
+  // 2. REMAINING ROUTE (Blue Line) - Steady/Fixed update nang walang blinking
+  if (remainingCoords.length >= 2) {
     const remainingGeoJSON = { type: 'Feature', geometry: { type: 'LineString', coordinates: remainingCoords } };
     if (map.getSource('route-remaining')) {
       map.getSource('route-remaining').setData(remainingGeoJSON);
@@ -1129,15 +1130,30 @@ function getIndependentTurnCountdown(remainingCoords) {
 }
 
 async function drawRideOnMap(ride){  
-  if(!map || !ride) return;  
+  if(!map || !ride || isDrawingRoute) return;  
   const target = getNavigationTarget(ride);  
   if(!target) { stopAutoNavigation(); return; }  
+  
+  isDrawingRoute = true;
   document.getElementById("topHeader")?.classList.add("hiddenHeader");  
   document.body.classList.add("nav-active");  
-  clearRideMap();  
 
-  if(ride.pickup_lat != null && ride.pickup_lng != null) pickupMarker = new mapboxgl.Marker({ color: '#ffc107' }).setLngLat([Number(ride.pickup_lng), Number(ride.pickup_lat)]).addTo(map);  
-  if(ride.destination_lat != null && ride.destination_lng != null) destinationMarker = new mapboxgl.Marker({ color: '#dc3545' }).setLngLat([Number(ride.destination_lng), Number(ride.destination_lat)]).addTo(map);  
+  // Smooth Marker Repositioning
+  if(ride.pickup_lat != null && ride.pickup_lng != null) {
+    if (!pickupMarker) {
+      pickupMarker = new mapboxgl.Marker({ color: '#ffc107' }).setLngLat([Number(ride.pickup_lng), Number(ride.pickup_lat)]).addTo(map);  
+    } else {
+      pickupMarker.setLngLat([Number(ride.pickup_lng), Number(ride.pickup_lat)]);
+    }
+  }
+
+  if(ride.destination_lat != null && ride.destination_lng != null) {
+    if (!destinationMarker) {
+      destinationMarker = new mapboxgl.Marker({ color: '#dc3545' }).setLngLat([Number(ride.destination_lng), Number(ride.destination_lat)]).addTo(map);  
+    } else {
+      destinationMarker.setLngLat([Number(ride.destination_lng), Number(ride.destination_lat)]);
+    }
+  }
 
   const origin = riderLocation ? { lat: riderLocation.lat, lng: riderLocation.lng } : { lat: target.lat - 0.002, lng: target.lng - 0.002 };  
   const url = `https://router.project-osrm.org/route/v1/driving/${origin.lng},${origin.lat};${target.lng},${target.lat}?overview=full&geometries=geojson`;  
@@ -1148,7 +1164,9 @@ async function drawRideOnMap(ride){
       fullRouteCoordinates = data.routes[0].geometry.coordinates;  
       updateNavigationProgress(origin.lat, origin.lng);  
     }  
-  }catch(e){}  
+  }catch(e){} finally {
+    isDrawingRoute = false;
+  }
 }  
 
 function subscribeRealtime(){  
@@ -1160,7 +1178,6 @@ function subscribeRealtime(){
           renderBookings(); 
           playAudioAlert('new_booking'); 
 
-          // POP-UP & AUTO-FOCUS KAPAG NAKA-MINIMIZE
           if ("Notification" in window && Notification.permission === "granted") {
             const notif = new Notification("🚨 BAGONG BOOKING!", {
               body: `Pickup: ${p.new.destination || 'May pumasok na bagong biyahe! Click para buksan!'}`,
