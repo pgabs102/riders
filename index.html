@@ -3,7 +3,7 @@
 <head>  
 <meta charset="UTF-8">  
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">  
-<title>T U K L A S - V5.8.11 - Independent Turn & Drop-off Monitoring</title>  
+<title>T U K L A S - V5.8.12 - Stable Navigation & Online Heartbeat</title>  
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>  
 <link href="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css" rel="stylesheet">
 <script src="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js"></script>
@@ -71,10 +71,7 @@ body.nav-active .speedometer-badge { top: 180px; }
 #navArrow{ min-width:48px; font-size:42px; line-height:1; text-align:center; color:#ffffff; }  
 #navInstruction{ font-size:15px; font-weight:900; color:#ffffff; line-height:1.2; }  
 
-/* KANANG BAHAGI: Hiwalay at Independent Turn Distance Countdown */
 .turnDistanceBadge { display:inline-block; color:#ffc107; font-size:20px; font-weight:900; margin-top:4px; }
-
-/* KALIWANG BAHAGI: Total Remaining Distance hanggang Drop-off */
 .navDistanceContainer { background:rgba(255, 255, 255, 0.1); border:1px solid rgba(255, 255, 255, 0.25); padding:8px 14px; border-radius:14px; text-align:right; flex-shrink:0; }
 #navDistance{ font-size:24px; line-height:1.1; color:#ffffff; font-weight:900; }  
 #navTargetLabel { font-size:11px; color:rgba(255,255,255,0.75); font-weight:bold; text-transform:uppercase; margin-top:2px; }
@@ -151,7 +148,7 @@ body.nav-active .speedometer-badge { top: 180px; }
 <header id="topHeader">  
   <div class="headerBrand">  
     🏍️ HABAL NA  
-    <small>Rider V5.8.11 • Independent Monitoring</small>  
+    <small>Rider V5.8.12 • Stable Route & Heartbeat</small>  
   </div>  
   <div class="statusIndicator" onclick="toggleOnlineStatus()">
     <div id="statusDot" class="statusDot"></div>
@@ -267,9 +264,6 @@ body.nav-active .speedometer-badge { top: 180px; }
     <div class="receiptRow"><span>Distance:</span><span id="recDistance">0 km</span></div>
     <div class="receiptRow"><span>Base Fare:</span><span id="recBase">₱50.00</span></div>
     <div class="receiptRow"><span>Tip / Extra:</span><input id="recTip" type="number" value="0" style="width:80px; padding:4px; text-align:right; margin:0;" oninput="updateReceiptTotal()"></div>
-    <div class="receiptRow"><span>Payment Method:</span>
-      <select id="recPayment" style="padding:4px; border-radius:8px;"><option value="Cash">Cash</option><option value="GCash">GCash</option></select>
-    </div>
     <div class="receiptRow receiptTotal"><span>Total Fare:</span><span id="recTotal">₱50.00</span></div>
     <button class="gps-overlay-btn" style="background:linear-gradient(135deg, #11998e, #38ef7d); margin-top:14px;" onclick="confirmCompleteRide()">CONFIRM & FINISH RIDE</button>
   </div>
@@ -312,29 +306,49 @@ let fullRouteCoordinates = [];
 let currentMapMode = 'headup';
 let isRiderOnline = false;
 let heartbeatInterval = null;
+let audioCtx = null;
+
+function initAudioContext() {
+  if (!audioCtx) {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (AudioContext) audioCtx = new AudioContext();
+  }
+  if (audioCtx && audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+}
 
 function playAudioAlert(type) {
   try {
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    if (!AudioContext) return;
-    const ctx = new AudioContext();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
+    initAudioContext();
+    if (!audioCtx) return;
+
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
     osc.connect(gain);
-    gain.connect(ctx.destination);
+    gain.connect(audioCtx.destination);
+
     if (type === 'new_booking') {
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(587.33, ctx.currentTime); 
-      osc.frequency.setValueAtTime(880, ctx.currentTime + 0.15); 
-      gain.gain.setValueAtTime(0.3, ctx.currentTime);
-      osc.start(); osc.stop(ctx.currentTime + 0.4);
+      osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); 
+      osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.15); 
+      gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+      osc.start(); 
+      osc.stop(audioCtx.currentTime + 0.4);
     } else if (type === 'chat') {
       osc.type = 'triangle';
-      osc.frequency.setValueAtTime(440, ctx.currentTime);
-      gain.gain.setValueAtTime(0.2, ctx.currentTime);
-      osc.start(); osc.stop(ctx.currentTime + 0.2);
+      osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      osc.start(); 
+      osc.stop(audioCtx.currentTime + 0.2);
     }
   } catch (e) {}
+}
+
+function requestNotificationPermission() {
+  if ("Notification" in window && Notification.permission !== "granted") {
+    Notification.requestPermission();
+  }
 }
 
 function updateStatusUI(status) {
@@ -348,33 +362,59 @@ function updateStatusUI(status) {
 }
 
 function toggleOnlineStatus() {
+  initAudioContext();
+  requestNotificationPermission();
+
   const riderName = document.getElementById("riderName")?.value.trim();
   const riderContact = document.getElementById("riderContact")?.value.trim();
-  if (!riderName || !riderContact) { toggleRiderMenu(); showToast("⚠️ Lagyan muna ng Pangalan at Contact!"); return; }
+  if (!riderName || !riderContact) { toggleRiderMenu(); showToast("⚠️ Lagyan muna ng Pangalan at Contact!"); return; }  
+  
   isRiderOnline = !isRiderOnline;
-  if (isRiderOnline) { startHeartbeat(); showToast("🟢 ONLINE - Nakakatanggap ng Bookings"); }
-  else { stopHeartbeat(); showToast("🔴 OFFLINE - Pahinga Muna"); }
+  if (isRiderOnline) { 
+    startHeartbeat(); 
+    showToast("🟢 ONLINE - Nakakatanggap ng Bookings"); 
+  } else { 
+    stopHeartbeat(); 
+    showToast("🔴 OFFLINE - Pahinga Muna"); 
+  }
 }
 
 async function sendHeartbeat() {
   const riderName = document.getElementById("riderName")?.value.trim();
   const riderContact = document.getElementById("riderContact")?.value.trim();
-  if (!isRiderOnline || !riderName) return;
+  if (!isRiderOnline || !riderName || !riderContact) return;
+  
+  // Awtomatikong i-update sa UI na ONLINE kaagad kapag pumasok
+  updateStatusUI("online");
+
   try {
-    const payload = { rider_name: riderName, rider_contact: riderContact, lat: riderLocation?.lat || null, lng: riderLocation?.lng || null, last_ping: new Date().toISOString(), status: "online" };
-    const { error } = await supabaseClient.from("rider_heartbeats").upsert(payload, { onConflict: "rider_contact" });
-    if (error) updateStatusUI("disconnected"); else updateStatusUI("online");
-  } catch (err) { updateStatusUI("disconnected"); }
+    const payload = { 
+      rider_name: riderName, 
+      rider_contact: riderContact, 
+      lat: riderLocation?.lat || null, 
+      lng: riderLocation?.lng || null, 
+      last_ping: new Date().toISOString(), 
+      status: "online" 
+    };
+
+    let { error } = await supabaseClient.from("rider_heartbeats").upsert(payload, { onConflict: "rider_contact" });
+    if (error) {
+      await supabaseClient.from("rider_heartbeats").insert(payload);
+    }
+  } catch (err) {}
 }
 
 function startHeartbeat() {
-  isRiderOnline = true; updateStatusUI("online"); sendHeartbeat();
+  isRiderOnline = true; 
+  updateStatusUI("online"); 
+  sendHeartbeat();
   if (heartbeatInterval) clearInterval(heartbeatInterval);
-  heartbeatInterval = setInterval(sendHeartbeat, 10000);
+  heartbeatInterval = setInterval(sendHeartbeat, 6000);
 }
 
 function stopHeartbeat() {
-  isRiderOnline = false; updateStatusUI("offline");
+  isRiderOnline = false; 
+  updateStatusUI("offline");
   if (heartbeatInterval) { clearInterval(heartbeatInterval); heartbeatInterval = null; }
   const riderContact = document.getElementById("riderContact")?.value.trim();
   if (riderContact) supabaseClient.from("rider_heartbeats").update({ status: "offline" }).eq("rider_contact", riderContact);
@@ -616,17 +656,23 @@ function initMap(){
     container: 'map', style: 'mapbox://styles/mapbox/streets-v12',  
     center: [121.0415, 14.4086], zoom: 17.5, pitch: 60, bearing: 0  
   });  
-  map.on('load', () => { map.resize(); updateRiderMarker(121.0415, 14.4086, 0); });  
+  map.on('load', () => { 
+    map.resize(); 
+    updateRiderMarker(121.0415, 14.4086, 0); 
+    if (selectedRide) drawRideOnMap(selectedRide);
+  });  
 }  
 
 function clearRideMap(){  
   if(pickupMarker) { pickupMarker.remove(); pickupMarker = null; }  
   if(destinationMarker) { destinationMarker.remove(); destinationMarker = null; }  
   if(map) {  
-    if(map.getLayer('layer-route-passed')) map.removeLayer('layer-route-passed');  
-    if(map.getSource('route-passed')) map.removeSource('route-passed');  
-    if(map.getLayer('layer-route-remaining')) map.removeLayer('layer-route-remaining');  
-    if(map.getSource('route-remaining')) map.removeSource('route-remaining');  
+    try {
+      if(map.getLayer('layer-route-passed')) map.removeLayer('layer-route-passed');  
+      if(map.getSource('route-passed')) map.removeSource('route-passed');  
+      if(map.getLayer('layer-route-remaining')) map.removeLayer('layer-route-remaining');  
+      if(map.getSource('route-remaining')) map.removeSource('route-remaining');  
+    } catch(e) {}
   }  
 }  
 
@@ -740,7 +786,7 @@ async function loadBookings(){
       bookingSignature = signature; renderBookings();  
       if(selectedRide){  
         const updated = rides.find(r => String(r.id) === String(selectedRide.id));  
-        if(updated){ selectedRide = updated; if(isActiveRideStatus(updated.status)) saveActiveRide(updated); showSelectedBooking(); }  
+        if(updated){ selectedRide = updated; if(isActiveRideStatus(updated.status)) saveActiveRide(updated); showSelectedBooking(); drawRideOnMap(updated); }  
       }  
     }else if(!waitingListHidden){ renderBookings(); }  
   }catch(e){}finally{ loadingBookings = false; }  
@@ -764,8 +810,14 @@ async function acceptRide(rideId){
     selectedRide = data; acceptingRideId = null; saveActiveRide(data); setWaitingListHidden(true);  
     const idx = rides.findIndex(r => String(r.id) === String(data.id));  
     if(idx >= 0) rides[idx] = data; else rides.push(data);  
-    bookingSignature = ""; showSelectedBooking(); drawRideOnMap(data);  
-    lockMapTo3DView(Number(data.pickup_lng), Number(data.pickup_lat), lastHeading);
+    bookingSignature = ""; showSelectedBooking(); 
+
+    // STABLE MAP & ROUTE DRAW
+    setTimeout(() => {
+      drawRideOnMap(data);  
+      lockMapTo3DView(Number(data.pickup_lng), Number(data.pickup_lat), lastHeading);
+    }, 200);
+
     showToast("⚡ 3D Navigation Active!");
     return true;  
   }catch(e){ acceptingRideId = null; return false; }  
@@ -798,7 +850,7 @@ async function markArrived(){
   const { data, error } = await supabaseClient.from("rides").update({ status: "arrived" }).eq("id", selectedRide.id).select().single();  
   if(error){ showToast("❌ Failed"); return; }  
   selectedRide = data; saveActiveRide(data); setWaitingListHidden(true);  
-  updateLocalRide(data); showSelectedBooking();  
+  updateLocalRide(data); showSelectedBooking(); drawRideOnMap(data); 
 }  
 
 function openReceiptModal() {
@@ -984,44 +1036,44 @@ function updateNavigationProgress(currentLat, currentLng) {
   const passedCoords = fullRouteCoordinates.slice(0, closestIndex + 1);
   const remainingCoords = fullRouteCoordinates.slice(closestIndex);
 
-  // 1. Faded Green Line sa Likod (Dinaanan)
-  if (passedCoords.length >= 2) {
+  if (passedCoords.length >= 2 && map) {
     const passedGeoJSON = { type: 'Feature', geometry: { type: 'LineString', coordinates: passedCoords } };
     if (map.getSource('route-passed')) {
       map.getSource('route-passed').setData(passedGeoJSON);
     } else {
-      map.addSource('route-passed', { type: 'geojson', data: passedGeoJSON });
-      map.addLayer({
-        id: 'layer-route-passed', type: 'line', source: 'route-passed',
-        layout: { 'line-join': 'round', 'line-cap': 'round' },
-        paint: { 'line-color': '#28a745', 'line-width': 8, 'line-opacity': 0.55 } 
-      });
+      try {
+        map.addSource('route-passed', { type: 'geojson', data: passedGeoJSON });
+        map.addLayer({
+          id: 'layer-route-passed', type: 'line', source: 'route-passed',
+          layout: { 'line-join': 'round', 'line-cap': 'round' },
+          paint: { 'line-color': '#28a745', 'line-width': 8, 'line-opacity': 0.55 } 
+        });
+      } catch(e) {}
     }
   }
 
-  // 2. Solid Blue Line sa Harapan (Susundan)
-  if (remainingCoords.length >= 2) {
+  if (remainingCoords.length >= 2 && map) {
     const remainingGeoJSON = { type: 'Feature', geometry: { type: 'LineString', coordinates: remainingCoords } };
     if (map.getSource('route-remaining')) {
       map.getSource('route-remaining').setData(remainingGeoJSON);
     } else {
-      map.addSource('route-remaining', { type: 'geojson', data: remainingGeoJSON });
-      map.addLayer({
-        id: 'layer-route-remaining', type: 'line', source: 'route-remaining',
-        layout: { 'line-join': 'round', 'line-cap': 'round' },
-        paint: { 'line-color': '#0d6efd', 'line-width': 8, 'line-opacity': 0.95 } 
-      });
+      try {
+        map.addSource('route-remaining', { type: 'geojson', data: remainingGeoJSON });
+        map.addLayer({
+          id: 'layer-route-remaining', type: 'line', source: 'route-remaining',
+          layout: { 'line-join': 'round', 'line-cap': 'round' },
+          paint: { 'line-color': '#0d6efd', 'line-width': 8, 'line-opacity': 0.95 } 
+        });
+      } catch(e) {}
     }
   }
 
-  // --- KALIWANG MONITORING: Kabuuang Distansya hanggang Drop-off ---
   let totalRemainingDist = 0;
   for (let i = 0; i < remainingCoords.length - 1; i++) {
     totalRemainingDist += calculateDistanceMeters(remainingCoords[i][1], remainingCoords[i][0], remainingCoords[i+1][1], remainingCoords[i+1][0]);
   }
   document.getElementById("navDistance").textContent = formatNavDistance(totalRemainingDist);
 
-  // --- KANANG MONITORING: Hiwalay na Turn / Kanto Countdown (Hindi sumasabay sa drop-off) ---
   const turnInfo = getIndependentTurnCountdown(remainingCoords);
   document.getElementById("turnDistanceBadge").textContent = formatNavDistance(turnInfo.turnDist);
   document.getElementById("navInstruction").textContent = turnInfo.text;
@@ -1039,7 +1091,6 @@ function calculateBearing(lat1, lon1, lat2, lon2) {
   return (toDeg(Math.atan2(y, x)) + 360) % 360;
 }
 
-// Hiwalay na pagsusuri ng kanto para sa Kanang Monitoring (Countdown hanggang sa susunod na liko)
 function getIndependentTurnCountdown(remainingCoords) {
   if (remainingCoords.length < 3) return { turnDist: 0, arrow: "🏁", text: "Arrived at destination" };
 
@@ -1104,7 +1155,26 @@ function subscribeRealtime(){
   supabaseClient.channel("rides-realtime-rider")  
     .on("postgres_changes", { event:"INSERT", schema:"public", table:"rides" }, p => {  
       if(p.new && p.new.status === "searching"){  
-        if(!rides.some(x => String(x.id) === String(p.new.id))){ rides.push(p.new); renderBookings(); playAudioAlert('new_booking'); }  
+        if(!rides.some(x => String(x.id) === String(p.new.id))){ 
+          rides.push(p.new); 
+          renderBookings(); 
+          playAudioAlert('new_booking'); 
+
+          // POP-UP & AUTO-FOCUS KAPAG NAKA-MINIMIZE
+          if ("Notification" in window && Notification.permission === "granted") {
+            const notif = new Notification("🚨 BAGONG BOOKING!", {
+              body: `Pickup: ${p.new.destination || 'May pumasok na bagong biyahe! Click para buksan!'}`,
+              icon: "https://cdn-icons-png.flaticon.com/512/3063/3063822.png",
+              requireInteraction: true
+            });
+
+            notif.onclick = function(event) {
+              event.preventDefault();
+              window.focus();
+              this.close();
+            };
+          }
+        }  
       }  
     })  
     .on("postgres_changes", { event:"UPDATE", schema:"public", table:"rides" }, p => {  
@@ -1115,7 +1185,7 @@ function subscribeRealtime(){
       }  
       const idx = rides.findIndex(x => String(x.id) === String(r.id));  
       if(idx >= 0) rides[idx] = r; else rides.push(r);  
-      if(selectedRide && String(selectedRide.id) === String(r.id)){ selectedRide = r; showSelectedBooking(); }  
+      if(selectedRide && String(selectedRide.id) === String(r.id)){ selectedRide = r; showSelectedBooking(); drawRideOnMap(r); }  
       renderBookings();  
     }).subscribe();  
 }  
