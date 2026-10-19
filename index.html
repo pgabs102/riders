@@ -269,6 +269,9 @@ body.nav-active .speedometer-badge { top: 180px; }
   </div>
 </div>
 
+<!-- SINGLE AUDIO TAG WITH STABLE PUBLIC URL -->
+<audio id="bookingSound" src="https://adojdhrfrquueyxtzbiu.supabase.co/storage/v1/object/public/Sounds%20collection/Wav/mixkit-rooster-crowing-in-the-morning-2462.wav" preload="auto"></audio>
+
 <script>
 mapboxgl.accessToken = 'pk.eyJ1IjoicGdhYnMxMDIiLCJhIjoiY212YjFzZGlvMGJsOTJ3b3Bzb2g1cGxkYSJ9.Suudm4I9Q6eREsyo9M6YtA';
 
@@ -308,6 +311,7 @@ let isRiderOnline = false;
 let heartbeatInterval = null;
 let audioCtx = null;
 let isDrawingRoute = false;
+let bookingSoundUnlocked = false;
 
 function initAudioContext() {
   if (!audioCtx) {
@@ -317,6 +321,36 @@ function initAudioContext() {
   if (audioCtx && audioCtx.state === 'suspended') {
     audioCtx.resume();
   }
+}
+
+function unlockBookingSound() {
+  const bookingSound = document.getElementById("bookingSound");
+  if (bookingSoundUnlocked || !bookingSound) return;
+  bookingSound.muted = true;
+  const p = bookingSound.play();
+  if (p !== undefined) {
+    p.then(() => {
+      bookingSound.pause();
+      bookingSound.currentTime = 0;
+      bookingSound.muted = false;
+      bookingSoundUnlocked = true;
+    }).catch(() => {
+      bookingSound.muted = false;
+    });
+  }
+}
+
+["pointerdown", "touchstart", "click"].forEach(evt =>
+  document.addEventListener(evt, unlockBookingSound, { passive: true })
+);
+
+function playBookingSound() {
+  const sound = document.getElementById("bookingSound");
+  if (!sound) return;
+  sound.currentTime = 0;
+  sound.play().catch(function(error) { 
+    console.log("Booking sound play error:", error); 
+  });
 }
 
 function playAudioAlert(type) {
@@ -363,6 +397,7 @@ function updateStatusUI(status) {
 }
 
 function toggleOnlineStatus() {
+  unlockBookingSound();
   initAudioContext();
   requestNotificationPermission();
 
@@ -1035,7 +1070,6 @@ function updateNavigationProgress(currentLat, currentLng) {
   const passedCoords = fullRouteCoordinates.slice(0, closestIndex + 1);
   const remainingCoords = fullRouteCoordinates.slice(closestIndex);
 
-  // 1. PASSED ROUTE (Green Line) - Smooth update nang walang blinking
   if (passedCoords.length >= 2) {
     const passedGeoJSON = { type: 'Feature', geometry: { type: 'LineString', coordinates: passedCoords } };
     if (map.getSource('route-passed')) {
@@ -1052,7 +1086,6 @@ function updateNavigationProgress(currentLat, currentLng) {
     }
   }
 
-  // 2. REMAINING ROUTE (Blue Line) - Steady/Fixed update nang walang blinking
   if (remainingCoords.length >= 2) {
     const remainingGeoJSON = { type: 'Feature', geometry: { type: 'LineString', coordinates: remainingCoords } };
     if (map.getSource('route-remaining')) {
@@ -1138,7 +1171,6 @@ async function drawRideOnMap(ride){
   document.getElementById("topHeader")?.classList.add("hiddenHeader");
   document.body.classList.add("nav-active");
 
-  // Smooth Marker Repositioning
   if(ride.pickup_lat != null && ride.pickup_lng != null) {
     if (!pickupMarker) {
       pickupMarker = new mapboxgl.Marker({ color: '#ffc107' }).setLngLat([Number(ride.pickup_lng), Number(ride.pickup_lat)]).addTo(map);
@@ -1217,50 +1249,6 @@ subscribeRealtime();
 loadBookings();
 startRiderGPS();
 setTimeout(() => { restoreActiveRide(); }, 1200);
-</script>
-
-<audio id="bookingSound" src="./booking.wav" preload="auto"></audio>
-
-<script>
-const bookingSound = document.getElementById("bookingSound");
-let bookingSoundUnlocked = false;
-
-// Browsers only allow audio after a user gesture. Play silently on the first tap to unlock it.
-function unlockBookingSound() {
-  if (bookingSoundUnlocked || !bookingSound) return;
-  bookingSound.muted = true;
-  const p = bookingSound.play();
-  if (p !== undefined) {
-    p.then(() => {
-      bookingSound.pause();
-      bookingSound.currentTime = 0;
-      bookingSound.muted = false;
-      bookingSoundUnlocked = true;
-    }).catch(() => {
-      bookingSound.muted = false;
-    });
-  }
-}
-["pointerdown", "touchstart", "click"].forEach(evt =>
-  document.addEventListener(evt, unlockBookingSound, { passive: true })
-);
-
-bookingSound?.addEventListener("error", () => {
-  const codes = { 1: "aborted", 2: "network", 3: "decode failed", 4: "file not found or format unsupported" };
-  console.warn("booking.wav error:", codes[bookingSound.error?.code] || "unknown");
-});
-
-function playBookingSound() {
-  if (!bookingSound) { playAudioAlert("new_booking"); return; }
-  bookingSound.currentTime = 0;
-  const p = bookingSound.play();
-  if (p !== undefined) {
-    p.catch(err => {
-      console.warn("booking.wav play failed:", err.name, err.message);
-      playAudioAlert("new_booking"); // fallback beep using the Web Audio API
-    });
-  }
-}
 </script>
 </body>
 </html>
