@@ -64,7 +64,7 @@ body.nav-active .speedometer-badge { top: 180px; }
 .sosBtn { position: absolute; top: 232px; right: 12px; z-index: 4500; background: linear-gradient(135deg, #dc3545, #8b0000); color: white; border: 2px solid rgba(255,255,255,0.4); border-radius: 14px; padding: 9px 14px; font-size: 12px; font-weight: 900; box-shadow: 0 4px 15px rgba(220,53,69,0.5); cursor: pointer; }
 
 .rider-marker-wrapper { position: relative; width: 70px; height: 70px; display: flex; align-items: center; justify-content: center; }
-.rider-arrow-container { position: relative; width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #0d6efd, #00d2ff); border: 3px solid #ffffff; border-radius: 50%; box-shadow: 0 4px 20px rgba(0,0,0,0.5); font-size: 26px; color: white; z-index: 2; }
+.rider-arrow-container { position: relative; width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #0d6efd, #00d2ff); border: 3px solid #ffffff; border-radius: 50%; box-shadow: 0 4px 20px rgba(0,0,0,0.5); font-size: 26px; color: white; z-index: 2; transition: transform 0.1s linear; }
 
 #voiceNav { position:fixed; top:12px; left:10px; right:10px; z-index:7500; background:linear-gradient(135deg, #121212, #1f1f1f); color:#ffffff; padding:14px 16px; border-radius:20px; box-shadow:0 10px 30px rgba(0,0,0,0.65); border:1px solid rgba(255,255,255,0.2); display:none; }
 #voiceNav.active { display:block; }
@@ -382,7 +382,7 @@ function playAudioAlert(type) {
 
 function requestNotificationPermission() {
   if ("Notification" in window && Notification.permission !== "granted") {
-    Notification.requestPermission();
+    Notification.permission !== "denied" && Notification.requestPermission();
   }
 }
 
@@ -689,7 +689,7 @@ function updateBookingCount(){
 function initMap(){
   map = new mapboxgl.Map({
     container: 'map', style: 'mapbox://styles/mapbox/streets-v12',
-    center: [121.0415, 14.4086], zoom: 17.5, pitch: 60, bearing: 0
+    center: [121.0415, 14.4086], zoom: 18.5, pitch: 20, bearing: 0
   });
   map.on('load', () => {
     map.resize();
@@ -980,9 +980,32 @@ async function sendChatMessage(){
   if(data) appendChatMessage(data);
 }
 
-function lockMapTo3DView(lng, lat, heading) {
-  if(!map || currentMapMode !== 'headup') return;
-  map.easeTo({ center: [lng, lat], zoom: 18.5, pitch: 60, bearing: heading, offset: [0, 160], duration: 500, easing: t => t });
+/* ========================================================
+   DYNAMIC DUAL-MODE CAMERA & TURN DETECTION LOGIC
+   ======================================================== */
+
+function lockMapTo3DView(lng, lat, heading, upcomingTurnAngle = 0) {
+  if (!map || currentMapMode !== 'headup') return;
+
+  // Pag deretso lang: 20° Pitch (Free 3D top view)
+  // Pag malapit sa likuan (>25° angle): 60° Pitch (3D Tilt View)
+  let targetPitch = 20; 
+  let targetZoom = 18.5;
+
+  if (Math.abs(upcomingTurnAngle) > 25) {
+    targetPitch = 60;
+    targetZoom = 19;
+  }
+
+  map.easeTo({ 
+    center: [lng, lat], 
+    zoom: targetZoom, 
+    pitch: targetPitch, 
+    bearing: heading, 
+    offset: [0, 60],
+    duration: 350, 
+    easing: t => t 
+  });
 }
 
 function startRiderGPS(){
@@ -999,15 +1022,19 @@ function startRiderGPS(){
 
     if(riderLocation){
       let targetHeading = rawHeading;
-      if(targetHeading == null || isNaN(targetHeading)) targetHeading = calculateBearing(riderLocation.lat, riderLocation.lng, lat, lng);
+      if(targetHeading == null || isNaN(targetHeading)) {
+        targetHeading = calculateBearing(riderLocation.lat, riderLocation.lng, lat, lng);
+      }
       smoothHeading = smoothAngle(smoothHeading, targetHeading, 0.35);
       lastHeading = smoothHeading;
-    } else if(rawHeading && !isNaN(rawHeading)) { smoothHeading = rawHeading; lastHeading = rawHeading; }
+    } else if(rawHeading && !isNaN(rawHeading)) { 
+      smoothHeading = rawHeading; 
+      lastHeading = rawHeading; 
+    }
 
     riderLocation = { lat, lng };
     updateRiderMarker(lng, lat, lastHeading);
-    if(map && currentMapMode === 'headup') lockMapTo3DView(lng, lat, lastHeading);
-
+    
     updateNavigationProgress(lat, lng);
     sortBookingsByPickupDistance();
     if(!waitingListHidden) renderBookings();
@@ -1034,7 +1061,11 @@ function updateRiderMarker(lng, lat, heading = 0){
     riderMarker = new mapboxgl.Marker({ element: wrapper }).setLngLat([lng, lat]).addTo(map);
   } else {
     riderMarker.setLngLat([lng, lat]);
-    const el = riderMarker.getElement(); if(el) el.style.transform = `rotate(${heading}deg)`;
+    const el = riderMarker.getElement(); 
+    const arrowEl = el.querySelector('.rider-arrow-container');
+    if(arrowEl) {
+      arrowEl.style.transform = `rotate(${heading - 90}deg)`;
+    }
   }
 }
 
@@ -1058,10 +1089,15 @@ function formatNavDistance(meters){
   return m < 1000 ? Math.round(m) + " m" : (m / 1000).toFixed(1) + " km";
 }
 
+/* ========================================================
+   DYNAMIC TRAVERSED & ACTIVE ROUTE LINE LOGIC
+   ======================================================== */
 function updateNavigationProgress(currentLat, currentLng) {
   if (!fullRouteCoordinates || fullRouteCoordinates.length === 0 || !map) return;
 
-  let closestIndex = 0; let minDistance = Infinity;
+  let closestIndex = 0; 
+  let minDistance = Infinity;
+  
   for (let i = 0; i < fullRouteCoordinates.length; i++) {
     const dist = calculateDistanceMeters(currentLat, currentLng, fullRouteCoordinates[i][1], fullRouteCoordinates[i][0]);
     if (dist < minDistance) { minDistance = dist; closestIndex = i; }
@@ -1070,6 +1106,7 @@ function updateNavigationProgress(currentLat, currentLng) {
   const passedCoords = fullRouteCoordinates.slice(0, closestIndex + 1);
   const remainingCoords = fullRouteCoordinates.slice(closestIndex);
 
+  // Translucent Line para sa NADAANAN na
   if (passedCoords.length >= 2) {
     const passedGeoJSON = { type: 'Feature', geometry: { type: 'LineString', coordinates: passedCoords } };
     if (map.getSource('route-passed')) {
@@ -1080,12 +1117,13 @@ function updateNavigationProgress(currentLat, currentLng) {
         map.addLayer({
           id: 'layer-route-passed', type: 'line', source: 'route-passed',
           layout: { 'line-join': 'round', 'line-cap': 'round' },
-          paint: { 'line-color': '#28a745', 'line-width': 8, 'line-opacity': 0.55 }
+          paint: { 'line-color': '#007AFF', 'line-width': 7, 'line-opacity': 0.3 }
         });
       } catch(e) {}
     }
   }
 
+  // Active Solid Blue Line para sa DADAANAN pa lang
   if (remainingCoords.length >= 2) {
     const remainingGeoJSON = { type: 'Feature', geometry: { type: 'LineString', coordinates: remainingCoords } };
     if (map.getSource('route-remaining')) {
@@ -1096,7 +1134,7 @@ function updateNavigationProgress(currentLat, currentLng) {
         map.addLayer({
           id: 'layer-route-remaining', type: 'line', source: 'route-remaining',
           layout: { 'line-join': 'round', 'line-cap': 'round' },
-          paint: { 'line-color': '#0d6efd', 'line-width': 8, 'line-opacity': 0.95 }
+          paint: { 'line-color': '#007AFF', 'line-width': 9, 'line-opacity': 1.0 }
         });
       } catch(e) {}
     }
@@ -1108,10 +1146,16 @@ function updateNavigationProgress(currentLat, currentLng) {
   }
   document.getElementById("navDistance").textContent = formatNavDistance(totalRemainingDist);
 
+  // Turn Countdown + Camera Tilt Logic
   const turnInfo = getIndependentTurnCountdown(remainingCoords);
   document.getElementById("turnDistanceBadge").textContent = formatNavDistance(turnInfo.turnDist);
   document.getElementById("navInstruction").textContent = turnInfo.text;
   document.getElementById("navArrow").textContent = turnInfo.arrow;
+
+  let activeTurnAngle = (turnInfo.turnDist < 40) ? turnInfo.turnAngle : 0;
+  if (map && currentMapMode === 'headup' && riderLocation) {
+    lockMapTo3DView(riderLocation.lng, riderLocation.lat, lastHeading, activeTurnAngle);
+  }
 
   document.getElementById("voiceNav").classList.add("active");
 }
@@ -1126,12 +1170,13 @@ function calculateBearing(lat1, lon1, lat2, lon2) {
 }
 
 function getIndependentTurnCountdown(remainingCoords) {
-  if (remainingCoords.length < 3) return { turnDist: 0, arrow: "🏁", text: "Arrived at destination" };
+  if (remainingCoords.length < 3) return { turnDist: 0, arrow: "🏁", text: "Arrived at destination", turnAngle: 0 };
 
   let currentBearing = calculateBearing(remainingCoords[0][1], remainingCoords[0][0], remainingCoords[1][1], remainingCoords[1][0]);
   let turnDist = 0;
   let turnFound = false;
   let turnType = { arrow: "⬆️", text: "Proceed Straight" };
+  let detectedTurnAngle = 0;
 
   for (let i = 0; i < remainingCoords.length - 1; i++) {
     const segDist = calculateDistanceMeters(remainingCoords[i][1], remainingCoords[i][0], remainingCoords[i+1][1], remainingCoords[i+1][0]);
@@ -1145,6 +1190,7 @@ function getIndependentTurnCountdown(remainingCoords) {
 
       if (Math.abs(diff) > 25) {
         turnFound = true;
+        detectedTurnAngle = diff;
         if (diff > 25 && diff <= 140) turnType = { arrow: "➡️", text: "Turn Right ahead" };
         else if (diff > 140) turnType = { arrow: "🔄", text: "U-Turn ahead" };
         else if (diff < -25 && diff >= -140) turnType = { arrow: "⬅️", text: "Turn Left ahead" };
@@ -1159,7 +1205,7 @@ function getIndependentTurnCountdown(remainingCoords) {
     turnType = { arrow: "⬆️", text: "Proceed to destination" };
   }
 
-  return { turnDist: turnDist, arrow: turnType.arrow, text: turnType.text };
+  return { turnDist: turnDist, arrow: turnType.arrow, text: turnType.text, turnAngle: detectedTurnAngle };
 }
 
 async function drawRideOnMap(ride){
