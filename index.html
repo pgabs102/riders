@@ -64,7 +64,7 @@ body.nav-active .speedometer-badge { top: 180px; }
 .sosBtn { position: absolute; top: 232px; right: 12px; z-index: 4500; background: linear-gradient(135deg, #dc3545, #8b0000); color: white; border: 2px solid rgba(255,255,255,0.4); border-radius: 14px; padding: 9px 14px; font-size: 12px; font-weight: 900; box-shadow: 0 4px 15px rgba(220,53,69,0.5); cursor: pointer; }
 
 .rider-marker-wrapper { position: relative; width: 70px; height: 70px; display: flex; align-items: center; justify-content: center; }
-.rider-arrow-container { position: relative; width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #0d6efd, #00d2ff); border: 3px solid #ffffff; border-radius: 50%; box-shadow: 0 4px 20px rgba(0,0,0,0.5); font-size: 26px; color: white; z-index: 2; transition: transform 0.1s linear; }
+.rider-arrow-container { position: relative; width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #0d6efd, #00d2ff); border: 3px solid #ffffff; border-radius: 50%; box-shadow: 0 4px 20px rgba(0,0,0,0.5); font-size: 26px; color: white; z-index: 2; }
 
 #voiceNav { position:fixed; top:12px; left:10px; right:10px; z-index:7500; background:linear-gradient(135deg, #121212, #1f1f1f); color:#ffffff; padding:14px 16px; border-radius:20px; box-shadow:0 10px 30px rgba(0,0,0,0.65); border:1px solid rgba(255,255,255,0.2); display:none; }
 #voiceNav.active { display:block; }
@@ -269,7 +269,6 @@ body.nav-active .speedometer-badge { top: 180px; }
   </div>
 </div>
 
-<!-- SINGLE AUDIO TAG WITH STABLE PUBLIC URL -->
 <audio id="bookingSound" src="https://adojdhrfrquueyxtzbiu.supabase.co/storage/v1/object/public/Sounds%20collection/Wav/mixkit-rooster-crowing-in-the-morning-2462.wav" preload="auto"></audio>
 
 <script>
@@ -462,7 +461,7 @@ function toggleMapMode() {
     map.easeTo({ pitch: 30, bearing: 0, duration: 800 });
   } else {
     currentMapMode = 'headup'; btn.textContent = "🧭 3D LOCK";
-    if (riderLocation) lockMapTo3DView(riderLocation.lng, riderLocation.lat, lastHeading);
+    if (riderLocation) lockMapTo3DView(riderLocation.lng, riderLocation.lat, lastHeading, 0);
   }
 }
 
@@ -689,7 +688,7 @@ function updateBookingCount(){
 function initMap(){
   map = new mapboxgl.Map({
     container: 'map', style: 'mapbox://styles/mapbox/streets-v12',
-    center: [121.0415, 14.4086], zoom: 18.5, pitch: 20, bearing: 0
+    center: [121.0415, 14.4086], zoom: 18.5, pitch: 30, bearing: 0
   });
   map.on('load', () => {
     map.resize();
@@ -849,7 +848,6 @@ async function acceptRide(rideId){
 
     setTimeout(() => {
       drawRideOnMap(data);
-      lockMapTo3DView(Number(data.pickup_lng), Number(data.pickup_lat), lastHeading);
     }, 150);
 
     showToast("⚡ 3D Navigation Active!");
@@ -981,29 +979,28 @@ async function sendChatMessage(){
 }
 
 /* ========================================================
-   DYNAMIC DUAL-MODE CAMERA & TURN DETECTION LOGIC
+   ROUTE-ALIGNED CAMERA & STABLE GPS LOGIC (BOTTOM-LOCKED)
    ======================================================== */
 
 function lockMapTo3DView(lng, lat, heading, upcomingTurnAngle = 0) {
   if (!map || currentMapMode !== 'headup') return;
 
-  // Pag deretso lang: 20° Pitch (Free 3D top view)
-  // Pag malapit sa likuan (>25° angle): 60° Pitch (3D Tilt View)
-  let targetPitch = 20; 
-  let targetZoom = 18.5;
+  let targetPitch = 30; 
+  let targetZoom = 16.5;
 
   if (Math.abs(upcomingTurnAngle) > 25) {
-    targetPitch = 60;
+    targetPitch = 55;
     targetZoom = 19;
   }
 
+  // Pinabababa sa bottom padding=80 para halos nakadikit na sa sliding panel sa ibaba
   map.easeTo({ 
     center: [lng, lat], 
     zoom: targetZoom, 
     pitch: targetPitch, 
     bearing: heading, 
-    offset: [0, 60],
-    duration: 350, 
+    padding: { top: 50, bottom: 0, left: 0, right: 0 }, 
+    duration: 400, 
     easing: t => t 
   });
 }
@@ -1020,13 +1017,17 @@ function startRiderGPS(){
 
     document.getElementById("speedometerValue").textContent = speedKmh;
 
-    if(riderLocation){
-      let targetHeading = rawHeading;
-      if(targetHeading == null || isNaN(targetHeading)) {
-        targetHeading = calculateBearing(riderLocation.lat, riderLocation.lng, lat, lng);
+    if(riderLocation) {
+      const distMoved = calculateDistanceMeters(riderLocation.lat, riderLocation.lng, lat, lng);
+      
+      if (distMoved > 2) {
+        let targetHeading = (rawHeading !== null && !isNaN(rawHeading) && speedKmh > 5) 
+          ? rawHeading 
+          : calculateBearing(riderLocation.lat, riderLocation.lng, lat, lng);
+          
+        smoothHeading = smoothAngle(smoothHeading, targetHeading, 0.25);
+        lastHeading = smoothHeading;
       }
-      smoothHeading = smoothAngle(smoothHeading, targetHeading, 0.35);
-      lastHeading = smoothHeading;
     } else if(rawHeading && !isNaN(rawHeading)) { 
       smoothHeading = rawHeading; 
       lastHeading = rawHeading; 
@@ -1035,12 +1036,17 @@ function startRiderGPS(){
     riderLocation = { lat, lng };
     updateRiderMarker(lng, lat, lastHeading);
     
-    updateNavigationProgress(lat, lng);
+    updateNavigationProgress(lat, lng, speedKmh);
     sortBookingsByPickupDistance();
     if(!waitingListHidden) renderBookings();
 
     if(selectedRide){
-      try{ await supabaseClient.from("rides").update({ rider_lat: lat, rider_lng: lng }).eq("id", selectedRide.id).in("status", ["accepted", "picked_up", "arrived"]); }catch(e){}
+      try{ 
+        await supabaseClient.from("rides")
+          .update({ rider_lat: lat, rider_lng: lng })
+          .eq("id", selectedRide.id)
+          .in("status", ["accepted", "picked_up", "arrived"]); 
+      }catch(e){}
     }
   }, err => {}, { enableHighAccuracy: true, maximumAge: 1000, timeout: 8000 });
 }
@@ -1061,11 +1067,6 @@ function updateRiderMarker(lng, lat, heading = 0){
     riderMarker = new mapboxgl.Marker({ element: wrapper }).setLngLat([lng, lat]).addTo(map);
   } else {
     riderMarker.setLngLat([lng, lat]);
-    const el = riderMarker.getElement(); 
-    const arrowEl = el.querySelector('.rider-arrow-container');
-    if(arrowEl) {
-      arrowEl.style.transform = `rotate(${heading - 90}deg)`;
-    }
   }
 }
 
@@ -1090,9 +1091,9 @@ function formatNavDistance(meters){
 }
 
 /* ========================================================
-   DYNAMIC TRAVERSED & ACTIVE ROUTE LINE LOGIC
+   DYNAMIC ROUTE PROGRESS & VERTICAL ALIGNMENT
    ======================================================== */
-function updateNavigationProgress(currentLat, currentLng) {
+function updateNavigationProgress(currentLat, currentLng, speedKmh = 0) {
   if (!fullRouteCoordinates || fullRouteCoordinates.length === 0 || !map) return;
 
   let closestIndex = 0; 
@@ -1106,7 +1107,6 @@ function updateNavigationProgress(currentLat, currentLng) {
   const passedCoords = fullRouteCoordinates.slice(0, closestIndex + 1);
   const remainingCoords = fullRouteCoordinates.slice(closestIndex);
 
-  // Translucent Line para sa NADAANAN na
   if (passedCoords.length >= 2) {
     const passedGeoJSON = { type: 'Feature', geometry: { type: 'LineString', coordinates: passedCoords } };
     if (map.getSource('route-passed')) {
@@ -1123,7 +1123,6 @@ function updateNavigationProgress(currentLat, currentLng) {
     }
   }
 
-  // Active Solid Blue Line para sa DADAANAN pa lang
   if (remainingCoords.length >= 2) {
     const remainingGeoJSON = { type: 'Feature', geometry: { type: 'LineString', coordinates: remainingCoords } };
     if (map.getSource('route-remaining')) {
@@ -1140,13 +1139,28 @@ function updateNavigationProgress(currentLat, currentLng) {
     }
   }
 
+  let routeHeading = lastHeading;
+  if (remainingCoords.length >= 2) {
+    routeHeading = calculateBearing(
+      remainingCoords[0][1], remainingCoords[0][0], 
+      remainingCoords[1][1], remainingCoords[1][0]
+    );
+  }
+
+  if (riderMarker) {
+    const el = riderMarker.getElement(); 
+    const arrowEl = el.querySelector('.rider-arrow-container');
+    if(arrowEl) {
+      arrowEl.style.transform = `rotate(0deg)`;
+    }
+  }
+
   let totalRemainingDist = 0;
   for (let i = 0; i < remainingCoords.length - 1; i++) {
     totalRemainingDist += calculateDistanceMeters(remainingCoords[i][1], remainingCoords[i][0], remainingCoords[i+1][1], remainingCoords[i+1][0]);
   }
   document.getElementById("navDistance").textContent = formatNavDistance(totalRemainingDist);
 
-  // Turn Countdown + Camera Tilt Logic
   const turnInfo = getIndependentTurnCountdown(remainingCoords);
   document.getElementById("turnDistanceBadge").textContent = formatNavDistance(turnInfo.turnDist);
   document.getElementById("navInstruction").textContent = turnInfo.text;
@@ -1154,7 +1168,7 @@ function updateNavigationProgress(currentLat, currentLng) {
 
   let activeTurnAngle = (turnInfo.turnDist < 40) ? turnInfo.turnAngle : 0;
   if (map && currentMapMode === 'headup' && riderLocation) {
-    lockMapTo3DView(riderLocation.lng, riderLocation.lat, lastHeading, activeTurnAngle);
+    lockMapTo3DView(riderLocation.lng, riderLocation.lat, routeHeading, activeTurnAngle);
   }
 
   document.getElementById("voiceNav").classList.add("active");
@@ -1240,7 +1254,7 @@ async function drawRideOnMap(ride){
     const res = await fetch(url); const data = await res.json();
     if(data.routes && data.routes.length) {
       fullRouteCoordinates = data.routes[0].geometry.coordinates;
-      updateNavigationProgress(origin.lat, origin.lng);
+      updateNavigationProgress(origin.lat, origin.lng, 0);
     }
   }catch(e){} finally {
     isDrawingRoute = false;
