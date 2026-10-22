@@ -1295,7 +1295,7 @@ function getIndependentTurnCountdown(remainingCoords) {
   return { turnDist: turnDist, arrow: turnType.arrow, text: turnType.text, turnAngle: detectedTurnAngle };
 }
 
-/* OSRM ROUTING API (LIBRE) */
+/* OSRM ROUTING API (LIBRE) - INI-EXCLUDE ANG EXPRESSWAY */
 async function drawRideOnMap(ride){
   if(!map || !ride || isDrawingRoute) return;
   const target = getNavigationTarget(ride);
@@ -1323,8 +1323,8 @@ async function drawRideOnMap(ride){
 
   const origin = riderLocation ? { lat: riderLocation.lat, lng: riderLocation.lng } : { lat: target.lat - 0.002, lng: target.lng - 0.002 };
   
-  // Libreng OSRM Driving Route API
-  const url = `https://router.project-osrm.org/route/v1/driving/${origin.lng},${origin.lat};${target.lng},${target.lat}?overview=full&geometries=geojson`;
+  // Libreng OSRM Driving Route API (May dagdag na exclude=expressway)
+  const url = `https://router.project-osrm.org/route/v1/driving/${origin.lng},${origin.lat};${target.lng},${target.lat}?overview=full&geometries=geojson&exclude=expressway`;
 
   try{
     const res = await fetch(url); const data = await res.json();
