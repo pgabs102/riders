@@ -269,8 +269,7 @@ body.nav-active .speedometer-badge { top: 180px; }
   </div>
 </div>
 
-<!-- SINGLE AUDIO TAG WITH STABLE PUBLIC URL -->
-<audio id="bookingSound" src="https://adojdhrfrquueyxtzbiu.supabase.co/storage/v1/object/public/Sounds%20collection/Wav/mixkit-rooster-crowing-in-the-morning-2462.wav" preload="auto"></audio>
+<audio id="bookingSound" src="https://adojdfrfrquueyxtzbiu.supabase.co/storage/v1/object/public/Sounds%20collection/Wav/mixkit-rooster-crowing-in-the-morning-2462.wav" preload="auto"></audio>
 
 <script>
 mapboxgl.accessToken = 'pk.eyJ1IjoicGdhYnMxMDIiLCJhIjoiY212YjFzZGlvMGJsOTJ3b3Bzb2g1cGxkYSJ9.Suudm4I9Q6eREsyo9M6YtA';
@@ -303,6 +302,7 @@ let riderHistory = [];
 let chatChannel = null;
 let chatRideId = null;
 let chatMessagesSeen = new Set();
+let geocodeCache = {};
 
 let navigationTarget = null;
 let fullRouteCoordinates = [];
@@ -312,6 +312,49 @@ let heartbeatInterval = null;
 let audioCtx = null;
 let isDrawingRoute = false;
 let bookingSoundUnlocked = false;
+
+// AUTOMATIC REVERSE GEOCODING (Converts coordinates to street/place name automatically)
+async function getAddressFromCoords(lat, lng) {
+  if (!lat || !lng) return "GPS Location";
+  const key = `${Number(lat).toFixed(5)},${Number(lng).toFixed(5)}`;
+  if (geocodeCache[key]) return geocodeCache[key];
+
+  try {
+    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}&limit=1`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data && data.features && data.features.length > 0) {
+      const addressName = data.features[0].place_name.split(',').slice(0, 2).join(',');
+      geocodeCache[key] = addressName;
+      return addressName;
+    }
+  } catch (e) {}
+
+  return `${Number(lat).toFixed(5)}, ${Number(lng).toFixed(5)}`;
+}
+
+function getPickupName(ride) {
+  if (ride.pickup_location && ride.pickup_location.trim() !== "") return ride.pickup_location;
+  if (ride.pickup && ride.pickup.trim() !== "") return ride.pickup;
+  const key = `${Number(ride.pickup_lat).toFixed(5)},${Number(ride.pickup_lng).toFixed(5)}`;
+  if (geocodeCache[key]) return geocodeCache[key];
+  return "Fetching location name...";
+}
+
+function resolvePickupNamesForRides() {
+  rides.forEach(async (ride) => {
+    if ((!ride.pickup_location || ride.pickup_location.trim() === "") && (!ride.pickup || ride.pickup.trim() === "") && ride.pickup_lat && ride.pickup_lng) {
+      const address = await getAddressFromCoords(ride.pickup_lat, ride.pickup_lng);
+      ride.pickup_location = address;
+      const el = document.getElementById(`pickup-text-${ride.id}`);
+      if (el) el.textContent = address;
+      if (selectedRide && String(selectedRide.id) === String(ride.id)) {
+        const selEl = document.getElementById(`selected-pickup-text`);
+        if (selEl) selEl.textContent = address;
+      }
+    }
+  });
+}
 
 function initAudioContext() {
   if (!audioCtx) {
@@ -382,7 +425,7 @@ function playAudioAlert(type) {
 
 function requestNotificationPermission() {
   if ("Notification" in window && Notification.permission !== "granted") {
-    Notification.requestPermission();
+    Notification.permission !== "denied" && Notification.requestPermission();
   }
 }
 
@@ -462,7 +505,7 @@ function toggleMapMode() {
     map.easeTo({ pitch: 30, bearing: 0, duration: 800 });
   } else {
     currentMapMode = 'headup'; btn.textContent = "🧭 3D LOCK";
-    if (riderLocation) lockMapTo3DView(riderLocation.lng, riderLocation.lat, lastHeading);
+    if (riderLocation) lockMapTo3DView(riderLocation.lng, riderLocation.lat, lastHeading, 0);
   }
 }
 
@@ -578,10 +621,11 @@ function renderRideHistory(){
   riderHistory.forEach(ride => {
     const item = document.createElement("div");
     item.style.cssText = `background:#fff; border:1px solid #dee2e6; border-radius:12px; padding:10px; margin-bottom:8px; font-size:12px; line-height:1.55;`;
+    const pickupTxt = getPickupName(ride);
     item.innerHTML = `
       <div style="font-size:14px; font-weight:900; color:#7A0000; margin-bottom:4px;">✅ Ride #${escapeHTML(ride.id)}</div>
       <div><b>Passenger:</b> ${escapeHTML(ride.passenger_name)}</div>
-      <div><b>Pickup:</b> ${escapeHTML(ride.pickup_location || ride.pickup || "N/A")}</div>
+      <div><b>Pickup:</b> <span id="pickup-text-hist-${ride.id}">${escapeHTML(pickupTxt)}</span></div>
       <div><b>Destination:</b> ${escapeHTML(ride.destination)}</div>
       <div><b>Distance:</b> ${Number(ride.distance_km || 0).toFixed(2)} km</div>
       <div><b>Fare:</b> ₱${Number(ride.estimated_fare || 0).toFixed(2)}</div>
@@ -690,7 +734,7 @@ function updateBookingCount(){
 function initMap(){
   map = new mapboxgl.Map({
     container: 'map', style: 'mapbox://styles/mapbox/streets-v12',
-    center: [121.0415, 14.4086], zoom: 17.5, pitch: 60, bearing: 0
+    center: [121.0415, 14.4086], zoom: 18.5, pitch: 30, bearing: 0
   });
   map.on('load', () => {
     map.resize();
@@ -748,12 +792,15 @@ function showSelectedBooking(){
   if(isActiveRideStatus(selectedRide.status)) saveActiveRide(selectedRide);
   box.style.display = "block";
   const r = selectedRide;
+  
+  const pickupText = getPickupName(r);
+  
   content.innerHTML = `
     <div class="selectedTitle">🚕 Selected Booking</div>
     <div class="bookingInfo">
       <b>Passenger:</b> ${escapeHTML(r.passenger_name)}<br>
       <b>Contact:</b> ${escapeHTML(r.passenger_contact)}<br>
-      <b>Pickup:</b> ${escapeHTML(r.pickup_location || r.pickup || "GPS Location")}<br>
+      <b>Pickup:</b> <span id="selected-pickup-text">${escapeHTML(pickupText)}</span><br>
       ${pickupDistanceText(r)}<br>
       <b>Destination:</b> ${escapeHTML(r.destination)}<br>
       <b>Distance:</b> ${Number(r.distance_km || 0).toFixed(2)} km<br>
@@ -762,6 +809,7 @@ function showSelectedBooking(){
     </div>
   `;
   showSelectedActions(); setWaitingListHidden(true);
+  resolvePickupNamesForRides();
 }
 
 function createSwipeAccept(ride){
@@ -793,10 +841,13 @@ function renderBookings(){
     const div = document.createElement("div"); div.className = "booking";
     if(selectedRide && String(selectedRide.id) === String(ride.id)) div.classList.add("active");
     let nearestBadge = (index === 0 && getPickupDistance(ride) !== null) ? `<span class="nearestBadge">⭐ NEAREST</span>` : "";
+    
+    const pickupText = getPickupName(ride);
+    
     div.innerHTML = `
       <div class="bookingTitle">🚕 Available Passenger ${nearestBadge}</div>
       <div class="bookingInfo">
-        📍 Pickup: ${escapeHTML(ride.pickup_location || ride.pickup || "GPS Location")}<br>
+        📍 Pickup: <span id="pickup-text-${ride.id}">${escapeHTML(pickupText)}</span><br>
         ${pickupDistanceText(ride)}<br>
         🏁 Destination: ${escapeHTML(ride.destination)}<br>
         📏 Trip Distance: ${Number(ride.distance_km || 0).toFixed(2)} km<br>
@@ -809,6 +860,7 @@ function renderBookings(){
     list.appendChild(div);
   });
   updateBookingCount();
+  resolvePickupNamesForRides();
 }
 
 async function loadBookings(){
@@ -850,7 +902,6 @@ async function acceptRide(rideId){
 
     setTimeout(() => {
       drawRideOnMap(data);
-      lockMapTo3DView(Number(data.pickup_lng), Number(data.pickup_lat), lastHeading);
     }, 150);
 
     showToast("⚡ 3D Navigation Active!");
@@ -981,9 +1032,31 @@ async function sendChatMessage(){
   if(data) appendChatMessage(data);
 }
 
-function lockMapTo3DView(lng, lat, heading) {
-  if(!map || currentMapMode !== 'headup') return;
-  map.easeTo({ center: [lng, lat], zoom: 18.5, pitch: 60, bearing: heading, offset: [0, 160], duration: 500, easing: t => t });
+/* ========================================================
+   ROUTE-ALIGNED CAMERA & STABLE GPS LOGIC (BOTTOM-LOCKED)
+   ======================================================== */
+
+function lockMapTo3DView(lng, lat, heading, upcomingTurnAngle = 0) {
+  if (!map || currentMapMode !== 'headup') return;
+
+  let targetPitch = 30; 
+  let targetZoom = 16.5;
+
+  if (Math.abs(upcomingTurnAngle) > 25) {
+    targetPitch = 55;
+    targetZoom = 19;
+  }
+
+  // Pinabababa sa bottom padding=80 para halos nakadikit na sa sliding panel sa ibaba
+  map.easeTo({ 
+    center: [lng, lat], 
+    zoom: targetZoom, 
+    pitch: targetPitch, 
+    bearing: heading, 
+    padding: { top: 50, bottom: 0, left: 0, right: 0 }, 
+    duration: 400, 
+    easing: t => t 
+  });
 }
 
 function startRiderGPS(){
@@ -998,23 +1071,36 @@ function startRiderGPS(){
 
     document.getElementById("speedometerValue").textContent = speedKmh;
 
-    if(riderLocation){
-      let targetHeading = rawHeading;
-      if(targetHeading == null || isNaN(targetHeading)) targetHeading = calculateBearing(riderLocation.lat, riderLocation.lng, lat, lng);
-      smoothHeading = smoothAngle(smoothHeading, targetHeading, 0.35);
-      lastHeading = smoothHeading;
-    } else if(rawHeading && !isNaN(rawHeading)) { smoothHeading = rawHeading; lastHeading = rawHeading; }
+    if(riderLocation) {
+      const distMoved = calculateDistanceMeters(riderLocation.lat, riderLocation.lng, lat, lng);
+      
+      if (distMoved > 2) {
+        let targetHeading = (rawHeading !== null && !isNaN(rawHeading) && speedKmh > 5) 
+          ? rawHeading 
+          : calculateBearing(riderLocation.lat, riderLocation.lng, lat, lng);
+          
+        smoothHeading = smoothAngle(smoothHeading, targetHeading, 0.25);
+        lastHeading = smoothHeading;
+      }
+    } else if(rawHeading && !isNaN(rawHeading)) { 
+      smoothHeading = rawHeading; 
+      lastHeading = rawHeading; 
+    }
 
     riderLocation = { lat, lng };
     updateRiderMarker(lng, lat, lastHeading);
-    if(map && currentMapMode === 'headup') lockMapTo3DView(lng, lat, lastHeading);
-
-    updateNavigationProgress(lat, lng);
+    
+    updateNavigationProgress(lat, lng, speedKmh);
     sortBookingsByPickupDistance();
     if(!waitingListHidden) renderBookings();
 
     if(selectedRide){
-      try{ await supabaseClient.from("rides").update({ rider_lat: lat, rider_lng: lng }).eq("id", selectedRide.id).in("status", ["accepted", "picked_up", "arrived"]); }catch(e){}
+      try{ 
+        await supabaseClient.from("rides")
+          .update({ rider_lat: lat, rider_lng: lng })
+          .eq("id", selectedRide.id)
+          .in("status", ["accepted", "picked_up", "arrived"]); 
+      }catch(e){}
     }
   }, err => {}, { enableHighAccuracy: true, maximumAge: 1000, timeout: 8000 });
 }
@@ -1035,7 +1121,6 @@ function updateRiderMarker(lng, lat, heading = 0){
     riderMarker = new mapboxgl.Marker({ element: wrapper }).setLngLat([lng, lat]).addTo(map);
   } else {
     riderMarker.setLngLat([lng, lat]);
-    const el = riderMarker.getElement(); if(el) el.style.transform = `rotate(${heading}deg)`;
   }
 }
 
@@ -1059,10 +1144,15 @@ function formatNavDistance(meters){
   return m < 1000 ? Math.round(m) + " m" : (m / 1000).toFixed(1) + " km";
 }
 
-function updateNavigationProgress(currentLat, currentLng) {
+/* ========================================================
+   DYNAMIC ROUTE PROGRESS & VERTICAL ALIGNMENT
+   ======================================================== */
+function updateNavigationProgress(currentLat, currentLng, speedKmh = 0) {
   if (!fullRouteCoordinates || fullRouteCoordinates.length === 0 || !map) return;
 
-  let closestIndex = 0; let minDistance = Infinity;
+  let closestIndex = 0; 
+  let minDistance = Infinity;
+  
   for (let i = 0; i < fullRouteCoordinates.length; i++) {
     const dist = calculateDistanceMeters(currentLat, currentLng, fullRouteCoordinates[i][1], fullRouteCoordinates[i][0]);
     if (dist < minDistance) { minDistance = dist; closestIndex = i; }
@@ -1081,7 +1171,7 @@ function updateNavigationProgress(currentLat, currentLng) {
         map.addLayer({
           id: 'layer-route-passed', type: 'line', source: 'route-passed',
           layout: { 'line-join': 'round', 'line-cap': 'round' },
-          paint: { 'line-color': '#28a745', 'line-width': 8, 'line-opacity': 0.55 }
+          paint: { 'line-color': '#007AFF', 'line-width': 7, 'line-opacity': 0.3 }
         });
       } catch(e) {}
     }
@@ -1097,9 +1187,25 @@ function updateNavigationProgress(currentLat, currentLng) {
         map.addLayer({
           id: 'layer-route-remaining', type: 'line', source: 'route-remaining',
           layout: { 'line-join': 'round', 'line-cap': 'round' },
-          paint: { 'line-color': '#0d6efd', 'line-width': 8, 'line-opacity': 0.95 }
+          paint: { 'line-color': '#007AFF', 'line-width': 9, 'line-opacity': 1.0 }
         });
       } catch(e) {}
+    }
+  }
+
+  let routeHeading = lastHeading;
+  if (remainingCoords.length >= 2) {
+    routeHeading = calculateBearing(
+      remainingCoords[0][1], remainingCoords[0][0], 
+      remainingCoords[1][1], remainingCoords[1][0]
+    );
+  }
+
+  if (riderMarker) {
+    const el = riderMarker.getElement(); 
+    const arrowEl = el.querySelector('.rider-arrow-container');
+    if(arrowEl) {
+      arrowEl.style.transform = `rotate(0deg)`;
     }
   }
 
@@ -1114,6 +1220,11 @@ function updateNavigationProgress(currentLat, currentLng) {
   document.getElementById("navInstruction").textContent = turnInfo.text;
   document.getElementById("navArrow").textContent = turnInfo.arrow;
 
+  let activeTurnAngle = (turnInfo.turnDist < 40) ? turnInfo.turnAngle : 0;
+  if (map && currentMapMode === 'headup' && riderLocation) {
+    lockMapTo3DView(riderLocation.lng, riderLocation.lat, routeHeading, activeTurnAngle);
+  }
+
   document.getElementById("voiceNav").classList.add("active");
 }
 
@@ -1127,12 +1238,13 @@ function calculateBearing(lat1, lon1, lat2, lon2) {
 }
 
 function getIndependentTurnCountdown(remainingCoords) {
-  if (remainingCoords.length < 3) return { turnDist: 0, arrow: "🏁", text: "Arrived at destination" };
+  if (remainingCoords.length < 3) return { turnDist: 0, arrow: "🏁", text: "Arrived at destination", turnAngle: 0 };
 
   let currentBearing = calculateBearing(remainingCoords[0][1], remainingCoords[0][0], remainingCoords[1][1], remainingCoords[1][0]);
   let turnDist = 0;
   let turnFound = false;
   let turnType = { arrow: "⬆️", text: "Proceed Straight" };
+  let detectedTurnAngle = 0;
 
   for (let i = 0; i < remainingCoords.length - 1; i++) {
     const segDist = calculateDistanceMeters(remainingCoords[i][1], remainingCoords[i][0], remainingCoords[i+1][1], remainingCoords[i+1][0]);
@@ -1146,6 +1258,7 @@ function getIndependentTurnCountdown(remainingCoords) {
 
       if (Math.abs(diff) > 25) {
         turnFound = true;
+        detectedTurnAngle = diff;
         if (diff > 25 && diff <= 140) turnType = { arrow: "➡️", text: "Turn Right ahead" };
         else if (diff > 140) turnType = { arrow: "🔄", text: "U-Turn ahead" };
         else if (diff < -25 && diff >= -140) turnType = { arrow: "⬅️", text: "Turn Left ahead" };
@@ -1160,7 +1273,7 @@ function getIndependentTurnCountdown(remainingCoords) {
     turnType = { arrow: "⬆️", text: "Proceed to destination" };
   }
 
-  return { turnDist: turnDist, arrow: turnType.arrow, text: turnType.text };
+  return { turnDist: turnDist, arrow: turnType.arrow, text: turnType.text, turnAngle: detectedTurnAngle };
 }
 
 async function drawRideOnMap(ride){
@@ -1195,7 +1308,7 @@ async function drawRideOnMap(ride){
     const res = await fetch(url); const data = await res.json();
     if(data.routes && data.routes.length) {
       fullRouteCoordinates = data.routes[0].geometry.coordinates;
-      updateNavigationProgress(origin.lat, origin.lng);
+      updateNavigationProgress(origin.lat, origin.lng, 0);
     }
   }catch(e){} finally {
     isDrawingRoute = false;
@@ -1212,8 +1325,9 @@ function subscribeRealtime(){
           playBookingSound();
 
           if ("Notification" in window && Notification.permission === "granted") {
+            const pText = getPickupName(p.new);
             const notif = new Notification("🚨 BAGONG BOOKING!", {
-              body: `Pickup: ${p.new.pickup_location || p.new.pickup || 'May pumasok na bagong biyahe! Click para buksan!'}`,
+              body: `Pickup: ${pText}`,
               icon: "https://cdn-icons-png.flaticon.com/512/3063/3063822.png",
               requireInteraction: true
             });
