@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-<title>T U K L A S - V5.8.13 - MapLibre 3D Navigation</title>
+<title>T U K L A S - V5.8.13 - MapLibre 3D Navigation (No Tollgate)</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<!-- MAPLIBRE GL JS & CSS (100% LIBRE & OPEN SOURCE) -->
+<!-- MAPLIBRE GL JS & CSS -->
 <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
 <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
 
@@ -151,7 +151,7 @@ body.nav-active .speedometer-badge { top: 180px; }
 <header id="topHeader">
   <div class="headerBrand">
     🏍️ HABAL NA
-    <small>Rider V5.8.13 • MapLibre 3D Nav</small>
+    <small>Rider V5.8.13 • MapLibre 3D Nav (No Tollgate)</small>
   </div>
   <div class="statusIndicator" onclick="toggleOnlineStatus()">
     <div id="statusDot" class="statusDot"></div>
@@ -313,7 +313,7 @@ let audioCtx = null;
 let isDrawingRoute = false;
 let bookingSoundUnlocked = false;
 
-// LIBRENG REVERSE GEOCODING (Nominatim API)
+// REVERSE GEOCODING
 async function getAddressFromCoords(lat, lng) {
   if (!lat || !lng) return "GPS Location";
   const key = `${Number(lat).toFixed(5)},${Number(lng).toFixed(5)}`;
@@ -732,7 +732,7 @@ function updateBookingCount(){
   if(count) count.textContent = rides.filter(r => r.status === "searching").length;
 }
 
-/* INITIALIZE MAPLIBRE GL MAP (FREE VECTOR STYLE) */
+/* INITIALIZE MAPLIBRE GL MAP */
 function initMap(){
   map = new maplibregl.Map({
     container: 'map',
@@ -1295,7 +1295,67 @@ function getIndependentTurnCountdown(remainingCoords) {
   return { turnDist: turnDist, arrow: turnType.arrow, text: turnType.text, turnAngle: detectedTurnAngle };
 }
 
-/* OSRM ROUTING API (LIBRE) - INI-EXCLUDE ANG EXPRESSWAY */
+/* HELPER: FETCH NO TOLL ROUTE COORDS (VALHALLA / OPENROUTESERVICE) */
+async function fetchNoTollRouteCoords(originLng, originLat, targetLng, targetLat) {
+  try {
+    const valhallaPayload = {
+      locations: [
+        { lat: originLat, lon: originLng },
+        { lat: targetLat, lon: targetLng }
+      ],
+      costing: "auto",
+      costing_options: {
+        auto: {
+          use_tolls: 0 // Iwas sa Toll Gate
+        }
+      }
+    };
+
+    const res = await fetch(`https://valhalla1.openstreetmap.de/route`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(valhallaPayload)
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data.trip && data.trip.legs && data.trip.legs[0]) {
+        return decodePolyline(data.trip.legs[0].shape);
+      }
+    }
+  } catch (err) {}
+
+  // Fallback: OpenRouteService with avoid tollways
+  try {
+    const orsUrl = `https://api.openrouteservice.org/v2/directions/driving-car?api_key=5b3ce3597851110001cf6248c82302ca219747c3bd2b1236113b2d1d&start=${originLng},${originLat}&end=${targetLng},${targetLat}&options={"avoid_features":["tollways"]}`;
+    const res = await fetch(orsUrl);
+    if(res.ok){
+      const data = await res.json();
+      if(data.features && data.features[0]){
+        return data.features[0].geometry.coordinates;
+      }
+    }
+  } catch(e) {}
+
+  return null;
+}
+
+function decodePolyline(str, precision) {
+  var index = 0, lat = 0, lng = 0, coordinates = [], shift = 0, result = 0, byte = null, factor = Math.pow(10, precision || 6);
+  while (index < str.length) {
+    byte = null; shift = 0; result = 0;
+    do { byte = str.charCodeAt(index++) - 63; result |= (byte & 0x1f) << shift; shift += 5; } while (byte >= 0x20);
+    var latitude = ((result & 1) ? ~(result >> 1) : (result >> 1));
+    shift = 0; result = 0;
+    do { byte = str.charCodeAt(index++) - 63; result |= (byte & 0x1f) << shift; shift += 5; } while (byte >= 0x20);
+    var longitude = ((result & 1) ? ~(result >> 1) : (result >> 1));
+    lat += latitude; lng += longitude;
+    coordinates.push([lng / factor, lat / factor]);
+  }
+  return coordinates;
+}
+
+/* VALHALLA NO TOLL ROUTING FOR RIDER 3D NAV */
 async function drawRideOnMap(ride){
   if(!map || !ride || isDrawingRoute) return;
   const target = getNavigationTarget(ride);
@@ -1322,14 +1382,11 @@ async function drawRideOnMap(ride){
   }
 
   const origin = riderLocation ? { lat: riderLocation.lat, lng: riderLocation.lng } : { lat: target.lat - 0.002, lng: target.lng - 0.002 };
-  
-  // Libreng OSRM Driving Route API (May dagdag na exclude=expressway)
-  const url = `https://router.project-osrm.org/route/v1/driving/${origin.lng},${origin.lat};${target.lng},${target.lat}?overview=full&geometries=geojson&exclude=expressway`;
 
   try{
-    const res = await fetch(url); const data = await res.json();
-    if(data.routes && data.routes.length) {
-      fullRouteCoordinates = data.routes[0].geometry.coordinates;
+    const routeCoords = await fetchNoTollRouteCoords(origin.lng, origin.lat, target.lng, target.lat);
+    if(routeCoords && routeCoords.length) {
+      fullRouteCoordinates = routeCoords;
       updateNavigationProgress(origin.lat, origin.lng, 0);
     }
   }catch(e){} finally {
