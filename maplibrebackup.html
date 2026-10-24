@@ -1,0 +1,1515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>T U K L A S - V5.8.13 - MapLibre 3D Navigation (No Tollgate)</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- MAPLIBRE GL JS & CSS -->
+<link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
+<script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+
+<style>
+*{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html, body{ margin:0; padding:0; width:100%; height:100%; overflow:hidden; font-family:"Trebuchet MS", Arial, sans-serif; background:#f8f9fa; color:#222; }
+header{ position:fixed; top:0; left:0; right:0; height:68px; z-index:7000; display:flex; align-items:center; justify-content:space-between; padding:8px 12px 8px 16px; background:linear-gradient(135deg, #4A0000, #7A0000, #A71D2A); color:white; box-shadow:0 4px 20px rgba(74,0,0,0.35); transition:transform 0.3s ease, opacity 0.3s ease; }
+header.hiddenHeader { transform: translateY(-100%); opacity: 0; pointer-events: none; }
+.headerBrand{ font-size:22px; font-weight:900; letter-spacing:.5px; line-height:1.05; }
+.headerBrand small{ display:block; margin-top:4px; font-size:11px; font-weight:normal; opacity:.9; }
+
+.statusIndicator { display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.3); padding: 6px 12px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.15); cursor: pointer; }
+.statusDot { width: 12px; height: 12px; border-radius: 50%; background: #dc3545; transition: background 0.3s ease; }
+.statusDot.online { background: #28a745 !important; animation: pulse-green 2s infinite; }
+.statusDot.disconnected { background: #ffc107 !important; animation: pulse-yellow 1.5s infinite; }
+.statusText { font-size: 11px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; color: #fff; }
+
+@keyframes pulse-green {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(40, 167, 69, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+}
+@keyframes pulse-yellow {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(255, 193, 7, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); }
+}
+
+.menuButton{ width:46px !important; min-width:46px !important; height:46px; margin:0 !important; padding:0 !important; display:flex; align-items:center; justify-content:center; border-radius:14px; border:1px solid rgba(255,255,255,.3); background:rgba(255,255,255,.15); color:white; font-size:24px; line-height:1; }
+.riderMenu{ position:fixed; top:76px; right:10px; width:min(340px, calc(100% - 20px)); z-index:8000; display:none; }
+.riderMenu.open{ display:block; }
+.menuPanel{ background:white; border-radius:20px; padding:18px; box-shadow:0 10px 35px rgba(0,0,0,.25); border:1px solid rgba(0,0,0,.06); }
+.menuPanelTitle{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; color:#7A0000; font-size:18px; font-weight:900; }
+.closeMenu{ width:38px !important; min-width:38px !important; height:38px; margin:0 !important; padding:0 !important; border-radius:12px; background:#f1f3f5; color:#555; font-size:22px; }
+
+.earnings-card { background: linear-gradient(135deg, #18191c, #2b2c30); color: #fff; border-radius: 16px; padding: 12px 14px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.1); }
+.earnings-val { font-size: 20px; font-weight: 900; color: #28a745; }
+.earnings-lbl { font-size: 11px; color: #aaa; text-transform: uppercase; font-weight: bold; }
+
+input{ width:100%; padding:13px; border:1px solid #ced4da; border-radius:12px; margin-bottom:10px; font-size:15px; outline:none; background:#fdfdfe; }
+input:focus{ border-color:#7A0000; box-shadow:0 0 0 3px rgba(122,0,0,.12); }
+.gpsStatus{ font-size:12px; margin-top:8px; color:#555; word-break:break-word; background:#f1f3f5; padding:10px; border-radius:10px; }
+
+.container{ position:fixed; inset:0; width:100%; height:100%; z-index:1; }
+.mapCard{ position:absolute; inset:0; margin:0; padding:0; background:#ddd; z-index:1; touch-action:none; }
+#map{ position:absolute; inset:0; width:100%; height:100%; }
+
+.mapGpsStatus{ position:absolute; top:12px; left:12px; z-index:1000; background:rgba(255,255,255,.95); color:#333; padding:8px 14px; border-radius:20px; font-size:12px; font-weight:bold; box-shadow:0 4px 15px rgba(0,0,0,.15); transition:top 0.3s ease; }
+body.nav-active .mapGpsStatus { top: 135px; }
+.mapGpsStatus.active{ color:#198754; }
+
+.speedometer-badge { position: absolute; top: 80px; left: 12px; z-index: 4500; background: rgba(18, 18, 18, 0.9); color: #fff; border: 2px solid rgba(255,255,255,0.2); border-radius: 18px; padding: 6px 12px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.4); transition: top 0.3s ease; }
+body.nav-active .speedometer-badge { top: 180px; }
+.speedometer-value { font-size: 20px; font-weight: 900; line-height: 1; }
+.speedometer-label { font-size: 9px; color: #aaa; text-transform: uppercase; margin-top: 2px; }
+
+.mapModeBtn { position:absolute; top:180px; right:12px; z-index:4500; background:#212529; color:#ffc107; border:2px solid rgba(255,255,255,0.2); border-radius:14px; padding:9px 14px; font-size:12px; font-weight:bold; box-shadow:0 4px 15px rgba(0,0,0,0.3); display:flex; align-items:center; gap:6px; width:auto !important; margin:0 !important; }
+.sosBtn { position: absolute; top: 232px; right: 12px; z-index: 4500; background: linear-gradient(135deg, #dc3545, #8b0000); color: white; border: 2px solid rgba(255,255,255,0.4); border-radius: 14px; padding: 9px 14px; font-size: 12px; font-weight: 900; box-shadow: 0 4px 15px rgba(220,53,69,0.5); cursor: pointer; }
+
+.rider-marker-wrapper { position: relative; width: 70px; height: 70px; display: flex; align-items: center; justify-content: center; }
+.rider-arrow-container { position: relative; width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #0d6efd, #00d2ff); border: 3px solid #ffffff; border-radius: 50%; box-shadow: 0 4px 20px rgba(0,0,0,0.5); font-size: 26px; color: white; z-index: 2; }
+
+#voiceNav { position:fixed; top:12px; left:10px; right:10px; z-index:7500; background:linear-gradient(135deg, #121212, #1f1f1f); color:#ffffff; padding:14px 16px; border-radius:20px; box-shadow:0 10px 30px rgba(0,0,0,0.65); border:1px solid rgba(255,255,255,0.2); display:none; }
+#voiceNav.active { display:block; }
+#navArrow{ min-width:48px; font-size:42px; line-height:1; text-align:center; color:#ffffff; }
+#navInstruction{ font-size:15px; font-weight:900; color:#ffffff; line-height:1.2; }
+
+.turnDistanceBadge { display:inline-block; color:#ffc107; font-size:20px; font-weight:900; margin-top:4px; }
+.navDistanceContainer { background:rgba(255, 255, 255, 0.1); border:1px solid rgba(255, 255, 255, 0.25); padding:8px 14px; border-radius:14px; text-align:right; flex-shrink:0; }
+#navDistance{ font-size:24px; line-height:1.1; color:#ffffff; font-weight:900; }
+#navTargetLabel { font-size:11px; color:rgba(255,255,255,0.75); font-weight:bold; text-transform:uppercase; margin-top:2px; }
+
+#availableBookingsCard{ position:fixed; left:50%; bottom:0; transform:translateX(-50%); width:min(700px, calc(100% - 8px)); height:115px; z-index:5000; border-radius:24px 24px 0 0; background:rgba(255,255,255,.98); box-shadow:0 -8px 30px rgba(0,0,0,.25); overflow:hidden; transition:height .28s cubic-bezier(.25,.8,.25,1); touch-action:none; }
+#availableBookingsCard.expanded{ height:min(68vh, 560px); }
+.bookingHandleArea{ width:100%; height:38px; display:flex; align-items:center; justify-content:center; background:linear-gradient(to bottom, #ffffff, #f8f9fa); cursor:grab; }
+.bookingHandle{ width:58px; height:6px; border-radius:20px; background:#ced4da; }
+.bookingSheetHeader{ height:52px; padding:7px 16px; display:flex; align-items:center; justify-content:space-between; background:linear-gradient(135deg, #4A0000, #7A0000, #A71D2A); color:white; }
+.bookingSheetTitle{ font-size:16px; font-weight:900; }
+.bookingCount{ min-width:30px; height:30px; padding:0 8px; border-radius:20px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,.25); color:white; font-size:13px; font-weight:bold; }
+#bookingList, #selectedBooking{ height:calc(100% - 90px); overflow-y:auto; padding:12px 12px 25px; }
+#selectedBooking{ display:none; background:white; }
+.selectedTitle{ color:#7A0000; font-size:20px; font-weight:900; margin-bottom:8px; }
+
+.actionGroup { display: flex !important; align-items: center; justify-content: space-evenly; gap: 12px; margin-top: 16px; padding: 12px 8px; background: #18191c; border-radius: 30px; box-shadow: inset 0 2px 6px rgba(0,0,0,0.6), 0 8px 20px rgba(0,0,0,0.25); border: 1px solid rgba(255, 255, 255, 0.08); }
+.circleActionBtn { width: 58px !important; height: 58px !important; min-width: 58px !important; border-radius: 50% !important; display: flex !important; align-items: center !important; justify-content: center !important; font-size: 24px !important; border: none !important; cursor: pointer; transition: transform 0.2s ease; }
+.btnChat { background: linear-gradient(135deg, #00d2ff, #0066fe) !important; color: #fff !important; }
+.btnWaze { background: linear-gradient(135deg, #7928ca, #4383fc) !important; color: #fff !important; }
+.btnCall { background: linear-gradient(135deg, #ff9900, #ff5500) !important; color: #fff !important; }
+.btnPickup { background: linear-gradient(135deg, #ff0844, #ffb199) !important; color: #fff !important; }
+.btnArrived { background: linear-gradient(135deg, #f857a6, #ff5858) !important; color: #fff !important; }
+.btnComplete { background: linear-gradient(135deg, #11998e, #38ef7d) !important; color: #fff !important; }
+.btnAccept { background: linear-gradient(135deg, #00b09b, #96c93d) !important; color: #fff !important; }
+
+.btnWrapper { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.btnLabel { font-size: 11px; font-weight: 800; color: #adb5bd; text-transform: uppercase; }
+
+.booking{ border:2px solid #e9ecef; border-radius:16px; padding:14px; margin-bottom:12px; background:#fff; }
+.booking.active{ border-color:#7A0000; }
+.bookingTitle{ font-size:17px; font-weight:900; color:#7A0000; }
+.bookingInfo{ margin-top:6px; line-height:1.6; font-size:14px; }
+.status{ display:inline-block; padding:5px 10px; border-radius:20px; background:#e9ecef; font-size:11px; font-weight:bold; margin-top:8px; color:#495057; }
+.pickupDistance{ display:inline-block; margin-top:8px; padding:6px 10px; border-radius:20px; background:#d1e7dd; color:#0f5132; font-weight:bold; font-size:13px; }
+.nearestBadge{ display:inline-block; margin-left:6px; padding:5px 8px; border-radius:15px; background:#fff3cd; color:#664d03; font-size:10px; font-weight:bold; }
+
+.swipeArea{ position:relative; height:52px; background:#f1f3f5; border-radius:30px; margin-top:14px; overflow:hidden; border:1px solid #dee2e6; }
+.swipeText{ position:absolute; width:100%; text-align:center; line-height:50px; color:#495057; font-weight:bold; font-size:13px; }
+.swipeButton{ position:absolute; left:2px; top:2px; width:46px; height:46px; border-radius:50%; background:linear-gradient(135deg, #4A0000, #7A0000, #A71D2A); color:white; z-index:2; box-shadow:0 3px 8px rgba(0,0,0,.3); }
+
+.toast{ position:fixed; top:78px; left:50%; transform:translateX(-50%) translateY(-120px); background:#212529; color:white; padding:13px 22px; border-radius:30px; z-index:99999; box-shadow:0 6px 20px rgba(0,0,0,.35); font-weight:bold; max-width:calc(100% - 30px); text-align:center; opacity:0; visibility:hidden; transition:opacity .25s ease, transform .25s ease; }
+.toast.show{ opacity:1; visibility:visible; transform:translateX(-50%) translateY(0); }
+
+.chatModal{ position:fixed; inset:0; z-index:20000; display:none; align-items:flex-end; justify-content:center; background:rgba(0,0,0,.5); }
+.chatModal.open{ display:flex; }
+.chatBox{ width:min(700px, 100%); height:min(76vh, 620px); background:white; border-radius:24px 24px 0 0; display:flex; flex-direction:column; overflow:hidden; }
+.chatHeader{ min-height:64px; padding:10px 16px; background:linear-gradient(135deg, #4A0000, #7A0000, #A71D2A); color:white; display:flex; align-items:center; justify-content:space-between; }
+.chatHeaderTitle{ font-size:17px; font-weight:900; }
+.chatHeaderSmall{ font-size:11px; opacity:.85; margin-top:3px; }
+.chatClose{ width:42px !important; min-width:42px !important; height:42px; border-radius:50%; background:rgba(255,255,255,.2); color:white; font-size:26px; }
+.chatMessages{ flex:1; overflow-y:auto; padding:14px; background:#f8f9fa; }
+.chatEmpty{ text-align:center; color:#6c757d; padding:35px 15px; font-size:14px; }
+.chatRow{ display:flex; width:100%; margin-bottom:10px; }
+.chatRow.me{ justify-content:flex-end; }
+.chatRow.other{ justify-content:flex-start; }
+.chatBubble{ max-width:82%; padding:10px 14px; border-radius:16px; background:white; color:#212529; box-shadow:0 2px 8px rgba(0,0,0,.08); font-size:14px; }
+.chatRow.me .chatBubble{ background:linear-gradient(135deg, #7A0000, #A71D2A); color:white; }
+.chatSender{ font-size:11px; font-weight:bold; margin-bottom:3px; opacity:.8; }
+.chatMeta{ margin-top:5px; font-size:9px; opacity:.65; text-align:right; }
+.chatInputArea{ display:flex; gap:8px; padding:12px; background:white; border-top:1px solid #dee2e6; }
+#chatInput{ flex:1; margin:0; }
+#chatSendBtn{ width:88px !important; min-width:88px !important; margin:0; padding:11px 8px; }
+
+.receiptModal { position: fixed; inset: 0; z-index: 25000; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.7); padding: 16px; }
+.receiptModal.open { display: flex; }
+.receiptCard { background: white; border-radius: 24px; width: min(420px, 100%); padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+.receiptRow { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; }
+.receiptTotal { font-size: 18px; font-weight: 900; color: #7A0000; border-top: 2px dashed #ccc; padding-top: 10px; margin-top: 10px; }
+.gps-overlay-btn { background: linear-gradient(135deg, #dc3545, #a71d2a); color: white; border: none; padding: 14px 24px; border-radius: 14px; font-size: 15px; font-weight: bold; width: 100%; cursor: pointer; box-shadow: 0 4px 15px rgba(220, 53, 69, 0.5); }
+</style>
+</head>
+<body>
+
+<header id="topHeader">
+  <div class="headerBrand">
+    🏍️ HABAL NA
+    <small>Rider V5.8.13 • MapLibre 3D Nav (No Tollgate)</small>
+  </div>
+  <div class="statusIndicator" onclick="toggleOnlineStatus()">
+    <div id="statusDot" class="statusDot"></div>
+    <span id="statusText" class="statusText">OFFLINE</span>
+  </div>
+  <button id="menuButton" class="menuButton" onclick="toggleRiderMenu(event)">☰</button>
+</header>
+
+<div id="riderMenu" class="riderMenu">
+  <div class="menuPanel">
+    <div class="menuPanelTitle">
+      <span>🏍️ Rider Profile</span>
+      <button class="closeMenu" onclick="closeRiderMenu()">×</button>
+    </div>
+    <div class="earnings-card">
+      <div>
+        <div class="earnings-lbl">Daily Earnings</div>
+        <div class="earnings-val" id="dailyEarningsVal">₱0.00</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="earnings-lbl">Completed Rides</div>
+        <div style="font-size:18px; font-weight:900;" id="dailyRidesVal">0</div>
+      </div>
+    </div>
+    <input id="riderName" type="text" placeholder="Rider Name">
+    <input id="riderContact" type="tel" placeholder="Rider Contact">
+    <div id="gpsStatus" class="gpsStatus">GPS Always Active</div>
+    <button id="historyButton" class="circleActionBtn btnWaze" style="width:100% !important; border-radius:12px !important; height:46px !important; font-size:15px !important; margin-top:6px;" onclick="toggleRideHistory()">🧾 RIDE HISTORY</button>
+    <div id="historyPanel" style="display:none; margin-top:10px; background:#f8f9fa; border-radius:12px; padding:10px; max-height:300px; overflow-y:auto; border:1px solid #dee2e6;">
+      <div style="font-size:15px; font-weight:900; color:#7A0000; margin-bottom:8px;">🧾 Completed Rides</div>
+      <div id="historyList"><div style="text-align:center; color:#777; padding:12px; font-size:13px;">Loading history...</div></div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<div class="container">
+  <div class="mapCard" id="mapCard">
+    <div id="map"></div>
+
+    <div id="speedometerBadge" class="speedometer-badge">
+      <div id="speedometerValue" class="speedometer-value">0</div>
+      <div class="speedometer-label">KM/H</div>
+    </div>
+
+    <button id="mapModeBtn" class="mapModeBtn" onclick="toggleMapMode()">🧭 3D LOCK</button>
+    <button id="sosBtn" class="sosBtn" onclick="triggerSOSAlert()">🚨 SOS</button>
+
+    <div id="voiceNav">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+        <div style="display:flex; align-items:center; gap:12px; flex:1; min-width:0;">
+          <div id="navArrow">⬆️</div>
+          <div style="min-width:0;">
+            <div id="navInstruction">Proceed along street</div>
+            <div id="turnDistanceBadge" class="turnDistanceBadge">0 m</div>
+          </div>
+        </div>
+
+        <div class="navDistanceContainer">
+          <div id="navDistance">0 m</div>
+          <div id="navTargetLabel">Drop-off</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="mapGpsStatus" class="mapGpsStatus active">📍 GPS ALWAYS ON</div>
+  </div>
+</div>
+
+<div id="availableBookingsCard" class="card">
+  <div id="bookingHandleArea" class="bookingHandleArea"><div id="bookingHandle" class="bookingHandle"></div></div>
+  <div id="bookingSheetHeader" class="bookingSheetHeader">
+    <div id="bookingSheetTitle" class="bookingSheetTitle">📋 Available Bookings</div>
+    <div id="bookingCount" class="bookingCount">0</div>
+  </div>
+  <div id="bookingList"><div class="emptyBookings" style="text-align:center; color:#777; padding:20px;">Loading bookings...</div></div>
+  <div id="selectedBooking">
+    <div id="selectedBookingContent"></div>
+    <div class="actionGroup">
+      <div id="acceptBtnWrapper" class="btnWrapper" style="display:none;"><button id="acceptBtn" class="circleActionBtn btnAccept" onclick="acceptSelectedRide()">✅</button><span class="btnLabel">Accept</span></div>
+      <div id="callBtnWrapper" class="btnWrapper" style="display:none;"><button id="callPassengerBtn" class="circleActionBtn btnCall" onclick="callPassenger()">📞</button><span class="btnLabel">Call</span></div>
+      <div id="chatBtnWrapper" class="btnWrapper" style="display:none;"><button id="chatBtn" class="circleActionBtn btnChat" onclick="openChat()">💬</button><span class="btnLabel">Chat</span></div>
+      <div id="wazePickupWrapper" class="btnWrapper" style="display:none;"><button id="wazePickupBtn" class="circleActionBtn btnWaze" onclick="wazeToPickup()">📍</button><span class="btnLabel">Waze</span></div>
+      <div id="wazeDestWrapper" class="btnWrapper" style="display:none;"><button id="wazeDestinationBtn" class="circleActionBtn btnWaze" onclick="wazeToDestination()">🗺️</button><span class="btnLabel">Waze</span></div>
+      <div id="pickedUpWrapper" class="btnWrapper" style="display:none;"><button id="pickedUpBtn" class="circleActionBtn btnPickup" onclick="markPickedUp()">🏍️</button><span class="btnLabel">Pickup</span></div>
+      <div id="arrivedWrapper" class="btnWrapper" style="display:none;"><button id="arrivedBtn" class="circleActionBtn btnArrived" onclick="markArrived()">📍</button><span class="btnLabel">Arrived</span></div>
+      <div id="completeWrapper" class="btnWrapper" style="display:none;"><button id="completeBtn" class="circleActionBtn btnComplete" onclick="openReceiptModal()">🏁</button><span class="btnLabel">Finish</span></div>
+    </div>
+  </div>
+</div>
+
+<div id="chatModal" class="chatModal" onclick="chatBackdropClose(event)">
+  <div class="chatBox">
+    <div class="chatHeader">
+      <div>
+        <div class="chatHeaderTitle">💬 Chat with Passenger</div>
+        <div id="chatRideLabel" class="chatHeaderSmall">Ride</div>
+      </div>
+      <button class="chatClose" onclick="closeChat()">×</button>
+    </div>
+    <div id="chatMessages" class="chatMessages"><div class="chatEmpty">No messages yet.</div></div>
+    <div class="chatInputArea">
+      <input id="chatInput" type="text" maxlength="500" placeholder="Type a message...">
+      <button id="chatSendBtn" class="circleActionBtn btnChat" style="width:88px !important; border-radius:12px !important; height:44px !important; font-size:14px !important;" onclick="sendChatMessage()">SEND</button>
+    </div>
+  </div>
+</div>
+
+<div id="receiptModal" class="receiptModal">
+  <div class="receiptCard">
+    <div style="font-size:20px; font-weight:900; color:#7A0000; margin-bottom:12px; text-align:center;">🧾 Trip Receipt</div>
+    <div class="receiptRow"><span>Distance:</span><span id="recDistance">0 km</span></div>
+    <div class="receiptRow"><span>Base Fare:</span><span id="recBase">₱50.00</span></div>
+    <div class="receiptRow"><span>Tip / Extra:</span><input id="recTip" type="number" value="0" style="width:80px; padding:4px; text-align:right; margin:0;" oninput="updateReceiptTotal()"></div>
+    <div class="receiptRow receiptTotal"><span>Total Fare:</span><span id="recTotal">₱50.00</span></div>
+    <button class="gps-overlay-btn" style="background:linear-gradient(135deg, #11998e, #38ef7d); margin-top:14px;" onclick="confirmCompleteRide()">CONFIRM & FINISH RIDE</button>
+  </div>
+</div>
+
+<audio id="bookingSound" src="https://adojdfrfrquueyxtzbiu.supabase.co/storage/v1/object/public/Sounds%20collection/Wav/mixkit-rooster-crowing-in-the-morning-2462.wav" preload="auto"></audio>
+
+<script>
+const SUPABASE_URL = "https://omkgcczffjtevwzsscwg.supabase.co";
+const SUPABASE_KEY = "sb_publishable_-7gCKDHORQ5gIACet6vJUg_X7HmdMeg";
+
+/* INITIALIZE SUPABASE CLIENT WITH KEEP-ALIVE WORKER */
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+  realtime: {
+    worker: true,
+    heartbeatCallback: (status) => {
+      if (status === 'disconnected' && isRiderOnline) {
+        console.log('Realtime disconnected, reconnecting...');
+        supabaseClient.realtime.connect();
+      }
+    }
+  }
+});
+
+const RIDER_PROFILE_KEY = "HABAL_NA_RIDER_PROFILE_V555";
+const ACTIVE_RIDE_KEY = "HABAL_NA_ACTIVE_RIDE_V555";
+
+let map = null;
+let riderMarker = null;
+let pickupMarker = null;
+let destinationMarker = null;
+let riderLocation = null;
+let lastHeading = 0;
+let smoothHeading = 0;
+
+let selectedRide = null;
+let rides = [];
+let gpsWatchId = null;
+let bookingSignature = "";
+let loadingBookings = false;
+let waitingListHidden = false;
+let acceptingRideId = null;
+let toastTimer = null;
+let restoringActiveRide = false;
+let riderHistory = [];
+let chatChannel = null;
+let chatRideId = null;
+let chatMessagesSeen = new Set();
+let geocodeCache = {};
+
+let fullRouteCoordinates = [];
+let currentMapMode = 'headup';
+let isRiderOnline = false;
+let heartbeatInterval = null;
+let audioCtx = null;
+let isDrawingRoute = false;
+let bookingSoundUnlocked = false;
+let wakeLock = null;
+
+/* ================= SCREEN WAKE LOCK & KEEP-ALIVE SYSTEM ================= */
+
+async function requestWakeLock() {
+  if (!isRiderOnline) return;
+  try {
+    if ('wakeLock' in navigator) {
+      wakeLock = await navigator.wakeLock.request('screen');
+      console.log('Screen Wake Lock Active: Phone screen will stay awake.');
+    }
+  } catch (err) {
+    console.warn(`Wake Lock Error: ${err.message}`);
+  }
+}
+
+function releaseWakeLock() {
+  if (wakeLock !== null) {
+    wakeLock.release().then(() => {
+      wakeLock = null;
+      console.log('Wake Lock Released.');
+    });
+  }
+}
+
+// Auto-reconnect at Screen Wake Lock kapag bumabalik ang rider sa app
+document.addEventListener('visibilitychange', async () => {
+  if (document.visibilityState === 'visible' && isRiderOnline) {
+    await requestWakeLock();
+    if (supabaseClient.realtime.status !== 'open') {
+      supabaseClient.realtime.connect();
+    }
+  }
+});
+
+window.addEventListener('focus', async () => {
+  if (isRiderOnline) {
+    await requestWakeLock();
+    if (supabaseClient.realtime.status !== 'open') {
+      supabaseClient.realtime.connect();
+    }
+  }
+});
+
+/* ========================================================================= */
+
+// REVERSE GEOCODING
+async function getAddressFromCoords(lat, lng) {
+  if (!lat || !lng) return "GPS Location";
+  const key = `${Number(lat).toFixed(5)},${Number(lng).toFixed(5)}`;
+  if (geocodeCache[key]) return geocodeCache[key];
+
+  try {
+    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
+    const res = await fetch(url, { headers: { 'User-Agent': 'HabalNaRiderMapLibre/1.0' } });
+    const data = await res.json();
+    if (data && data.display_name) {
+      const parts = data.display_name.split(',');
+      const addressName = parts.slice(0, 2).join(',');
+      geocodeCache[key] = addressName;
+      return addressName;
+    }
+  } catch (e) {}
+
+  return `${Number(lat).toFixed(5)}, ${Number(lng).toFixed(5)}`;
+}
+
+function getPickupName(ride) {
+  if (ride.pickup_location && ride.pickup_location.trim() !== "") return ride.pickup_location;
+  if (ride.pickup && ride.pickup.trim() !== "") return ride.pickup;
+  const key = `${Number(ride.pickup_lat).toFixed(5)},${Number(ride.pickup_lng).toFixed(5)}`;
+  if (geocodeCache[key]) return geocodeCache[key];
+  return "Fetching location name...";
+}
+
+function resolvePickupNamesForRides() {
+  rides.forEach(async (ride) => {
+    if ((!ride.pickup_location || ride.pickup_location.trim() === "") && (!ride.pickup || ride.pickup.trim() === "") && ride.pickup_lat && ride.pickup_lng) {
+      const address = await getAddressFromCoords(ride.pickup_lat, ride.pickup_lng);
+      ride.pickup_location = address;
+      const el = document.getElementById(`pickup-text-${ride.id}`);
+      if (el) el.textContent = address;
+      if (selectedRide && String(selectedRide.id) === String(ride.id)) {
+        const selEl = document.getElementById(`selected-pickup-text`);
+        if (selEl) selEl.textContent = address;
+      }
+    }
+  });
+}
+
+function initAudioContext() {
+  if (!audioCtx) {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (AudioContext) audioCtx = new AudioContext();
+  }
+  if (audioCtx && audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+}
+
+function unlockBookingSound() {
+  const bookingSound = document.getElementById("bookingSound");
+  if (bookingSoundUnlocked || !bookingSound) return;
+  bookingSound.muted = true;
+  const p = bookingSound.play();
+  if (p !== undefined) {
+    p.then(() => {
+      bookingSound.pause();
+      bookingSound.currentTime = 0;
+      bookingSound.muted = false;
+      bookingSoundUnlocked = true;
+    }).catch(() => {
+      bookingSound.muted = false;
+    });
+  }
+}
+
+["pointerdown", "touchstart", "click"].forEach(evt =>
+  document.addEventListener(evt, unlockBookingSound, { passive: true })
+);
+
+function playBookingSound() {
+  const sound = document.getElementById("bookingSound");
+  if (!sound) return;
+  sound.currentTime = 0;
+  sound.play().catch(function(error) { 
+    console.log("Booking sound play error:", error); 
+  });
+}
+
+function playAudioAlert(type) {
+  try {
+    initAudioContext();
+    if (!audioCtx) return;
+
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    if (type === 'new_booking') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+      osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.15);
+      gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.4);
+    } else if (type === 'chat') {
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.2);
+    }
+  } catch (e) {}
+}
+
+function requestNotificationPermission() {
+  if ("Notification" in window && Notification.permission !== "granted") {
+    Notification.permission !== "denied" && Notification.requestPermission();
+  }
+}
+
+function updateStatusUI(status) {
+  const dot = document.getElementById("statusDot");
+  const text = document.getElementById("statusText");
+  if (!dot || !text) return;
+  dot.className = "statusDot";
+  if (status === "online") { dot.classList.add("online"); text.textContent = "ONLINE"; }
+  else if (status === "disconnected") { dot.classList.add("disconnected"); text.textContent = "CONNECTING..."; }
+  else { text.textContent = "OFFLINE"; }
+}
+
+function toggleOnlineStatus() {
+  unlockBookingSound();
+  initAudioContext();
+  requestNotificationPermission();
+
+  const riderName = document.getElementById("riderName")?.value.trim();
+  const riderContact = document.getElementById("riderContact")?.value.trim();
+  if (!riderName || !riderContact) { toggleRiderMenu(); showToast("⚠️ Lagyan muna ng Pangalan at Contact!"); return; }
+
+  isRiderOnline = !isRiderOnline;
+  if (isRiderOnline) {
+    startHeartbeat();
+    requestWakeLock();
+    if (supabaseClient.realtime.status !== 'open') {
+      supabaseClient.realtime.connect();
+    }
+    showToast("🟢 ONLINE - Nakakatanggap ng Bookings");
+  } else {
+    stopHeartbeat();
+    releaseWakeLock();
+    supabaseClient.realtime.disconnect();
+    showToast("🔴 OFFLINE - Pahinga Muna");
+  }
+}
+
+async function sendHeartbeat() {
+  const riderName = document.getElementById("riderName")?.value.trim();
+  const riderContact = document.getElementById("riderContact")?.value.trim();
+  if (!isRiderOnline || !riderName || !riderContact) return;
+
+  updateStatusUI("online");
+
+  try {
+    const payload = {
+      rider_name: riderName,
+      rider_contact: riderContact,
+      lat: riderLocation?.lat || null,
+      lng: riderLocation?.lng || null,
+      last_ping: new Date().toISOString(),
+      status: "online"
+    };
+
+    let { error } = await supabaseClient.from("rider_heartbeats").upsert(payload, { onConflict: "rider_contact" });
+    if (error) {
+      await supabaseClient.from("rider_heartbeats").insert(payload);
+    }
+  } catch (err) {}
+}
+
+function startHeartbeat() {
+  isRiderOnline = true;
+  updateStatusUI("online");
+  sendHeartbeat();
+  if (heartbeatInterval) clearInterval(heartbeatInterval);
+  heartbeatInterval = setInterval(sendHeartbeat, 6000);
+}
+
+function stopHeartbeat() {
+  isRiderOnline = false;
+  updateStatusUI("offline");
+  if (heartbeatInterval) { clearInterval(heartbeatInterval); heartbeatInterval = null; }
+  const riderContact = document.getElementById("riderContact")?.value.trim();
+  if (riderContact) supabaseClient.from("rider_heartbeats").update({ status: "offline" }).eq("rider_contact", riderContact);
+}
+
+function toggleMapMode() {
+  const btn = document.getElementById("mapModeBtn");
+  if (currentMapMode === 'headup') {
+    currentMapMode = 'northup'; btn.textContent = "🗺️ FREE 3D";
+    map.easeTo({ pitch: 30, bearing: 0, duration: 800 });
+  } else {
+    currentMapMode = 'headup'; btn.textContent = "🧭 3D LOCK";
+    if (riderLocation) lockMapTo3DView(riderLocation.lng, riderLocation.lat, lastHeading, 0);
+  }
+}
+
+function triggerSOSAlert() {
+  if (confirm("🚨 EMERGENCY SOS: Nais mo bang tumawag sa 911?")) {
+    if (riderLocation) {
+      navigator.clipboard?.writeText(`https://maps.google.com/?q=${riderLocation.lat},${riderLocation.lng}`);
+      showToast("📍 Location copied!");
+    }
+    window.location.href = "tel:911";
+  }
+}
+
+function toggleRiderMenu(event){ if(event) event.stopPropagation(); document.getElementById("riderMenu").classList.toggle("open"); if(document.getElementById("riderMenu").classList.contains("open")) loadRideHistory(); }
+function closeRiderMenu(){ document.getElementById("riderMenu").classList.remove("open"); }
+document.addEventListener("click", function(event){
+  if(!document.getElementById("riderMenu").contains(event.target) && !document.getElementById("menuButton").contains(event.target)) closeRiderMenu();
+});
+
+function saveRiderProfile(){
+  try{
+    const name = document.getElementById("riderName")?.value.trim() || "";
+    const contact = document.getElementById("riderContact")?.value.trim() || "";
+    localStorage.setItem(RIDER_PROFILE_KEY, JSON.stringify({ name, contact }));
+  }catch(e){}
+}
+function restoreRiderProfile(){
+  try{
+    const saved = localStorage.getItem(RIDER_PROFILE_KEY);
+    if(!saved) return;
+    const profile = JSON.parse(saved);
+    if(profile.name) document.getElementById("riderName").value = profile.name;
+    if(profile.contact) document.getElementById("riderContact").value = profile.contact;
+  }catch(e){}
+}
+function setupRiderProfilePersistence(){
+  document.getElementById("riderName")?.addEventListener("input", saveRiderProfile);
+  document.getElementById("riderContact")?.addEventListener("input", saveRiderProfile);
+}
+
+function isActiveRideStatus(status){ return status === "accepted" || status === "picked_up" || status === "arrived"; }
+function saveActiveRide(ride){
+  if(!ride || !isActiveRideStatus(ride.status)) return;
+  try{ localStorage.setItem(ACTIVE_RIDE_KEY, JSON.stringify({ id: ride.id, status: ride.status, rider_name: ride.rider_name || "", rider_contact: ride.rider_contact || "", saved_at: Date.now() })); }catch(e){}
+}
+function clearActiveRide(){ try{ localStorage.removeItem(ACTIVE_RIDE_KEY); }catch(e){} }
+function getSavedActiveRide(){ try{ const saved = localStorage.getItem(ACTIVE_RIDE_KEY); return saved ? JSON.parse(saved) : null; }catch(e){ return null; } }
+
+async function restoreActiveRide(){
+  if(restoringActiveRide) return; restoringActiveRide = true;
+  try{
+    const saved = getSavedActiveRide();
+    if(!saved || !saved.id) return;
+    let restoredRide = null;
+    const exactResult = await supabaseClient.from("rides").select("*").eq("id", saved.id).maybeSingle();
+    if(!exactResult.error && exactResult.data && isActiveRideStatus(exactResult.data.status)) restoredRide = exactResult.data;
+    if(!restoredRide){
+      const riderName = saved.rider_name || document.getElementById("riderName").value.trim();
+      const riderContact = saved.rider_contact || document.getElementById("riderContact").value.trim();
+      if(riderName && riderContact){
+        const fallbackResult = await supabaseClient.from("rides").select("*").eq("rider_name", riderName).eq("rider_contact", riderContact).in("status", ["accepted", "picked_up", "arrived"]).order("created_at", { ascending: false }).limit(1);
+        if(!fallbackResult.error && fallbackResult.data && fallbackResult.data.length) restoredRide = fallbackResult.data[0];
+      }
+    }
+    if(!restoredRide){ clearActiveRide(); return; }
+    if(restoredRide.rider_name) document.getElementById("riderName").value = restoredRide.rider_name;
+    if(restoredRide.rider_contact) document.getElementById("riderContact").value = restoredRide.rider_contact;
+    saveRiderProfile();
+    const existingIndex = rides.findIndex(r => String(r.id) === String(restoredRide.id));
+    if(existingIndex >= 0) rides[existingIndex] = restoredRide; else rides.push(restoredRide);
+    selectedRide = restoredRide; saveActiveRide(restoredRide); bookingSignature = "";
+    setWaitingListHidden(true); showSelectedBooking(); drawRideOnMap(restoredRide); openBookingSheet();
+  }catch(e){}finally{ restoringActiveRide = false; }
+}
+
+function toggleRideHistory(){
+  const panel = document.getElementById("historyPanel");
+  if(!panel) return;
+  panel.style.display = (panel.style.display === "none" || !panel.style.display) ? "block" : "none";
+  if(panel.style.display === "block") loadRideHistory();
+}
+async function loadRideHistory(){
+  const list = document.getElementById("historyList");
+  if(!list) return;
+  const riderName = document.getElementById("riderName").value.trim();
+  const riderContact = document.getElementById("riderContact").value.trim();
+  if(!riderName || !riderContact){ list.innerHTML = `<div style="text-align:center; color:#777; padding:12px; font-size:13px;">Enter rider name and contact first.</div>`; return; }
+  list.innerHTML = `<div style="text-align:center; color:#777; padding:12px; font-size:13px;">Loading history...</div>`;
+  try{
+    const { data, error } = await supabaseClient.from("rides").select("*").eq("status", "completed").eq("rider_name", riderName).eq("rider_contact", riderContact).order("created_at", { ascending: false });
+    if(error){ list.innerHTML = `<div style="text-align:center; color:#dc3545; padding:12px;">Failed to load history.</div>`; return; }
+    riderHistory = data || []; renderRideHistory(); updateDailyEarningsDashboard();
+  }catch(e){ list.innerHTML = `<div style="text-align:center; color:#dc3545; padding:12px;">History error.</div>`; }
+}
+
+function updateDailyEarningsDashboard() {
+  const todayStr = new Date().toDateString();
+  let totalEarnings = 0, todayRidesCount = 0;
+  riderHistory.forEach(ride => {
+    if (ride.created_at && new Date(ride.created_at).toDateString() === todayStr) {
+      totalEarnings += Number(ride.estimated_fare || 0); todayRidesCount++;
+    }
+  });
+  document.getElementById("dailyEarningsVal").textContent = "₱" + totalEarnings.toFixed(2);
+  document.getElementById("dailyRidesVal").textContent = todayRidesCount;
+}
+
+function renderRideHistory(){
+  const list = document.getElementById("historyList");
+  if(!list) return;
+  if(!riderHistory.length){ list.innerHTML = `<div style="text-align:center; color:#777; padding:12px; font-size:13px;">📭 No completed rides yet.</div>`; return; }
+  list.innerHTML = "";
+  riderHistory.forEach(ride => {
+    const item = document.createElement("div");
+    item.style.cssText = `background:#fff; border:1px solid #dee2e6; border-radius:12px; padding:10px; margin-bottom:8px; font-size:12px; line-height:1.55;`;
+    const pickupTxt = getPickupName(ride);
+    item.innerHTML = `
+      <div style="font-size:14px; font-weight:900; color:#7A0000; margin-bottom:4px;">✅ Ride #${escapeHTML(ride.id)}</div>
+      <div><b>Passenger:</b> ${escapeHTML(ride.passenger_name)}</div>
+      <div><b>Pickup:</b> <span id="pickup-text-hist-${ride.id}">${escapeHTML(pickupTxt)}</span></div>
+      <div><b>Destination:</b> ${escapeHTML(ride.destination)}</div>
+      <div><b>Distance:</b> ${Number(ride.distance_km || 0).toFixed(2)} km</div>
+      <div><b>Fare:</b> ₱${Number(ride.estimated_fare || 0).toFixed(2)}</div>
+      <div style="color:#777; font-size:10px; margin-top:3px;">${escapeHTML(ride.created_at ? new Date(ride.created_at).toLocaleString() : "")}</div>
+    `;
+    list.appendChild(item);
+  });
+}
+
+function escapeHTML(val){ return val === null || val === undefined ? "" : String(val).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;"); }
+function statusText(status){
+  const mapStatus = { searching:"🔎 SEARCHING", accepted:"✅ ACCEPTED", picked_up:"🏍️ PICKED UP", arrived:"📍 ARRIVED", completed:"✅ COMPLETED", cancelled:"❌ CANCELLED" };
+  return mapStatus[status] || status;
+}
+function showToast(message){
+  const toast = document.getElementById("toast"); if(!toast) return;
+  if(toastTimer !== null){ clearTimeout(toastTimer); toastTimer = null; }
+  toast.textContent = message; toast.classList.add("show");
+  toastTimer = setTimeout(() => { toast.classList.remove("show"); toastTimer = null; }, 4000);
+}
+
+function calculateDistanceKm(lat1, lng1, lat2, lng2){
+  const R = 6371;
+  const dLat = (Number(lat2) - Number(lat1)) * Math.PI / 180;
+  const dLng = (Number(lng2) - Number(lng1)) * Math.PI / 180;
+  const a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(Number(lat1)*Math.PI/180)*Math.cos(Number(lat2)*Math.PI/180)*Math.sin(dLng/2)*Math.sin(dLng/2);
+  return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+}
+function calculateDistanceMeters(lat1, lon1, lat2, lon2) { return calculateDistanceKm(lat1, lon1, lat2, lon2) * 1000; }
+function getPickupDistance(ride){
+  if(!riderLocation || ride.pickup_lat == null || ride.pickup_lng == null) return null;
+  return calculateDistanceKm(riderLocation.lat, riderLocation.lng, ride.pickup_lat, ride.pickup_lng);
+}
+function sortBookingsByPickupDistance(){
+  rides.forEach(r => { r._pickupDistanceKm = getPickupDistance(r); });
+  rides.sort((a,b) => {
+    if(a._pickupDistanceKm === null && b._pickupDistanceKm === null) return 0;
+    if(a._pickupDistanceKm === null) return 1;
+    if(b._pickupDistanceKm === null) return -1;
+    return a._pickupDistanceKm - b._pickupDistanceKm;
+  });
+}
+function pickupDistanceText(ride){
+  const d = getPickupDistance(ride);
+  if(d === null) return `<span class="pickupDistance noGps">🏍️ GPS OFF</span>`;
+  const text = d < 1 ? Math.round(d * 1000) + " meters away" : d.toFixed(2) + " km away";
+  return `<span class="pickupDistance">🏍️ ${escapeHTML(text)}</span>`;
+}
+
+let bookingSheetExpanded = false;
+function openBookingSheet(){ bookingSheetExpanded = true; document.getElementById("availableBookingsCard").classList.add("expanded"); }
+function closeBookingSheet(){ bookingSheetExpanded = false; document.getElementById("availableBookingsCard").classList.remove("expanded"); }
+function toggleBookingSheet(){ if(bookingSheetExpanded) closeBookingSheet(); else openBookingSheet(); }
+
+function setupBookingSheetSwipe(){
+  const sheet = document.getElementById("availableBookingsCard");
+  const handleArea = document.getElementById("bookingHandleArea");
+  const headerArea = document.getElementById("bookingSheetHeader");
+  if(!sheet || !handleArea || !headerArea) return;
+  let startY = 0, currentY = 0, dragging = false, moved = false, startTime = 0, startHeight = 115;
+
+  function startDrag(y){ dragging = true; moved = false; startY = y; currentY = y; startTime = Date.now(); startHeight = sheet.getBoundingClientRect().height; }
+  function moveDrag(y){
+    if(!dragging) return; currentY = y; const delta = startY - currentY;
+    if(Math.abs(delta) > 5) moved = true;
+    let newH = Math.max(110, Math.min(startHeight + delta, Math.min(window.innerHeight * .70, 560)));
+    sheet.style.height = newH + "px";
+  }
+  function endDrag(){
+    if(!dragging) return; const delta = startY - currentY; const velocity = Math.abs(delta) / Math.max(1, Date.now() - startTime);
+    dragging = false; sheet.style.height = "";
+    if(delta > 45 || (delta > 15 && velocity > .35)){ openBookingSheet(); moved = false; return; }
+    if(delta < -45 || (delta < -15 && velocity > .35)){ closeBookingSheet(); moved = false; return; }
+    if(!moved) toggleBookingSheet(); moved = false;
+  }
+  [handleArea, headerArea].forEach(el => {
+    el.addEventListener("pointerdown", e => { startDrag(e.clientY); try{ el.setPointerCapture(e.pointerId); }catch(err){} });
+    el.addEventListener("pointermove", e => { if(dragging) moveDrag(e.clientY); });
+    el.addEventListener("pointerup", e => { if(dragging){ try{ el.releasePointerCapture(e.pointerId); }catch(err){} endDrag(); } });
+  });
+}
+
+function setWaitingListHidden(hidden){
+  waitingListHidden = hidden;
+  const card = document.getElementById("availableBookingsCard");
+  const list = document.getElementById("bookingList");
+  const selectedBox = document.getElementById("selectedBooking");
+  const title = document.getElementById("bookingSheetTitle");
+  const count = document.getElementById("bookingCount");
+  if(!card) return;
+  card.style.display = "block";
+  if(hidden){
+    list.style.display = "none"; selectedBox.style.display = selectedRide ? "block" : "none";
+    title.textContent = "🚕 Selected Booking"; count.style.display = "none";
+  }else{
+    list.style.display = "block"; selectedBox.style.display = "none";
+    title.textContent = "📋 Available Bookings"; count.style.display = "flex";
+  }
+}
+
+function updateBookingCount(){
+  const count = document.getElementById("bookingCount");
+  if(count) count.textContent = rides.filter(r => r.status === "searching").length;
+}
+
+/* INITIALIZE MAPLIBRE GL MAP */
+function initMap(){
+  map = new maplibregl.Map({
+    container: 'map',
+    style: {
+      version: 8,
+      sources: {
+        'osm-tiles': {
+          type: 'raster',
+          tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+          tileSize: 256,
+          attribution: '&copy; OpenStreetMap contributors'
+        }
+      },
+      layers: [
+        {
+          id: 'osm-tiles-layer',
+          type: 'raster',
+          source: 'osm-tiles',
+          minzoom: 0,
+          maxzoom: 19
+        }
+      ]
+    },
+    center: [121.0415, 14.4086],
+    zoom: 18.5,
+    pitch: 30,
+    bearing: 0
+  });
+
+  map.on('load', () => {
+    map.resize();
+    updateRiderMarker(121.0415, 14.4086, 0);
+    if (selectedRide) drawRideOnMap(selectedRide);
+  });
+}
+
+function clearRideMap(){
+  if(pickupMarker) { pickupMarker.remove(); pickupMarker = null; }
+  if(destinationMarker) { destinationMarker.remove(); destinationMarker = null; }
+  if(map) {
+    try {
+      if(map.getLayer('layer-route-passed')) map.removeLayer('layer-route-passed');
+      if(map.getSource('route-passed')) map.removeSource('route-passed');
+      if(map.getLayer('layer-route-remaining')) map.removeLayer('layer-route-remaining');
+      if(map.getSource('route-remaining')) map.removeSource('route-remaining');
+    } catch(e) {}
+  }
+}
+
+function hideAllActions(){
+  ["acceptBtnWrapper", "callBtnWrapper", "chatBtnWrapper", "wazePickupWrapper", "wazeDestWrapper", "pickedUpWrapper", "arrivedWrapper", "completeWrapper"].forEach(id => {
+    const el = document.getElementById(id); if(el) el.style.display = "none";
+  });
+}
+
+function showSelectedActions(){
+  hideAllActions();
+  if(!selectedRide) return;
+  const s = selectedRide.status;
+  if(s === "searching") document.getElementById("acceptBtnWrapper").style.display = "flex";
+  if(s === "accepted" || s === "picked_up" || s === "arrived"){
+    document.getElementById("callBtnWrapper").style.display = "flex";
+    document.getElementById("chatBtnWrapper").style.display = "flex";
+  }
+  if(s === "accepted"){ document.getElementById("wazePickupWrapper").style.display = "flex"; document.getElementById("pickedUpWrapper").style.display = "flex"; }
+  if(s === "picked_up"){ document.getElementById("wazeDestWrapper").style.display = "flex"; document.getElementById("arrivedWrapper").style.display = "flex"; }
+  if(s === "arrived"){ document.getElementById("completeWrapper").style.display = "flex"; document.getElementById("wazeDestWrapper").style.display = "flex"; }
+}
+
+function selectRide(id){
+  const ride = rides.find(r => String(r.id) === String(id));
+  if(!ride) return;
+  if(waitingListHidden && selectedRide && String(selectedRide.id) !== String(ride.id)) return;
+  selectedRide = ride;
+  if(isActiveRideStatus(ride.status)) saveActiveRide(ride);
+  setWaitingListHidden(true); showSelectedBooking(); drawRideOnMap(ride); openBookingSheet();
+}
+
+function showSelectedBooking(){
+  const box = document.getElementById("selectedBooking");
+  const content = document.getElementById("selectedBookingContent");
+  if(!selectedRide){ box.style.display = "none"; return; }
+  if(isActiveRideStatus(selectedRide.status)) saveActiveRide(selectedRide);
+  box.style.display = "block";
+  const r = selectedRide;
+  
+  const pickupText = getPickupName(r);
+  
+  content.innerHTML = `
+    <div class="selectedTitle">🚕 Selected Booking</div>
+    <div class="bookingInfo">
+      <b>Passenger:</b> ${escapeHTML(r.passenger_name)}<br>
+      <b>Contact:</b> ${escapeHTML(r.passenger_contact)}<br>
+      <b>Pickup:</b> <span id="selected-pickup-text">${escapeHTML(pickupText)}</span><br>
+      ${pickupDistanceText(r)}<br>
+      <b>Destination:</b> ${escapeHTML(r.destination)}<br>
+      <b>Distance:</b> ${Number(r.distance_km || 0).toFixed(2)} km<br>
+      <b>Fare:</b> ₱${Number(r.estimated_fare || 0).toFixed(2)}<br>
+      <span class="status">${statusText(r.status)}</span>
+    </div>
+  `;
+  showSelectedActions(); setWaitingListHidden(true);
+  resolvePickupNamesForRides();
+}
+
+function createSwipeAccept(ride){
+  const wrapper = document.createElement("div"); wrapper.className = "swipeArea";
+  const text = document.createElement("div"); text.className = "swipeText"; text.textContent = "👉 SWIPE TO ACCEPT";
+  const button = document.createElement("button"); button.className = "swipeButton"; button.textContent = "➜";
+  wrapper.appendChild(text); wrapper.appendChild(button);
+  let startX = 0, currentX = 0, dragging = false;
+  function moveBtn(x){ const max = wrapper.clientWidth - 46; currentX = Math.max(0, Math.min(x, max)); button.style.left = (currentX + 2) + "px"; }
+  button.addEventListener("touchstart", e => { if(acceptingRideId) return; dragging = true; startX = e.touches[0].clientX; }, { passive:true });
+  button.addEventListener("touchmove", e => { if(!dragging) return; moveBtn(e.touches[0].clientX - startX); }, { passive:true });
+  button.addEventListener("touchend", () => {
+    dragging = false; const max = wrapper.clientWidth - 46;
+    if(currentX > max * .75){ moveBtn(max); acceptingRideId = ride.id; selectRide(ride.id); acceptRide(ride.id); }
+    else { moveBtn(0); }
+  });
+  return wrapper;
+}
+
+function renderBookings(){
+  if(waitingListHidden){ updateBookingCount(); return; }
+  const list = document.getElementById("bookingList");
+  const avail = rides.filter(r => r.status === "searching");
+  if(!avail.length){ list.innerHTML = `<div class="emptyBookings" style="text-align:center; color:#777; padding:20px;">📭 No available bookings.</div>`; updateBookingCount(); return; }
+  sortBookingsByPickupDistance();
+  list.innerHTML = "";
+  rides.forEach((ride, index) => {
+    if(ride.status !== "searching") return;
+    const div = document.createElement("div"); div.className = "booking";
+    if(selectedRide && String(selectedRide.id) === String(ride.id)) div.classList.add("active");
+    let nearestBadge = (index === 0 && getPickupDistance(ride) !== null) ? `<span class="nearestBadge">⭐ NEAREST</span>` : "";
+    
+    const pickupText = getPickupName(ride);
+    
+    div.innerHTML = `
+      <div class="bookingTitle">🚕 Available Passenger ${nearestBadge}</div>
+      <div class="bookingInfo">
+        📍 Pickup: <span id="pickup-text-${ride.id}">${escapeHTML(pickupText)}</span><br>
+        ${pickupDistanceText(ride)}<br>
+        🏁 Destination: ${escapeHTML(ride.destination)}<br>
+        📏 Trip Distance: ${Number(ride.distance_km || 0).toFixed(2)} km<br>
+        💰 Fare: ₱${Number(ride.estimated_fare || 0).toFixed(2)}<br>
+        <span class="status">${statusText(ride.status)}</span>
+      </div>
+    `;
+    div.onclick = () => selectRide(ride.id);
+    div.appendChild(createSwipeAccept(ride));
+    list.appendChild(div);
+  });
+  updateBookingCount();
+  resolvePickupNamesForRides();
+}
+
+async function loadBookings(){
+  if(loadingBookings) return; loadingBookings = true;
+  try{
+    const { data, error } = await supabaseClient.from("rides").select("*").in("status", ["searching", "accepted", "picked_up", "arrived"]).order("created_at", { ascending: false });
+    if(error) return;
+    rides = data || [];
+    const signature = JSON.stringify(rides.map(r => [r.id, r.status, r.passenger_name, r.destination]));
+    if(signature !== bookingSignature){
+      bookingSignature = signature; renderBookings();
+      if(selectedRide){
+        const updated = rides.find(r => String(r.id) === String(selectedRide.id));
+        if(updated){ selectedRide = updated; if(isActiveRideStatus(updated.status)) saveActiveRide(updated); showSelectedBooking(); drawRideOnMap(updated); }
+      }
+    }else if(!waitingListHidden){ renderBookings(); }
+  }catch(e){}finally{ loadingBookings = false; }
+}
+
+async function acceptRide(rideId){
+  if(acceptingRideId && String(acceptingRideId) !== String(rideId)) return false;
+  acceptingRideId = rideId;
+  const name = document.getElementById("riderName").value.trim();
+  const contact = document.getElementById("riderContact").value.trim();
+  if(!name){ acceptingRideId = null; openRiderMenu(); showToast("⚠️ Enter rider name first"); return false; }
+  if(!contact){ acceptingRideId = null; openRiderMenu(); showToast("⚠️ Enter rider contact first"); return false; }
+  saveRiderProfile();
+  try{
+    const { data, error } = await supabaseClient.from("rides").update({
+      status: "accepted", rider_name: name, rider_contact: contact,
+      rider_lat: riderLocation?.lat || null, rider_lng: riderLocation?.lng || null
+    }).eq("id", rideId).eq("status", "searching").select().maybeSingle();
+
+    if(error || !data){ acceptingRideId = null; showToast("⚠️ Booking no longer available"); await loadBookings(); return false; }
+    selectedRide = data; acceptingRideId = null; saveActiveRide(data); setWaitingListHidden(true);
+    const idx = rides.findIndex(r => String(r.id) === String(data.id));
+    if(idx >= 0) rides[idx] = data; else rides.push(data);
+    bookingSignature = ""; showSelectedBooking();
+
+    setTimeout(() => {
+      drawRideOnMap(data);
+    }, 150);
+
+    showToast("⚡ 3D Navigation Active!");
+    return true;
+  }catch(e){ acceptingRideId = null; return false; }
+}
+
+async function acceptSelectedRide(){
+  if(!selectedRide){ showToast("⚠️ Select a booking"); return; }
+  await acceptRide(selectedRide.id);
+}
+
+function updateLocalRide(ride){
+  const idx = rides.findIndex(r => String(r.id) === String(ride.id));
+  if(idx >= 0) rides[idx] = ride; else rides.push(ride);
+  bookingSignature = "";
+  if(isActiveRideStatus(ride.status)){ saveActiveRide(ride); setWaitingListHidden(true); }
+  if(ride.status === "completed") clearActiveRide();
+  if(!waitingListHidden) renderBookings();
+}
+
+async function markPickedUp(){
+  if(!selectedRide) return;
+  const { data, error } = await supabaseClient.from("rides").update({ status: "picked_up" }).eq("id", selectedRide.id).select().single();
+  if(error){ showToast("❌ Failed"); return; }
+  selectedRide = data; saveActiveRide(data); setWaitingListHidden(true);
+  updateLocalRide(data); showSelectedBooking(); drawRideOnMap(data);
+}
+
+async function markArrived(){
+  if(!selectedRide) return;
+  const { data, error } = await supabaseClient.from("rides").update({ status: "arrived" }).eq("id", selectedRide.id).select().single();
+  if(error){ showToast("❌ Failed"); return; }
+  selectedRide = data; saveActiveRide(data); setWaitingListHidden(true);
+  updateLocalRide(data); showSelectedBooking(); drawRideOnMap(data);
+}
+
+function openReceiptModal() {
+  if (!selectedRide) return;
+  const baseFare = Number(selectedRide.estimated_fare || 50);
+  document.getElementById("recDistance").textContent = Number(selectedRide.distance_km || 0).toFixed(2) + " km";
+  document.getElementById("recBase").textContent = "₱" + baseFare.toFixed(2);
+  document.getElementById("recTip").value = 0;
+  document.getElementById("recTotal").textContent = "₱" + baseFare.toFixed(2);
+  document.getElementById("receiptModal").classList.add("open");
+}
+
+function updateReceiptTotal() {
+  if (!selectedRide) return;
+  const baseFare = Number(selectedRide.estimated_fare || 50);
+  const tip = Number(document.getElementById("recTip").value || 0);
+  document.getElementById("recTotal").textContent = "₱" + (baseFare + tip).toFixed(2);
+}
+
+async function confirmCompleteRide() {
+  document.getElementById("receiptModal").classList.remove("open");
+  await completeRide();
+}
+
+async function completeRide(){
+  if(!selectedRide) return;
+  const completedId = selectedRide.id;
+  await supabaseClient.from("rides").update({ status: "completed" }).eq("id", completedId).select().single();
+  clearActiveRide(); closeChat(); selectedRide = null; acceptingRideId = null;
+  clearRideMap(); stopAutoNavigation(); setWaitingListHidden(false);
+  rides = rides.filter(r => String(r.id) !== String(completedId));
+  bookingSignature = ""; await loadBookings(); renderBookings();
+  showToast("✅ Ride completed!");
+  if(document.getElementById("riderMenu")?.classList.contains("open")) loadRideHistory();
+}
+
+function openWaze(lat, lng){ if(lat != null && lng != null) window.location.href = `waze://?ll=${lat},${lng}&navigate=yes&avoid=tolls,highways`; }
+function wazeToPickup(){ if(selectedRide) openWaze(selectedRide.pickup_lat, selectedRide.pickup_lng); }
+function wazeToDestination(){ if(selectedRide) openWaze(selectedRide.destination_lat, selectedRide.destination_lng); }
+function callPassenger(){ if(selectedRide?.passenger_contact) window.location.href = "tel:" + selectedRide.passenger_contact; }
+
+function appendChatMessage(message){
+  if(!message || !chatRideId || String(message.ride_id) !== String(chatRideId)) return;
+  const msgId = String(message.id); if(chatMessagesSeen.has(msgId)) return;
+  chatMessagesSeen.add(msgId);
+  const container = document.getElementById("chatMessages"); if(!container) return;
+  if(container.querySelector(".chatEmpty")) container.querySelector(".chatEmpty").remove();
+  const row = document.createElement("div"); const isMe = message.sender_type === "rider";
+  row.className = "chatRow " + (isMe ? "me" : "other");
+  row.innerHTML = `<div class="chatBubble"><div class="chatSender">${isMe ? "You" : escapeHTML(message.sender_name || "Passenger")}</div><div>${escapeHTML(message.message || "")}</div><div class="chatMeta">${new Date(message.created_at).toLocaleTimeString([], { hour:"numeric", minute:"2-digit" })}</div></div>`;
+  container.appendChild(row); container.scrollTop = container.scrollHeight;
+  if (!isMe) playAudioAlert('chat');
+}
+
+async function loadChatMessages(rideId){
+  const container = document.getElementById("chatMessages");
+  if(container) container.innerHTML = `<div class="chatEmpty">Loading messages...</div>`;
+  chatMessagesSeen.clear();
+  const { data } = await supabaseClient.from("ride_messages").select("*").eq("ride_id", rideId).order("created_at", { ascending: true });
+  if(container) container.innerHTML = data?.length ? "" : `<div class="chatEmpty">💬 No messages yet.</div>`;
+  data?.forEach(m => appendChatMessage(m));
+}
+
+function subscribeChat(rideId){
+  if(chatChannel){ supabaseClient.removeChannel(chatChannel); chatChannel = null; }
+  chatRideId = rideId;
+  chatChannel = supabaseClient.channel("ride-chat-" + rideId)
+    .on("postgres_changes", { event:"INSERT", schema:"public", table:"ride_messages", filter:"ride_id=eq." + rideId }, p => appendChatMessage(p.new))
+    .subscribe();
+}
+
+function openChat(){
+  if(!selectedRide || !["accepted", "picked_up", "arrived"].includes(selectedRide.status)) return;
+  chatRideId = selectedRide.id;
+  document.getElementById("chatRideLabel").textContent = "Ride #" + selectedRide.id;
+  document.getElementById("chatModal").classList.add("open");
+  subscribeChat(selectedRide.id); loadChatMessages(selectedRide.id);
+}
+
+function closeChat(){
+  document.getElementById("chatModal").classList.remove("open");
+  if(chatChannel){ supabaseClient.removeChannel(chatChannel); chatChannel = null; }
+  chatRideId = null; chatMessagesSeen.clear();
+}
+function chatBackdropClose(e){ if(e.target.id === "chatModal") closeChat(); }
+
+async function sendChatMessage(){
+  const input = document.getElementById("chatInput"); const msg = input?.value.trim();
+  if(!msg || !chatRideId || !selectedRide) return;
+  const riderName = document.getElementById("riderName").value.trim() || "Rider";
+  const { data } = await supabaseClient.from("ride_messages").insert({ ride_id: Number(chatRideId), sender_type: "rider", sender_name: riderName, message: msg }).select().single();
+  if(input) input.value = "";
+  if(data) appendChatMessage(data);
+}
+
+/* MAPLIBRE 3D CAMERA CONTROL */
+function lockMapTo3DView(lng, lat, heading, upcomingTurnAngle = 0) {
+  if (!map || currentMapMode !== 'headup') return;
+
+  let targetPitch = 30; 
+  let targetZoom = 17.5;
+
+  if (Math.abs(upcomingTurnAngle) > 25) {
+    targetPitch = 55;
+    targetZoom = 19;
+  }
+
+  map.easeTo({ 
+    center: [lng, lat], 
+    zoom: targetZoom, 
+    pitch: targetPitch, 
+    bearing: heading, 
+    padding: { top: 50, bottom: 0, left: 0, right: 0 }, 
+    duration: 400, 
+    easing: t => t 
+  });
+}
+
+function startRiderGPS(){
+  if(!navigator.geolocation) return;
+  if(gpsWatchId !== null) navigator.geolocation.clearWatch(gpsWatchId);
+
+  gpsWatchId = navigator.geolocation.watchPosition(async position => {
+    const lat = position.coords.latitude;
+    const lng = position.coords.longitude;
+    const rawHeading = position.coords.heading;
+    const speedKmh = position.coords.speed ? Math.round(position.coords.speed * 3.6) : 0;
+
+    document.getElementById("speedometerValue").textContent = speedKmh;
+
+    if(riderLocation) {
+      const distMoved = calculateDistanceMeters(riderLocation.lat, riderLocation.lng, lat, lng);
+      
+      if (distMoved > 2) {
+        let targetHeading = (rawHeading !== null && !isNaN(rawHeading) && speedKmh > 5) 
+          ? rawHeading 
+          : calculateBearing(riderLocation.lat, riderLocation.lng, lat, lng);
+          
+        smoothHeading = smoothAngle(smoothHeading, targetHeading, 0.25);
+        lastHeading = smoothHeading;
+      }
+    } else if(rawHeading && !isNaN(rawHeading)) { 
+      smoothHeading = rawHeading; 
+      lastHeading = rawHeading; 
+    }
+
+    riderLocation = { lat, lng };
+    updateRiderMarker(lng, lat, lastHeading);
+    
+    updateNavigationProgress(lat, lng, speedKmh);
+    sortBookingsByPickupDistance();
+    if(!waitingListHidden) renderBookings();
+
+    if(selectedRide){
+      try{ 
+        await supabaseClient.from("rides")
+          .update({ rider_lat: lat, rider_lng: lng })
+          .eq("id", selectedRide.id)
+          .in("status", ["accepted", "picked_up", "arrived"]); 
+      }catch(e){}
+    }
+  }, err => {}, { enableHighAccuracy: true, maximumAge: 1000, timeout: 8000 });
+}
+
+function smoothAngle(currentAngle, targetAngle, alpha = 0.3) {
+  let diff = targetAngle - currentAngle;
+  while (diff < -180) diff += 360;
+  while (diff > 180) diff -= 360;
+  return currentAngle + alpha * diff;
+}
+
+function updateRiderMarker(lng, lat, heading = 0){
+  if(!map) return;
+  if(!riderMarker){
+    const wrapper = document.createElement('div'); wrapper.className = 'rider-marker-wrapper';
+    const arrow = document.createElement('div'); arrow.className = 'rider-arrow-container'; arrow.innerHTML = '➤';
+    wrapper.appendChild(arrow);
+    riderMarker = new maplibregl.Marker({ element: wrapper }).setLngLat([lng, lat]).addTo(map);
+  } else {
+    riderMarker.setLngLat([lng, lat]);
+  }
+}
+
+function stopAutoNavigation(){
+  fullRouteCoordinates = [];
+  document.getElementById("voiceNav")?.classList.remove("active");
+  document.getElementById("topHeader")?.classList.remove("hiddenHeader");
+  document.body.classList.remove("nav-active");
+  clearRideMap();
+}
+
+function getNavigationTarget(ride){
+  if(!ride) return null;
+  if(ride.status === "accepted") return { lat: Number(ride.pickup_lat), lng: Number(ride.pickup_lng), label: "Pickup" };
+  if(ride.status === "picked_up" || ride.status === "arrived") return { lat: Number(ride.destination_lat), lng: Number(ride.destination_lng), label: "Drop-off" };
+  return null;
+}
+
+function formatNavDistance(meters){
+  const m = Math.max(0, Number(meters || 0));
+  return m < 1000 ? Math.round(m) + " m" : (m / 1000).toFixed(1) + " km";
+}
+
+function updateNavigationProgress(currentLat, currentLng, speedKmh = 0) {
+  if (!fullRouteCoordinates || fullRouteCoordinates.length === 0 || !map) return;
+
+  let closestIndex = 0; 
+  let minDistance = Infinity;
+  
+  for (let i = 0; i < fullRouteCoordinates.length; i++) {
+    const dist = calculateDistanceMeters(currentLat, currentLng, fullRouteCoordinates[i][1], fullRouteCoordinates[i][0]);
+    if (dist < minDistance) { minDistance = dist; closestIndex = i; }
+  }
+
+  const passedCoords = fullRouteCoordinates.slice(0, closestIndex + 1);
+  const remainingCoords = fullRouteCoordinates.slice(closestIndex);
+
+  if (passedCoords.length >= 2) {
+    const passedGeoJSON = { type: 'Feature', geometry: { type: 'LineString', coordinates: passedCoords } };
+    if (map.getSource('route-passed')) {
+      map.getSource('route-passed').setData(passedGeoJSON);
+    } else {
+      try {
+        map.addSource('route-passed', { type: 'geojson', data: passedGeoJSON });
+        map.addLayer({
+          id: 'layer-route-passed', type: 'line', source: 'route-passed',
+          layout: { 'line-join': 'round', 'line-cap': 'round' },
+          paint: { 'line-color': '#007AFF', 'line-width': 7, 'line-opacity': 0.3 }
+        });
+      } catch(e) {}
+    }
+  }
+
+  if (remainingCoords.length >= 2) {
+    const remainingGeoJSON = { type: 'Feature', geometry: { type: 'LineString', coordinates: remainingCoords } };
+    if (map.getSource('route-remaining')) {
+      map.getSource('route-remaining').setData(remainingGeoJSON);
+    } else {
+      try {
+        map.addSource('route-remaining', { type: 'geojson', data: remainingGeoJSON });
+        map.addLayer({
+          id: 'layer-route-remaining', type: 'line', source: 'route-remaining',
+          layout: { 'line-join': 'round', 'line-cap': 'round' },
+          paint: { 'line-color': '#007AFF', 'line-width': 9, 'line-opacity': 1.0 }
+        });
+      } catch(e) {}
+    }
+  }
+
+  let routeHeading = lastHeading;
+  if (remainingCoords.length >= 2) {
+    routeHeading = calculateBearing(
+      remainingCoords[0][1], remainingCoords[0][0], 
+      remainingCoords[1][1], remainingCoords[1][0]
+    );
+  }
+
+  if (riderMarker) {
+    const el = riderMarker.getElement(); 
+    const arrowEl = el.querySelector('.rider-arrow-container');
+    if(arrowEl) {
+      arrowEl.style.transform = `rotate(0deg)`;
+    }
+  }
+
+  let totalRemainingDist = 0;
+  for (let i = 0; i < remainingCoords.length - 1; i++) {
+    totalRemainingDist += calculateDistanceMeters(remainingCoords[i][1], remainingCoords[i][0], remainingCoords[i+1][1], remainingCoords[i+1][0]);
+  }
+  document.getElementById("navDistance").textContent = formatNavDistance(totalRemainingDist);
+
+  const turnInfo = getIndependentTurnCountdown(remainingCoords);
+  document.getElementById("turnDistanceBadge").textContent = formatNavDistance(turnInfo.turnDist);
+  document.getElementById("navInstruction").textContent = turnInfo.text;
+  document.getElementById("navArrow").textContent = turnInfo.arrow;
+
+  let activeTurnAngle = (turnInfo.turnDist < 40) ? turnInfo.turnAngle : 0;
+  if (map && currentMapMode === 'headup' && riderLocation) {
+    lockMapTo3DView(riderLocation.lng, riderLocation.lat, routeHeading, activeTurnAngle);
+  }
+
+  document.getElementById("voiceNav").classList.add("active");
+}
+
+function calculateBearing(lat1, lon1, lat2, lon2) {
+  const toRad = deg => deg * Math.PI / 180;
+  const toDeg = rad => rad * 180 / Math.PI;
+  const dLon = toRad(lon2 - lon1);
+  const y = Math.sin(dLon) * Math.cos(toRad(lat1));
+  const x = Math.cos(toRad(lat1)) * Math.sin(toRad(lat2)) - Math.sin(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.cos(dLon);
+  return (toDeg(Math.atan2(y, x)) + 360) % 360;
+}
+
+function getIndependentTurnCountdown(remainingCoords) {
+  if (remainingCoords.length < 3) return { turnDist: 0, arrow: "🏁", text: "Arrived at destination", turnAngle: 0 };
+
+  let currentBearing = calculateBearing(remainingCoords[0][1], remainingCoords[0][0], remainingCoords[1][1], remainingCoords[1][0]);
+  let turnDist = 0;
+  let turnFound = false;
+  let turnType = { arrow: "⬆️", text: "Proceed Straight" };
+  let detectedTurnAngle = 0;
+
+  for (let i = 0; i < remainingCoords.length - 1; i++) {
+    const segDist = calculateDistanceMeters(remainingCoords[i][1], remainingCoords[i][0], remainingCoords[i+1][1], remainingCoords[i+1][0]);
+    turnDist += segDist;
+
+    if (i < remainingCoords.length - 2) {
+      const nextBearing = calculateBearing(remainingCoords[i+1][1], remainingCoords[i+1][0], remainingCoords[i+2][1], remainingCoords[i+2][0]);
+      let diff = nextBearing - currentBearing;
+      while (diff < -180) diff += 360;
+      while (diff > 180) diff -= 360;
+
+      if (Math.abs(diff) > 25) {
+        turnFound = true;
+        detectedTurnAngle = diff;
+        if (diff > 25 && diff <= 140) turnType = { arrow: "➡️", text: "Turn Right ahead" };
+        else if (diff > 140) turnType = { arrow: "🔄", text: "U-Turn ahead" };
+        else if (diff < -25 && diff >= -140) turnType = { arrow: "⬅️", text: "Turn Left ahead" };
+        else if (diff < -140) turnType = { arrow: "🔄", text: "U-Turn ahead" };
+        break;
+      }
+      currentBearing = nextBearing;
+    }
+  }
+
+  if (!turnFound) {
+    turnType = { arrow: "⬆️", text: "Proceed to destination" };
+  }
+
+  return { turnDist: turnDist, arrow: turnType.arrow, text: turnType.text, turnAngle: detectedTurnAngle };
+}
+
+/* FETCH NO TOLL ROUTE COORDS */
+async function fetchNoTollRouteCoords(originLng, originLat, targetLng, targetLat) {
+  try {
+    const valhallaPayload = {
+      locations: [
+        { lat: originLat, lon: originLng },
+        { lat: targetLat, lon: targetLng }
+      ],
+      costing: "auto",
+      costing_options: {
+        auto: {
+          use_tolls: 0
+        }
+      }
+    };
+
+    const res = await fetch(`https://valhalla1.openstreetmap.de/route`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(valhallaPayload)
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data.trip && data.trip.legs && data.trip.legs[0]) {
+        return decodePolyline(data.trip.legs[0].shape);
+      }
+    }
+  } catch (err) {}
+
+  try {
+    const orsUrl = `https://api.openrouteservice.org/v2/directions/driving-car?api_key=5b3ce3597851110001cf6248c82302ca219747c3bd2b1236113b2d1d&start=${originLng},${originLat}&end=${targetLng},${targetLat}&options={"avoid_features":["tollways"]}`;
+    const res = await fetch(orsUrl);
+    if(res.ok){
+      const data = await res.json();
+      if(data.features && data.features[0]){
+        return data.features[0].geometry.coordinates;
+      }
+    }
+  } catch(e) {}
+
+  return null;
+}
+
+function decodePolyline(str, precision) {
+  var index = 0, lat = 0, lng = 0, coordinates = [], shift = 0, result = 0, byte = null, factor = Math.pow(10, precision || 6);
+  while (index < str.length) {
+    byte = null; shift = 0; result = 0;
+    do { byte = str.charCodeAt(index++) - 63; result |= (byte & 0x1f) << shift; shift += 5; } while (byte >= 0x20);
+    var latitude = ((result & 1) ? ~(result >> 1) : (result >> 1));
+    shift = 0; result = 0;
+    do { byte = str.charCodeAt(index++) - 63; result |= (byte & 0x1f) << shift; shift += 5; } while (byte >= 0x20);
+    var longitude = ((result & 1) ? ~(result >> 1) : (result >> 1));
+    lat += latitude; lng += longitude;
+    coordinates.push([lng / factor, lat / factor]);
+  }
+  return coordinates;
+}
+
+/* VALHALLA NO TOLL ROUTING FOR RIDER 3D NAV */
+async function drawRideOnMap(ride){
+  if(!map || !ride || isDrawingRoute) return;
+  const target = getNavigationTarget(ride);
+  if(!target) { stopAutoNavigation(); return; }
+
+  isDrawingRoute = true;
+  document.getElementById("topHeader")?.classList.add("hiddenHeader");
+  document.body.classList.add("nav-active");
+
+  if(ride.pickup_lat != null && ride.pickup_lng != null) {
+    if (!pickupMarker) {
+      pickupMarker = new maplibregl.Marker({ color: '#ffc107' }).setLngLat([Number(ride.pickup_lng), Number(ride.pickup_lat)]).addTo(map);
+    } else {
+      pickupMarker.setLngLat([Number(ride.pickup_lng), Number(ride.pickup_lat)]);
+    }
+  }
+
+  if(ride.destination_lat != null && ride.destination_lng != null) {
+    if (!destinationMarker) {
+      destinationMarker = new maplibregl.Marker({ color: '#dc3545' }).setLngLat([Number(ride.destination_lng), Number(ride.destination_lat)]).addTo(map);
+    } else {
+      destinationMarker.setLngLat([Number(ride.destination_lng), Number(ride.destination_lat)]);
+    }
+  }
+
+  const origin = riderLocation ? { lat: riderLocation.lat, lng: riderLocation.lng } : { lat: target.lat - 0.002, lng: target.lng - 0.002 };
+
+  try{
+    const routeCoords = await fetchNoTollRouteCoords(origin.lng, origin.lat, target.lng, target.lat);
+    if(routeCoords && routeCoords.length) {
+      fullRouteCoordinates = routeCoords;
+      updateNavigationProgress(origin.lat, origin.lng, 0);
+    }
+  }catch(e){} finally {
+    isDrawingRoute = false;
+  }
+}
+
+function subscribeRealtime(){
+  supabaseClient.channel("rides-realtime-rider")
+    .on("postgres_changes", { event:"INSERT", schema:"public", table:"rides" }, p => {
+      if(p.new && p.new.status === "searching"){
+        if(!rides.some(x => String(x.id) === String(p.new.id))){
+          rides.push(p.new);
+          renderBookings();
+          playBookingSound();
+
+          if ("Notification" in window && Notification.permission === "granted") {
+            const pText = getPickupName(p.new);
+            const notif = new Notification("🚨 BAGONG BOOKING!", {
+              body: `Pickup: ${pText}`,
+              icon: "https://cdn-icons-png.flaticon.com/512/3063/3063822.png",
+              requireInteraction: true
+            });
+
+            notif.onclick = function(event) {
+              event.preventDefault();
+              window.focus();
+              this.close();
+            };
+          }
+        }
+      }
+    })
+    .on("postgres_changes", { event:"UPDATE", schema:"public", table:"rides" }, p => {
+      const r = p.new; if(!r) return;
+      if(r.status === "cancelled"){
+        if(selectedRide && String(selectedRide.id) === String(r.id)){ clearActiveRide(); closeChat(); stopAutoNavigation(); selectedRide = null; setWaitingListHidden(false); }
+        rides = rides.filter(x => String(x.id) !== String(r.id)); renderBookings(); return;
+      }
+      const idx = rides.findIndex(x => String(x.id) === String(r.id));
+      if(idx >= 0) rides[idx] = r; else rides.push(r);
+      if(selectedRide && String(selectedRide.id) === String(r.id)){ selectedRide = r; showSelectedBooking(); drawRideOnMap(r); }
+      renderBookings();
+    }).subscribe();
+}
+
+window.addEventListener("resize", () => { if(map) map.resize(); });
+
+function startApp() {
+  initMap();
+  setupBookingSheetSwipe();
+  restoreRiderProfile();
+  setupRiderProfilePersistence();
+  requestWakeLock();
+  subscribeRealtime();
+  loadBookings();
+  startRiderGPS();
+  setTimeout(() => { restoreActiveRide(); }, 1200);
+}
+
+startApp();
+</script>
+</body>
+</html>
