@@ -550,6 +550,73 @@ header.hiddenHeader {
   color: #ffffff;
 }
 
+/* LAYER COLOR & OPACITY CONTROLS */
+.layerColorControl {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px;
+  border-radius: var(--btn-radius);
+  background: var(--bg-card);
+  border: 1px solid var(--border-dark);
+  margin-bottom: 8px;
+}
+
+.layerColorControl:last-child {
+  margin-bottom: 0;
+}
+
+.colorPickerBtn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-dark);
+  color: var(--text-light);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.colorSwatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ff6b00;
+  border: 1.5px solid #ffffff;
+}
+
+.colorPickerBtn input[type="color"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  margin: 0;
+  padding: 0;
+}
+
+.opacitySliderBox {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.opacitySliderBox input[type="range"] {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  accent-color: var(--orange);
+  cursor: pointer;
+}
+
 .earnings-card {
   background: var(--bg-input);
   border-radius: var(--card-radius);
@@ -1294,6 +1361,33 @@ body.nav-active .aiSupportBtn { top: 198px; }
   font-weight: 700;
   cursor: pointer;
 }
+
+/* MAPLIBRE PIN POPUP CARD (MATCHING PASSENGER UI) */
+.maplibregl-popup {
+  z-index: 6000;
+  max-width: 280px !important;
+}
+.maplibregl-popup-content {
+  background: var(--bg-card) !important;
+  color: var(--text-light) !important;
+  border: 1px solid var(--border-dark) !important;
+  border-radius: var(--card-radius) !important;
+  padding: 12px 14px !important;
+  font-family: inherit !important;
+  font-size: 12.5px !important;
+  font-weight: 700 !important;
+  line-height: 1.45 !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35) !important;
+}
+.maplibregl-popup-tip {
+  border-top-color: var(--bg-card) !important;
+  border-bottom-color: var(--bg-card) !important;
+}
+.maplibregl-popup-close-button {
+  color: var(--text-muted) !important;
+  font-size: 16px !important;
+  padding: 4px 8px !important;
+}
 </style>
 </head>
 <body>
@@ -1553,14 +1647,63 @@ body.nav-active .aiSupportBtn { top: 198px; }
       <div class="profileCard">
         <h3>
           <span class="monoIcon" style="width:16px;height:16px;color:var(--orange)"><svg><use href="#ic-nav"></use></svg></span>
-          <span>Map Base Style</span>
+          <span>Map Base Style (Default: Liberty)</span>
         </h3>
         <div class="styleToggle" title="Switch Map Base">
-          <button type="button" class="styleBtn active" data-style="voyager" onclick="setMapStyle('voyager')">Voyager</button>
+          <button type="button" class="styleBtn active" data-style="liberty" onclick="setMapStyle('liberty')">Liberty</button>
+          <button type="button" class="styleBtn" data-style="voyager" onclick="setMapStyle('voyager')">Voyager</button>
           <button type="button" class="styleBtn" data-style="positron" onclick="setMapStyle('positron')">Light</button>
           <button type="button" class="styleBtn" data-style="dark" onclick="setMapStyle('dark')">Dark</button>
-          <button type="button" class="styleBtn" data-style="liberty" onclick="setMapStyle('liberty')">Liberty</button>
           <button type="button" class="styleBtn" data-style="bright" onclick="setMapStyle('bright')">Bright</button>
+        </div>
+      </div>
+
+      <div class="profileCard">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;">
+          <h3 style="margin:0;">
+            <span class="monoIcon" style="width:16px;height:16px;color:var(--orange)"><svg><use href="#ic-palette"></use></svg></span>
+            <span>Map Layer Color & Opacity</span>
+          </h3>
+          <button type="button" class="styleBtn" style="border:1px solid var(--border-dark);" onclick="resetAllMapLayersToDefault()">Reset Liberty</button>
+        </div>
+
+        <!-- ROAD COLOR & OPACITY -->
+        <div class="layerColorControl">
+          <label class="colorPickerBtn" title="Piliin ang kulay ng road layer">
+            <span class="colorSwatch" id="roadColorSwatch"></span>
+            <span>Road Color</span>
+            <input type="color" id="roadColorInput" value="#ff6b00">
+          </label>
+          <label class="opacitySliderBox">
+            <span>Road Opacity: <strong id="roadOpacityVal">90%</strong></span>
+            <input type="range" id="roadOpacitySlider" min="10" max="100" value="90">
+          </label>
+        </div>
+
+        <!-- LAND COLOR & OPACITY -->
+        <div class="layerColorControl">
+          <label class="colorPickerBtn" title="Piliin ang kulay ng land layer">
+            <span class="colorSwatch" id="landColorSwatch" style="background:#22c55e;"></span>
+            <span>Land Color</span>
+            <input type="color" id="landColorInput" value="#22c55e">
+          </label>
+          <label class="opacitySliderBox">
+            <span>Land Opacity: <strong id="landOpacityVal">85%</strong></span>
+            <input type="range" id="landOpacitySlider" min="10" max="100" value="85">
+          </label>
+        </div>
+
+        <!-- BUILDING COLOR & OPACITY -->
+        <div class="layerColorControl">
+          <label class="colorPickerBtn" title="Piliin ang kulay ng building layer">
+            <span class="colorSwatch" id="buildingColorSwatch" style="background:#94a3b8;"></span>
+            <span>Building Color</span>
+            <input type="color" id="buildingColorInput" value="#94a3b8">
+          </label>
+          <label class="opacitySliderBox">
+            <span>Building Opacity: <strong id="buildingOpacityVal">80%</strong></span>
+            <input type="range" id="buildingOpacitySlider" min="10" max="100" value="80">
+          </label>
         </div>
       </div>
 
@@ -1971,15 +2114,62 @@ const RIDER_PROFILE_KEY = "HABAL_NA_RIDER_PROFILE_V555";
 const ACTIVE_RIDE_KEY = "HABAL_NA_ACTIVE_RIDE_V555";
 const THEME_KEY = "TUKLAS_UI_THEME_KEY";
 const STYLE_KEY = "TUKLAS_MAP_STYLE";
+const LAYER_CUSTOM_KEY = "TUKLAS_MAP_LAYER_CUSTOM_V1";
 
 const MAP_STYLES = {
+  liberty:  "https://tiles.openfreemap.org/styles/liberty",
   voyager:  "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json",
   positron: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
   dark:     "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
-  liberty:  "https://tiles.openfreemap.org/styles/liberty",
   bright:   "https://tiles.openfreemap.org/styles/bright"
 };
-let currentStyleKey = localStorage.getItem(STYLE_KEY) || "voyager";
+
+  
+
+const LAYER_CONFIGS = {
+  road: {
+    keywords: ["road", "street", "highway", "motorway", "trunk", "primary", "secondary", "tertiary", "path", "bridge", "tunnel", "link"],
+    defaultColor: "#d8dee6",
+    defaultOpacity: 0.90,
+    inputId: "roadColorInput",
+    swatchId: "roadColorSwatch",
+    sliderId: "roadOpacitySlider",
+    valId: "roadOpacityVal"
+  },
+  land: {
+    keywords: ["background", "land", "landuse", "park", "grass", "forest", "wood", "sand", "wetland", "pitch", "meadow", "farmland", "residential", "industrial", "commercial", "cemetery", "glacier"],
+    defaultColor: "#f3f3ef",
+    defaultOpacity: 0.85,
+    inputId: "landColorInput",
+    swatchId: "landColorSwatch",
+    sliderId: "landOpacitySlider",
+    valId: "landOpacityVal"
+  },
+  building: {
+    keywords: ["building"],
+    defaultColor: "#e6e8ec",
+    defaultOpacity: 0.55,
+    inputId: "buildingColorInput",
+    swatchId: "buildingColorSwatch",
+    sliderId: "buildingOpacitySlider",
+    valId: "buildingOpacityVal"
+  }
+};
+
+
+let currentStyleKey = localStorage.getItem(STYLE_KEY) || "liberty";
+let customLayerState = {
+  road: { color: null, opacity: null },
+  land: { color: null, opacity: null },
+  building: { color: null, opacity: null }
+};
+
+try {
+  const savedLayers = JSON.parse(localStorage.getItem(LAYER_CUSTOM_KEY) || "null");
+  if (savedLayers && typeof savedLayers === "object") {
+    customLayerState = { ...customLayerState, ...savedLayers };
+  }
+} catch (e) {}
 
 let map = null;
 let riderMarker = null;
@@ -2005,6 +2195,11 @@ let chatMessagesSeen = new Set();
 let geocodeCache = {};
 
 let fullRouteCoordinates = [];
+let lastMatchedSegmentIndex = 0;
+let isRerouting = false;
+let lastRerouteTime = 0;
+const OFF_ROUTE_THRESHOLD_METERS = 50;
+
 let currentMapMode = 'headup';
 let isRiderOnline = false;
 let heartbeatInterval = null;
@@ -2041,12 +2236,148 @@ function loadSavedUiTheme() {
   setUiTheme(saved);
 }
 
+function saveLayerState() {
+  try {
+    localStorage.setItem(LAYER_CUSTOM_KEY, JSON.stringify(customLayerState));
+  } catch (e) {}
+}
+
+function layerMatchesKeywords(layerId, keywords) {
+  const id = (layerId || "").toLowerCase();
+  return keywords.some(kw => id.includes(kw));
+}
+
+function applyCategoryColorToMap(categoryKey, hexColor) {
+  const cfg = LAYER_CONFIGS[categoryKey];
+  if (!cfg || !map || !map.getStyle()) return;
+  const layers = map.getStyle().layers || [];
+
+  layers.forEach((layer) => {
+    if (!layerMatchesKeywords(layer.id, cfg.keywords)) return;
+    try {
+      if (layer.type === "line" && map.getPaintProperty(layer.id, "line-color") !== undefined) {
+        map.setPaintProperty(layer.id, "line-color", hexColor);
+      } else if (layer.type === "fill" && map.getPaintProperty(layer.id, "fill-color") !== undefined) {
+        map.setPaintProperty(layer.id, "fill-color", hexColor);
+      } else if (layer.type === "fill-extrusion" && map.getPaintProperty(layer.id, "fill-extrusion-color") !== undefined) {
+        map.setPaintProperty(layer.id, "fill-extrusion-color", hexColor);
+      }
+    } catch (e) {}
+  });
+}
+
+function applyCategoryOpacityToMap(categoryKey, opacityDecimal) {
+  const cfg = LAYER_CONFIGS[categoryKey];
+  if (!cfg || !map || !map.getStyle()) return;
+  const layers = map.getStyle().layers || [];
+
+  layers.forEach((layer) => {
+    if (!layerMatchesKeywords(layer.id, cfg.keywords)) return;
+    try {
+      if (layer.type === "line" && map.getPaintProperty(layer.id, "line-opacity") !== undefined) {
+        map.setPaintProperty(layer.id, "line-opacity", opacityDecimal);
+      } else if (layer.type === "fill" && map.getPaintProperty(layer.id, "fill-opacity") !== undefined) {
+        map.setPaintProperty(layer.id, "fill-opacity", opacityDecimal);
+      } else if (layer.type === "fill-extrusion" && map.getPaintProperty(layer.id, "fill-extrusion-opacity") !== undefined) {
+        map.setPaintProperty(layer.id, "fill-extrusion-opacity", opacityDecimal);
+      }
+    } catch (e) {}
+  });
+}
+
+function applySavedLayerCustomizations() {
+  Object.keys(LAYER_CONFIGS).forEach((catKey) => {
+    const cfg = LAYER_CONFIGS[catKey];
+    const state = customLayerState[catKey] || {};
+    const colorInput = document.getElementById(cfg.inputId);
+    const colorSwatch = document.getElementById(cfg.swatchId);
+    const opacitySlider = document.getElementById(cfg.sliderId);
+    const opacityVal = document.getElementById(cfg.valId);
+
+    const activeColor = state.color || cfg.defaultColor;
+    const activeOpacity = state.opacity !== null && state.opacity !== undefined ? Number(state.opacity) : cfg.defaultOpacity;
+    const activePct = Math.round(activeOpacity * 100);
+
+    if (colorInput) colorInput.value = activeColor;
+    if (colorSwatch) colorSwatch.style.background = activeColor;
+    if (opacitySlider) opacitySlider.value = activePct;
+    if (opacityVal) opacityVal.textContent = activePct + "%";
+
+    if (state.color) {
+      applyCategoryColorToMap(catKey, state.color);
+    }
+    if (state.opacity !== null && state.opacity !== undefined && !Number.isNaN(Number(state.opacity))) {
+      applyCategoryOpacityToMap(catKey, Number(state.opacity));
+    }
+  });
+}
+
+function resetAllMapLayersToDefault() {
+  customLayerState = {
+    road: { color: null, opacity: null },
+    land: { color: null, opacity: null },
+    building: { color: null, opacity: null }
+  };
+  saveLayerState();
+
+  Object.keys(LAYER_CONFIGS).forEach((catKey) => {
+    const cfg = LAYER_CONFIGS[catKey];
+    const pct = Math.round(cfg.defaultOpacity * 100);
+    const colorInput = document.getElementById(cfg.inputId);
+    const colorSwatch = document.getElementById(cfg.swatchId);
+    const opacitySlider = document.getElementById(cfg.sliderId);
+    const opacityVal = document.getElementById(cfg.valId);
+
+    if (colorInput) colorInput.value = cfg.defaultColor;
+    if (colorSwatch) colorSwatch.style.background = cfg.defaultColor;
+    if (opacitySlider) opacitySlider.value = pct;
+    if (opacityVal) opacityVal.textContent = pct + "%";
+  });
+
+  setMapStyle("liberty");
+  showToast("Bumalik sa default Liberty style");
+}
+
+function setupMapLayerControls() {
+  Object.keys(LAYER_CONFIGS).forEach((catKey) => {
+    const cfg = LAYER_CONFIGS[catKey];
+    const colorInput = document.getElementById(cfg.inputId);
+    const colorSwatch = document.getElementById(cfg.swatchId);
+    const opacitySlider = document.getElementById(cfg.sliderId);
+    const opacityVal = document.getElementById(cfg.valId);
+
+    colorInput?.addEventListener("input", (e) => {
+      const val = e.target.value;
+      customLayerState[catKey] = {
+        ...(customLayerState[catKey] || {}),
+        color: val
+      };
+      saveLayerState();
+      if (colorSwatch) colorSwatch.style.background = val;
+      applyCategoryColorToMap(catKey, val);
+    });
+
+    opacitySlider?.addEventListener("input", (e) => {
+      const pct = Number(e.target.value);
+      const dec = pct / 100;
+      customLayerState[catKey] = {
+        ...(customLayerState[catKey] || {}),
+        opacity: dec
+      };
+      saveLayerState();
+      if (opacityVal) opacityVal.textContent = pct + "%";
+      applyCategoryOpacityToMap(catKey, dec);
+    });
+  });
+}
+
 function setMapStyle(key) {
   if (!map || !MAP_STYLES[key]) return;
   currentStyleKey = key;
   try { localStorage.setItem(STYLE_KEY, key); } catch (e) {}
 
   map.once("style.load", function () {
+    applySavedLayerCustomizations();
     if (fullRouteCoordinates && fullRouteCoordinates.length >= 2 && riderLocation) {
       updateNavigationProgress(riderLocation.lat, riderLocation.lng, 0);
     }
@@ -2619,7 +2950,7 @@ function updateBookingCount(){
 function initMap(){
   map = new maplibregl.Map({
     container: 'map',
-    style: MAP_STYLES[currentStyleKey] || MAP_STYLES.voyager,
+    style: MAP_STYLES[currentStyleKey] || MAP_STYLES.liberty,
     center: [121.0415, 14.4086],
     zoom: 18,
     pitch: 30,
@@ -2632,6 +2963,7 @@ function initMap(){
 
   map.on('load', () => {
     map.resize();
+    applySavedLayerCustomizations();
     updateRiderMarker(121.0415, 14.4086, 0);
     if (selectedRide) drawRideOnMap(selectedRide);
   });
@@ -2831,7 +3163,6 @@ async function markArrived(){
   selectedRide = data; saveActiveRide(data); setWaitingListHidden(true);
   updateLocalRide(data); showSelectedBooking();
   
-  // Auto-clear route line & top navigation HUD pag-drop sa destination
   stopAutoNavigation();
   showToast("Arrived at drop-off! Route cleared.");
 }
@@ -3018,6 +3349,8 @@ function updateRiderMarker(lng, lat, heading = 0){
 
 function stopAutoNavigation(){
   fullRouteCoordinates = [];
+  lastMatchedSegmentIndex = 0;
+  isRerouting = false;
   isDrawingRoute = false;
   const voiceNav = document.getElementById("voiceNav");
   if (voiceNav) voiceNav.classList.remove("active");
@@ -3044,19 +3377,106 @@ function formatNavDistance(meters){
   return m < 1000 ? Math.round(m) + " m" : (m / 1000).toFixed(1) + " km";
 }
 
-function updateNavigationProgress(currentLat, currentLng, speedKmh = 0) {
-  if (!fullRouteCoordinates || fullRouteCoordinates.length === 0 || !map) return;
+function projectPointToSegment(pLat, pLng, aLat, aLng, bLat, bLng) {
+  const cosLat = Math.cos(pLat * Math.PI / 180);
+  const ax = (aLng - pLng) * cosLat;
+  const ay = (aLat - pLat);
+  const bx = (bLng - pLng) * cosLat;
+  const by = (bLat - pLat);
 
-  let closestIndex = 0; 
-  let minDistance = Infinity;
+  const dx = bx - ax;
+  const dy = by - ay;
+  const lenSq = dx * dx + dy * dy;
 
-  for (let i = 0; i < fullRouteCoordinates.length; i++) {
-    const dist = calculateDistanceMeters(currentLat, currentLng, fullRouteCoordinates[i][1], fullRouteCoordinates[i][0]);
-    if (dist < minDistance) { minDistance = dist; closestIndex = i; }
+  let t = 0;
+  if (lenSq > 0) {
+    t = Math.max(0, Math.min(1, -(ax * dx + ay * dy) / lenSq));
   }
 
-  const passedCoords = fullRouteCoordinates.slice(0, closestIndex + 1);
-  const remainingCoords = fullRouteCoordinates.slice(closestIndex);
+  const projLat = aLat + t * (bLat - aLat);
+  const projLng = aLng + t * (bLng - aLng);
+  const distMeters = calculateDistanceMeters(pLat, pLng, projLat, projLng);
+
+  return { lat: projLat, lng: projLng, t, distMeters };
+}
+
+async function triggerOffRouteRecalculation(currentLat, currentLng) {
+  if (!selectedRide || isRerouting || isDrawingRoute) return;
+  const now = Date.now();
+  if (now - lastRerouteTime < 6000) return;
+
+  const target = getNavigationTarget(selectedRide);
+  if (!target) return;
+
+  isRerouting = true;
+  lastRerouteTime = now;
+  showToast("Lumihis ng 50m+ — Kinakalkula ang bagong ruta...");
+
+  try {
+    const newCoords = await fetchNoTollRouteCoords(currentLng, currentLat, target.lng, target.lat);
+    if (newCoords && newCoords.length >= 2) {
+      fullRouteCoordinates = newCoords;
+      lastMatchedSegmentIndex = 0;
+      updateNavigationProgress(currentLat, currentLng, 0);
+    }
+  } catch (e) {
+  } finally {
+    isRerouting = false;
+  }
+}
+
+function updateNavigationProgress(currentLat, currentLng, speedKmh = 0) {
+  if (!fullRouteCoordinates || fullRouteCoordinates.length < 2 || !map) return;
+
+  const maxSegmentIdx = fullRouteCoordinates.length - 2;
+  const searchStart = Math.max(0, lastMatchedSegmentIndex - 1);
+  const searchEnd = Math.min(maxSegmentIdx, lastMatchedSegmentIndex + 25);
+
+  let bestSegIndex = lastMatchedSegmentIndex;
+  let bestProjection = null;
+
+  for (let i = searchStart; i <= searchEnd; i++) {
+    const a = fullRouteCoordinates[i];
+    const b = fullRouteCoordinates[i + 1];
+    const proj = projectPointToSegment(currentLat, currentLng, a[1], a[0], b[1], b[0]);
+
+    if (!bestProjection || proj.distMeters < bestProjection.distMeters) {
+      bestProjection = proj;
+      bestSegIndex = i;
+    }
+  }
+
+  if (bestProjection && bestProjection.distMeters > OFF_ROUTE_THRESHOLD_METERS) {
+    let globalBestSeg = bestSegIndex;
+    let globalBestProj = bestProjection;
+    for (let i = 0; i <= maxSegmentIdx; i++) {
+      const a = fullRouteCoordinates[i];
+      const b = fullRouteCoordinates[i + 1];
+      const proj = projectPointToSegment(currentLat, currentLng, a[1], a[0], b[1], b[0]);
+      if (proj.distMeters < globalBestProj.distMeters) {
+        globalBestProj = proj;
+        globalBestSeg = i;
+      }
+    }
+
+    if (globalBestProj.distMeters >= OFF_ROUTE_THRESHOLD_METERS) {
+      triggerOffRouteRecalculation(currentLat, currentLng);
+      return;
+    } else {
+      bestSegIndex = globalBestSeg;
+      bestProjection = globalBestProj;
+    }
+  }
+
+  if (bestSegIndex > lastMatchedSegmentIndex) {
+    lastMatchedSegmentIndex = bestSegIndex;
+  }
+
+  const snappedPoint = [bestProjection.lng, bestProjection.lat];
+  const passedCoords = fullRouteCoordinates.slice(0, bestSegIndex + 1);
+  passedCoords.push(snappedPoint);
+
+  const remainingCoords = [snappedPoint, ...fullRouteCoordinates.slice(bestSegIndex + 1)];
   const routeColor = getComputedStyle(document.documentElement).getPropertyValue('--orange').trim() || "#ff6b00";
 
   if (passedCoords.length >= 2) {
@@ -3091,13 +3511,10 @@ function updateNavigationProgress(currentLat, currentLng, speedKmh = 0) {
     }
   }
 
-  let routeHeading = lastHeading;
-  if (remainingCoords.length >= 2) {
-    routeHeading = calculateBearing(
-      remainingCoords[0][1], remainingCoords[0][0], 
-      remainingCoords[1][1], remainingCoords[1][0]
-    );
-  }
+  const segA = fullRouteCoordinates[bestSegIndex];
+  const segB = fullRouteCoordinates[bestSegIndex + 1];
+  const segmentHeading = calculateBearing(segA[1], segA[0], segB[1], segB[0]);
+  const mapHeading = (speedKmh > 6) ? lastHeading : segmentHeading;
 
   let totalRemainingDist = 0;
   for (let i = 0; i < remainingCoords.length - 1; i++) {
@@ -3110,9 +3527,9 @@ function updateNavigationProgress(currentLat, currentLng, speedKmh = 0) {
   document.getElementById("navInstruction").textContent = turnInfo.text;
   document.getElementById("navArrow").innerHTML = svgIcon(turnInfo.arrowId, 26);
 
-  let activeTurnAngle = (turnInfo.turnDist < 40) ? turnInfo.turnAngle : 0;
+  let activeTurnAngle = (turnInfo.turnDist < 25) ? turnInfo.turnAngle : 0;
   if (map && currentMapMode === 'headup' && riderLocation) {
-    lockMapTo3DView(riderLocation.lng, riderLocation.lat, routeHeading, activeTurnAngle);
+    lockMapTo3DView(riderLocation.lng, riderLocation.lat, mapHeading, activeTurnAngle);
   }
 
   document.getElementById("voiceNav").classList.add("active");
@@ -3229,11 +3646,34 @@ async function drawRideOnMap(ride){
   document.getElementById("topHeader")?.classList.add("hiddenHeader");
   document.body.classList.add("nav-active");
 
+  const fareText = `₱${Number(ride.estimated_fare || 0).toFixed(2)}`;
+
   if(ride.status === "accepted" && ride.pickup_lat != null && ride.pickup_lng != null) {
+    const pLat = Number(ride.pickup_lat);
+    const pLng = Number(ride.pickup_lng);
+    let pickupPlace = getPickupName(ride);
+    if (pickupPlace === "Fetching location name...") {
+      pickupPlace = await getAddressFromCoords(pLat, pLng);
+      ride.pickup_location = pickupPlace;
+    }
+
+    const pickupPopupHtml = `
+      <div>
+        <div style="color:var(--orange);font-size:10px;font-weight:800;text-transform:uppercase;margin-bottom:3px;">Pickup Location</div>
+        <div>${escapeHTML(pickupPlace)} <span style="color:var(--text-muted);">[Motorcycle • No Toll • ${fareText}]</span></div>
+      </div>
+    `;
+
     if (!pickupMarker) {
-      pickupMarker = new maplibregl.Marker({ color: '#ff6b00' }).setLngLat([Number(ride.pickup_lng), Number(ride.pickup_lat)]).addTo(map);
+      const popup = new maplibregl.Popup({ offset: 28, closeButton: false }).setHTML(pickupPopupHtml);
+      pickupMarker = new maplibregl.Marker({ color: '#ff6b00' })
+        .setLngLat([pLng, pLat])
+        .setPopup(popup)
+        .addTo(map);
+      pickupMarker.getElement().style.cursor = "pointer";
     } else {
-      pickupMarker.setLngLat([Number(ride.pickup_lng), Number(ride.pickup_lat)]);
+      pickupMarker.setLngLat([pLng, pLat]);
+      if (pickupMarker.getPopup()) pickupMarker.getPopup().setHTML(pickupPopupHtml);
     }
   } else if (pickupMarker) {
     pickupMarker.remove();
@@ -3241,10 +3681,29 @@ async function drawRideOnMap(ride){
   }
 
   if(ride.status === "picked_up" && ride.destination_lat != null && ride.destination_lng != null) {
+    const dLat = Number(ride.destination_lat);
+    const dLng = Number(ride.destination_lng);
+    let destPlace = (ride.destination && ride.destination.trim() !== "")
+      ? ride.destination
+      : await getAddressFromCoords(dLat, dLng);
+
+    const destPopupHtml = `
+      <div>
+        <div style="color:var(--red-status);font-size:10px;font-weight:800;text-transform:uppercase;margin-bottom:3px;">Drop-off Destination</div>
+        <div>${escapeHTML(destPlace)} <span style="color:var(--text-muted);">[Motorcycle • No Toll • ${fareText}]</span></div>
+      </div>
+    `;
+
     if (!destinationMarker) {
-      destinationMarker = new maplibregl.Marker({ color: '#ef4444' }).setLngLat([Number(ride.destination_lng), Number(ride.destination_lat)]).addTo(map);
+      const popup = new maplibregl.Popup({ offset: 28, closeButton: false }).setHTML(destPopupHtml);
+      destinationMarker = new maplibregl.Marker({ color: '#ef4444' })
+        .setLngLat([dLng, dLat])
+        .setPopup(popup)
+        .addTo(map);
+      destinationMarker.getElement().style.cursor = "pointer";
     } else {
-      destinationMarker.setLngLat([Number(ride.destination_lng), Number(ride.destination_lat)]);
+      destinationMarker.setLngLat([dLng, dLat]);
+      if (destinationMarker.getPopup()) destinationMarker.getPopup().setHTML(destPopupHtml);
     }
   } else if (destinationMarker) {
     destinationMarker.remove();
@@ -3257,6 +3716,7 @@ async function drawRideOnMap(ride){
     const routeCoords = await fetchNoTollRouteCoords(origin.lng, origin.lat, target.lng, target.lat);
     if(routeCoords && routeCoords.length) {
       fullRouteCoordinates = routeCoords;
+      lastMatchedSegmentIndex = 0;
       updateNavigationProgress(origin.lat, origin.lng, 0);
     }
   }catch(e){} finally {
@@ -3300,6 +3760,7 @@ window.addEventListener("resize", () => { if(map) map.resize(); });
 
 function startApp() {
   loadSavedUiTheme();
+  setupMapLayerControls();
   initMap();
   setupBookingSheetSwipe();
   restoreRiderProfile();
