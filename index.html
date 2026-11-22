@@ -1079,12 +1079,14 @@ body.nav-active .aiSupportBtn { top: 198px; }
   box-shadow: 0 6px 20px rgba(0,0,0,0.4);
   opacity: 0;
   visibility: hidden;
+  pointer-events: none;
   transition: opacity .25s ease, transform .25s ease;
 }
 
 .toast.show {
   opacity: 1;
   visibility: visible;
+  pointer-events: auto;
   transform: translateX(-50%) translateY(0);
 }
 
@@ -1570,7 +1572,7 @@ body.nav-active .aiSupportBtn { top: 198px; }
   </div>
 </div>
 
-<div id="toast" class="toast"></div>
+<div id="toast" class="toast" onclick="hideToast()"></div>
 
 <div class="container">
   <div class="mapCard" id="mapCard">
@@ -1779,6 +1781,172 @@ const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, 
   }
 });
 
+/* ===== RIDER BOOKING WATCHER (REALTIME + POLLING + ALERT) ===== */
+let riderIncomingTimer = null;
+let riderIncomingChannel = null;
+let lastNotifiedRideId = null;
+let notifiedBookingToastIds = new Set();
+
+function isRiderCurrentlyOnline() {
+  return Boolean(isRiderOnline);
+}
+
+function playIncomingBookingAlert() {
+  try {
+    if (navigator.vibrate) {
+      navigator.vibrate([300, 120, 300, 120, 400]);
+    }
+  } catch (e) {}
+
+  try {
+    playBookingSound();
+  } catch (e) {}
+
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (AudioCtx) {
+      const ctx = audioCtx || new AudioCtx();
+      if (ctx.state === "suspended") ctx.resume();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(880, ctx.currentTime);
+      gain.gain.setValueAtTime(0.15, ctx.currentTime);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.25);
+    }
+  } catch (e) {}
+}
+
+function isUnassignedSearchingRide(ride) {
+  if (!ride || !ride.id) return false;
+  if (String(ride.status || "").toLowerCase() !== "searching") return false;
+  if (ride.rider_name && String(ride.rider_name).trim() !== "") return false;
+  return true;
+}
+
+function onNewPassengerBooking(ride, shouldToast = false) {
+  if (!isUnassignedSearchingRide(ride)) return;
+
+  const existingIndex = rides.findIndex((r) => String(r.id) === String(ride.id));
+  if (existingIndex >= 0) {
+    rides[existingIndex] = ride;
+  } else {
+    rides.unshift(ride);
+  }
+
+  bookingSignature = "";
+  if (!waitingListHidden && !selectedRide) {
+    renderBookings();
+    openBookingSheet();
+  } else {
+    updateBookingCount();
+  }
+
+  const rideKey = String(ride.id);
+  if (shouldToast && !notifiedBookingToastIds.has(rideKey)) {
+    notifiedBookingToastIds.add(rideKey);
+    showToast(`Bagong booking: ${ride.destination || "Pickup ready"}`);
+  }
+}
+
+function handleIncomingBooking(ride) {
+  if (!isRiderCurrentlyOnline()) return;
+  if (!isUnassignedSearchingRide(ride)) return;
+
+  if (String(lastNotifiedRideId) === String(ride.id)) return;
+  lastNotifiedRideId = ride.id;
+
+  onNewPassengerBooking(ride, true);
+  playIncomingBookingAlert();
+}
+
+async function pollSearchingBookings() {
+  if (!isRiderCurrentlyOnline()) return;
+  if (selectedRide && isActiveRideStatus(selectedRide.status)) return;
+
+  try {
+    const { data, error } = await supabaseClient
+      .from("rides")
+      .select("*")
+      .eq("status", "searching")
+      .order("created_at", { ascending: false })
+      .limit(10);
+
+    if (error || !Array.isArray(data)) return;
+
+    const unassignedRides = data.filter(isUnassignedSearchingRide);
+    if (unassignedRides.length === 0) return;
+
+    const latestRide = unassignedRides[0];
+    if (latestRide && String(lastNotifiedRideId) !== String(latestRide.id)) {
+      handleIncomingBooking(latestRide);
+    } else {
+      onNewPassengerBooking(latestRide, false);
+    }
+  } catch (e) {}
+}
+
+function subscribeRiderIncomingBookings() {
+  if (riderIncomingChannel) {
+    try { supabaseClient.removeChannel(riderIncomingChannel); } catch (e) {}
+    riderIncomingChannel = null;
+  }
+
+  riderIncomingChannel = supabaseClient
+    .channel("rider-searching-rides")
+    .on(
+      "postgres_changes",
+      { event: "INSERT", schema: "public", table: "rides" },
+      (payload) => {
+        if (!isRiderCurrentlyOnline()) return;
+        const newRide = payload.new;
+        if (isUnassignedSearchingRide(newRide)) {
+          handleIncomingBooking(newRide);
+        }
+      }
+    )
+    .on(
+      "postgres_changes",
+      { event: "UPDATE", schema: "public", table: "rides" },
+      (payload) => {
+        if (!isRiderCurrentlyOnline()) return;
+        const updatedRide = payload.new;
+        if (isUnassignedSearchingRide(updatedRide)) {
+          handleIncomingBooking(updatedRide);
+        }
+      }
+    )
+    .subscribe((status) => {
+      if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+        pollSearchingBookings();
+      }
+    });
+}
+
+function startRiderBookingWatcher() {
+  subscribeRiderIncomingBookings();
+  pollSearchingBookings();
+
+  if (riderIncomingTimer) clearInterval(riderIncomingTimer);
+  riderIncomingTimer = setInterval(() => {
+    pollSearchingBookings();
+  }, 2500);
+}
+
+function stopRiderBookingWatcher() {
+  if (riderIncomingTimer) {
+    clearInterval(riderIncomingTimer);
+    riderIncomingTimer = null;
+  }
+  if (riderIncomingChannel) {
+    try { supabaseClient.removeChannel(riderIncomingChannel); } catch (e) {}
+    riderIncomingChannel = null;
+  }
+}
+
 /* ===== GEMINI API CONFIGURATION & RIDER SYSTEM INSTRUCTION ===== */
 const GEMINI_API_KEY = "AIzaSyCEUXUczzbTkX19Yk3OQApHOylJrUqbKF0";
 
@@ -1849,7 +2017,6 @@ function svgIcon(id, size = 16) {
   return `<span class="monoIcon" style="width:${size}px;height:${size}px"><svg><use href="#${id}"></use></svg></span>`;
 }
 
-/* UI THEME & MAP BASE CONTROLS (SYNCED WITH PASSENGER APP) */
 function setUiTheme(themeClass) {
   const validThemes = ["theme-classic", "theme-emerald", "theme-midnight", "theme-luxe", "theme-ecomint"];
   if (!validThemes.includes(themeClass)) themeClass = "theme-classic";
@@ -1891,7 +2058,6 @@ function setMapStyle(key) {
   });
 }
 
-/* LOGIN OVERLAY HANDLERS */
 function enterRiderAppFromLogin(offlineMode = false) {
   unlockBookingSound();
   initAudioContext();
@@ -1914,6 +2080,7 @@ function enterRiderAppFromLogin(offlineMode = false) {
     }
     if (!isRiderOnline) {
       startHeartbeat();
+      startRiderBookingWatcher();
       requestWakeLock();
       if (supabaseClient.realtime.status !== 'open') supabaseClient.realtime.connect();
       showToast("ONLINE - Handa nang tumanggap ng bookings");
@@ -1923,6 +2090,7 @@ function enterRiderAppFromLogin(offlineMode = false) {
 
 function logoutRiderToLogin() {
   closeRiderMenu();
+  stopRiderBookingWatcher();
   if (isRiderOnline) {
     stopHeartbeat();
     releaseWakeLock();
@@ -1934,27 +2102,14 @@ function logoutRiderToLogin() {
   document.getElementById("loginScreen").classList.remove("hiddenScreen");
 }
 
-/* GEMINI AI CHATBOT FUNCTIONS */
-function openAIChatModal() {
-  document.getElementById("aiChatModal").classList.add("open");
-}
-
-function closeAIChatModal() {
-  document.getElementById("aiChatModal").classList.remove("open");
-}
-
-function aiChatBackdropClose(e) {
-  if (e.target.id === "aiChatModal") closeAIChatModal();
-}
-
-function handleAIChatKeyPress(e) {
-  if (e.key === 'Enter') sendAIChatMessage();
-}
+function openAIChatModal() { document.getElementById("aiChatModal").classList.add("open"); }
+function closeAIChatModal() { document.getElementById("aiChatModal").classList.remove("open"); }
+function aiChatBackdropClose(e) { if (e.target.id === "aiChatModal") closeAIChatModal(); }
+function handleAIChatKeyPress(e) { if (e.key === 'Enter') sendAIChatMessage(); }
 
 function appendAIMessageUI(sender, text) {
   const container = document.getElementById("aiChatMessages");
   if (!container) return;
-  
   const row = document.createElement("div");
   const isMe = sender === "me";
   row.className = "chatRow " + (isMe ? "me" : "other");
@@ -1975,17 +2130,11 @@ async function askGeminiRiderBot(userMessage) {
   }
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-
   const payload = {
-    system_instruction: {
-      parts: [{ text: riderSystemInstruction }]
-    },
+    system_instruction: { parts: [{ text: riderSystemInstruction }] },
     contents: [
       ...aiConversationHistory,
-      {
-        role: "user",
-        parts: [{ text: userMessage }]
-      }
+      { role: "user", parts: [{ text: userMessage }] }
     ]
   };
 
@@ -1995,20 +2144,15 @@ async function askGeminiRiderBot(userMessage) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
-
     const data = await response.json();
     if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
       const botReply = data.candidates[0].content.parts[0].text;
-      
       aiConversationHistory.push({ role: "user", parts: [{ text: userMessage }] });
       aiConversationHistory.push({ role: "model", parts: [{ text: botReply }] });
-
       return botReply;
-    } else {
-      return "Pasensya na paps, nagkaroon ng usapin sa AI service. Pakisubukan ulit.";
     }
+    return "Pasensya na paps, nagkaroon ng usapin sa AI service. Pakisubukan ulit.";
   } catch (error) {
-    console.error("Gemini Error:", error);
     return "Pasensya na paps, nawalan ng koneksyon sa AI server.";
   }
 }
@@ -2020,16 +2164,13 @@ async function sendAIChatMessage() {
 
   appendAIMessageUI("me", msg);
   if (input) input.value = "";
-
   appendAIMessageUI("ai", "Nagiisip si AI...");
 
   const botReply = await askGeminiRiderBot(msg);
-
   const container = document.getElementById("aiChatMessages");
   if (container && container.lastChild) {
     container.removeChild(container.lastChild);
   }
-
   appendAIMessageUI("ai", botReply);
 }
 
@@ -2038,21 +2179,15 @@ function sendQuickAIPrompt(promptText) {
   sendAIChatMessage();
 }
 
-/* MENU TAB SWITCHING LOGIC */
 function switchMenuTab(tabId, btn) {
   document.querySelectorAll('.tabBtn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.tabContent').forEach(c => c.classList.remove('active'));
-  
   if (btn) btn.classList.add('active');
   const targetTab = document.getElementById(tabId);
   if (targetTab) targetTab.classList.add('active');
-
-  if (tabId === 'tabProfile') {
-    loadRideHistory();
-  }
+  if (tabId === 'tabProfile') loadRideHistory();
 }
 
-/* SCREEN WAKE LOCK */
 async function requestWakeLock() {
   if (!isRiderOnline) return;
   try {
@@ -2069,13 +2204,22 @@ function releaseWakeLock() {
 }
 
 document.addEventListener('visibilitychange', async () => {
-  if (document.visibilityState === 'visible' && isRiderOnline) {
-    await requestWakeLock();
-    if (supabaseClient.realtime.status !== 'open') supabaseClient.realtime.connect();
+  if (document.visibilityState === 'visible') {
+    if (isRiderOnline) {
+      await requestWakeLock();
+      if (supabaseClient.realtime.status !== 'open') supabaseClient.realtime.connect();
+      startRiderBookingWatcher();
+    }
   }
 });
 
-/* REVERSE GEOCODING */
+window.addEventListener("focus", () => {
+  if (isRiderOnline) {
+    if (supabaseClient.realtime.status !== 'open') supabaseClient.realtime.connect();
+    startRiderBookingWatcher();
+  }
+});
+
 async function getAddressFromCoords(lat, lng) {
   if (!lat || !lng) return "GPS Location";
   const key = `${Number(lat).toFixed(5)},${Number(lng).toFixed(5)}`;
@@ -2172,10 +2316,12 @@ function toggleOnlineStatus() {
   isRiderOnline = !isRiderOnline;
   if (isRiderOnline) {
     startHeartbeat();
+    startRiderBookingWatcher();
     requestWakeLock();
     if (supabaseClient.realtime.status !== 'open') supabaseClient.realtime.connect();
     showToast("ONLINE - Nakakatanggap ng Bookings");
   } else {
+    stopRiderBookingWatcher();
     stopHeartbeat();
     releaseWakeLock();
     supabaseClient.realtime.disconnect();
@@ -2364,11 +2510,22 @@ function statusText(status){
   const mapStatus = { searching:"SEARCHING", accepted:"ACCEPTED", picked_up:"PICKED UP", arrived:"ARRIVED", completed:"COMPLETED", cancelled:"CANCELLED" };
   return mapStatus[status] || status;
 }
+
+function hideToast(){
+  const toast = document.getElementById("toast");
+  if(toastTimer !== null){ clearTimeout(toastTimer); toastTimer = null; }
+  if(toast) toast.classList.remove("show");
+}
+
 function showToast(message){
   const toast = document.getElementById("toast"); if(!toast) return;
   if(toastTimer !== null){ clearTimeout(toastTimer); toastTimer = null; }
-  toast.textContent = message; toast.classList.add("show");
-  toastTimer = setTimeout(() => { toast.classList.remove("show"); toastTimer = null; }, 4000);
+  toast.textContent = message;
+  toast.classList.add("show");
+  toastTimer = setTimeout(() => {
+    toast.classList.remove("show");
+    toastTimer = null;
+  }, 3000);
 }
 
 function calculateDistanceKm(lat1, lng1, lat2, lng2){
@@ -2459,7 +2616,6 @@ function updateBookingCount(){
   if(count) count.textContent = rides.filter(r => r.status === "searching").length;
 }
 
-/* INITIALIZE MAPLIBRE GL MAP */
 function initMap(){
   map = new maplibregl.Map({
     container: 'map',
@@ -2530,7 +2686,6 @@ function showSelectedBooking(){
   if(isActiveRideStatus(selectedRide.status)) saveActiveRide(selectedRide);
   box.style.display = "block";
   const r = selectedRide;
-
   const pickupText = getPickupName(r);
 
   content.innerHTML = `
@@ -2580,7 +2735,6 @@ function renderBookings(){
     const div = document.createElement("div"); div.className = "booking";
     if(selectedRide && String(selectedRide.id) === String(ride.id)) div.classList.add("active");
     let nearestBadge = (index === 0 && getPickupDistance(ride) !== null) ? `<span class="nearestBadge">NEAREST</span>` : "";
-
     const pickupText = getPickupName(ride);
 
     div.innerHTML = `
@@ -2675,7 +2829,11 @@ async function markArrived(){
   const { data, error } = await supabaseClient.from("rides").update({ status: "arrived" }).eq("id", selectedRide.id).select().single();
   if(error){ showToast("Failed to update status"); return; }
   selectedRide = data; saveActiveRide(data); setWaitingListHidden(true);
-  updateLocalRide(data); showSelectedBooking(); drawRideOnMap(data);
+  updateLocalRide(data); showSelectedBooking();
+  
+  // Auto-clear route line & top navigation HUD pag-drop sa destination
+  stopAutoNavigation();
+  showToast("Arrived at drop-off! Route cleared.");
 }
 
 function openReceiptModal() {
@@ -2705,7 +2863,7 @@ async function completeRide(){
   const completedId = selectedRide.id;
   await supabaseClient.from("rides").update({ status: "completed" }).eq("id", completedId).select().single();
   clearActiveRide(); closeChat(); selectedRide = null; acceptingRideId = null;
-  clearRideMap(); stopAutoNavigation(); setWaitingListHidden(false);
+  stopAutoNavigation(); setWaitingListHidden(false);
   rides = rides.filter(r => String(r.id) !== String(completedId));
   bookingSignature = ""; await loadBookings(); renderBookings();
   showToast("Ride completed!");
@@ -2770,18 +2928,14 @@ async function sendChatMessage(){
   if(data) appendChatMessage(data);
 }
 
-/* MAPLIBRE 3D CAMERA CONTROL */
 function lockMapTo3DView(lng, lat, heading, upcomingTurnAngle = 0) {
   if (!map || currentMapMode !== 'headup') return;
-
   let targetPitch = 30; 
   let targetZoom = 17.5;
-
   if (Math.abs(upcomingTurnAngle) > 25) {
     targetPitch = 55;
     targetZoom = 19;
   }
-
   map.easeTo({ 
     center: [lng, lat], 
     zoom: targetZoom, 
@@ -2807,12 +2961,10 @@ function startRiderGPS(){
 
     if(riderLocation) {
       const distMoved = calculateDistanceMeters(riderLocation.lat, riderLocation.lng, lat, lng);
-
       if (distMoved > 2) {
         let targetHeading = (rawHeading !== null && !isNaN(rawHeading) && speedKmh > 5) 
           ? rawHeading 
           : calculateBearing(riderLocation.lat, riderLocation.lng, lat, lng);
-
         smoothHeading = smoothAngle(smoothHeading, targetHeading, 0.25);
         lastHeading = smoothHeading;
       }
@@ -2823,7 +2975,6 @@ function startRiderGPS(){
 
     riderLocation = { lat, lng };
     updateRiderMarker(lng, lat, lastHeading);
-
     updateNavigationProgress(lat, lng, speedKmh);
     sortBookingsByPickupDistance();
     if(!waitingListHidden) renderBookings();
@@ -2846,7 +2997,6 @@ function smoothAngle(currentAngle, targetAngle, alpha = 0.3) {
   return currentAngle + alpha * diff;
 }
 
-/* RIDER MARKER UPDATER */
 function updateRiderMarker(lng, lat, heading = 0){
   if(!map) return;
   if(!riderMarker){
@@ -2858,7 +3008,6 @@ function updateRiderMarker(lng, lat, heading = 0){
   } else {
     riderMarker.setLngLat([lng, lat]);
   }
-
   if (riderMarker) {
     const arrowEl = riderMarker.getElement().querySelector('.rider-arrow-container');
     if (arrowEl) {
@@ -2869,7 +3018,15 @@ function updateRiderMarker(lng, lat, heading = 0){
 
 function stopAutoNavigation(){
   fullRouteCoordinates = [];
-  document.getElementById("voiceNav")?.classList.remove("active");
+  isDrawingRoute = false;
+  const voiceNav = document.getElementById("voiceNav");
+  if (voiceNav) voiceNav.classList.remove("active");
+
+  const navDist = document.getElementById("navDistance");
+  const turnBadge = document.getElementById("turnDistanceBadge");
+  if (navDist) navDist.textContent = "0 m";
+  if (turnBadge) turnBadge.textContent = "0 m";
+
   document.getElementById("topHeader")?.classList.remove("hiddenHeader");
   document.body.classList.remove("nav-active");
   clearRideMap();
@@ -2878,7 +3035,7 @@ function stopAutoNavigation(){
 function getNavigationTarget(ride){
   if(!ride) return null;
   if(ride.status === "accepted") return { lat: Number(ride.pickup_lat), lng: Number(ride.pickup_lng), label: "Pickup" };
-  if(ride.status === "picked_up" || ride.status === "arrived") return { lat: Number(ride.destination_lat), lng: Number(ride.destination_lng), label: "Drop-off" };
+  if(ride.status === "picked_up") return { lat: Number(ride.destination_lat), lng: Number(ride.destination_lng), label: "Drop-off" };
   return null;
 }
 
@@ -3009,7 +3166,6 @@ function getIndependentTurnCountdown(remainingCoords) {
   return { turnDist: turnDist, arrowId: turnType.arrowId, text: turnType.text, turnAngle: detectedTurnAngle };
 }
 
-/* FETCH ROUTE COORDS */
 async function fetchNoTollRouteCoords(originLng, originLat, targetLng, targetLat) {
   try {
     const valhallaPayload = {
@@ -3066,24 +3222,33 @@ async function drawRideOnMap(ride){
   const target = getNavigationTarget(ride);
   if(!target) { stopAutoNavigation(); return; }
 
+  const navLabel = document.getElementById("navTargetLabel");
+  if (navLabel) navLabel.textContent = target.label;
+
   isDrawingRoute = true;
   document.getElementById("topHeader")?.classList.add("hiddenHeader");
   document.body.classList.add("nav-active");
 
-  if(ride.pickup_lat != null && ride.pickup_lng != null) {
+  if(ride.status === "accepted" && ride.pickup_lat != null && ride.pickup_lng != null) {
     if (!pickupMarker) {
       pickupMarker = new maplibregl.Marker({ color: '#ff6b00' }).setLngLat([Number(ride.pickup_lng), Number(ride.pickup_lat)]).addTo(map);
     } else {
       pickupMarker.setLngLat([Number(ride.pickup_lng), Number(ride.pickup_lat)]);
     }
+  } else if (pickupMarker) {
+    pickupMarker.remove();
+    pickupMarker = null;
   }
 
-  if(ride.destination_lat != null && ride.destination_lng != null) {
+  if(ride.status === "picked_up" && ride.destination_lat != null && ride.destination_lng != null) {
     if (!destinationMarker) {
       destinationMarker = new maplibregl.Marker({ color: '#ef4444' }).setLngLat([Number(ride.destination_lng), Number(ride.destination_lat)]).addTo(map);
     } else {
       destinationMarker.setLngLat([Number(ride.destination_lng), Number(ride.destination_lat)]);
     }
+  } else if (destinationMarker) {
+    destinationMarker.remove();
+    destinationMarker = null;
   }
 
   const origin = riderLocation ? { lat: riderLocation.lat, lng: riderLocation.lng } : { lat: target.lat - 0.002, lng: target.lng - 0.002 };
@@ -3106,15 +3271,23 @@ function subscribeRealtime(){
         if(!rides.some(x => String(x.id) === String(p.new.id))){
           rides.push(p.new);
           renderBookings();
-          playBookingSound();
+          if (isRiderCurrentlyOnline()) playBookingSound();
         }
       }
     })
     .on("postgres_changes", { event:"UPDATE", schema:"public", table:"rides" }, p => {
       const r = p.new; if(!r) return;
-      if(r.status === "cancelled"){
-        if(selectedRide && String(selectedRide.id) === String(r.id)){ clearActiveRide(); closeChat(); stopAutoNavigation(); selectedRide = null; setWaitingListHidden(false); }
-        rides = rides.filter(x => String(x.id) !== String(r.id)); renderBookings(); return;
+      if(r.status === "cancelled" || r.status === "completed"){
+        if(selectedRide && String(selectedRide.id) === String(r.id)){ 
+          clearActiveRide(); 
+          closeChat(); 
+          stopAutoNavigation(); 
+          selectedRide = null; 
+          setWaitingListHidden(false); 
+        }
+        rides = rides.filter(x => String(x.id) !== String(r.id)); 
+        renderBookings(); 
+        return;
       }
       const idx = rides.findIndex(x => String(x.id) === String(r.id));
       if(idx >= 0) rides[idx] = r; else rides.push(r);
