@@ -156,6 +156,91 @@ button, input {
 }
 
 /* =========================================================
+   CLEAN MINIMAL SOLID ORANGE & BLACK SPLASH SCREEN
+   ========================================================= */
+.splashScreen {
+  position: fixed;
+  inset: 0;
+  z-index: 9900;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: #0d0d10;
+  color: #ffffff;
+  transition: opacity 0.35s ease;
+}
+
+.splashScreen.fadeOut {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.splashScreen.hiddenSplash {
+  display: none !important;
+}
+
+.splashBox {
+  width: 84px;
+  height: 84px;
+  border-radius: 20px;
+  background: #ff6b00;
+  color: #0d0d10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 18px;
+  animation: cleanPulse 1.5s ease-in-out infinite;
+}
+
+.splashTitle {
+  margin: 0;
+  font-size: 36px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #ffffff;
+}
+
+.splashTitle span {
+  color: #ff6b00;
+}
+
+.splashTag {
+  margin: 6px 0 22px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #a3a3b0;
+  letter-spacing: 0.6px;
+}
+
+.splashBarWrap {
+  width: 160px;
+  height: 4px;
+  border-radius: 999px;
+  background: #1e1e24;
+  overflow: hidden;
+}
+
+.splashBarFill {
+  width: 100%;
+  height: 100%;
+  background: #ff6b00;
+  transform-origin: left center;
+  animation: cleanBar 3.5s ease-out forwards;
+}
+
+@keyframes cleanPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
+
+@keyframes cleanBar {
+  0% { transform: scaleX(0.1); }
+  100% { transform: scaleX(1); }
+}
+
+/* =========================================================
    LOGIN OVERLAY (MATCHING PASSENGER UI & LOGO)
    ========================================================= */
 .loginOverlay {
@@ -167,6 +252,8 @@ button, input {
   justify-content: space-between;
   padding: 28px 20px 24px;
   background: radial-gradient(circle at top, var(--orange-soft), transparent 60%), var(--bg-dark);
+  overflow: hidden;
+  transition: opacity 0.28s ease;
 }
 
 .loginOverlay.hiddenScreen {
@@ -174,6 +261,8 @@ button, input {
 }
 
 .loginBrand {
+  position: relative;
+  z-index: 3;
   text-align: center;
   margin-top: 12px;
 }
@@ -211,6 +300,8 @@ button, input {
 }
 
 .loginBox {
+  position: relative;
+  z-index: 3;
   width: 100%;
   max-width: 440px;
   margin: 18px auto;
@@ -234,6 +325,8 @@ button, input {
 }
 
 .loginFoot {
+  position: relative;
+  z-index: 3;
   text-align: center;
   font-size: 11px;
   color: var(--text-muted);
@@ -1502,6 +1595,18 @@ body.nav-active .aiSupportBtn { top: 198px; }
   </symbol>
 </svg>
 
+<!-- CLEAN MINIMAL SOLID ORANGE & BLACK SPLASH SCREEN -->
+<div id="splashScreen" class="splashScreen">
+  <div class="splashBox">
+    <span class="monoIcon" style="width:42px;height:42px"><svg><use href="#ic-bike"></use></svg></span>
+  </div>
+  <h1 class="splashTitle"><span>TUK</span>LAS</h1>
+  <p class="splashTag">RIDER NAVIGATION & DISPATCH</p>
+  <div class="splashBarWrap">
+    <div class="splashBarFill"></div>
+  </div>
+</div>
+
 <!-- LOGIN SCREEN OVERLAY (MATCHING PASSENGER UI & LOGO) -->
 <div id="loginScreen" class="loginOverlay">
   <div class="loginBrand">
@@ -2388,6 +2493,20 @@ function setMapStyle(key) {
   });
 }
 
+function playSplashScreen() {
+  const splash = document.getElementById("splashScreen");
+  if (!splash) return;
+  splash.classList.remove("hiddenSplash", "fadeOut");
+
+  setTimeout(() => {
+    splash.classList.add("fadeOut");
+    setTimeout(() => {
+      splash.classList.add("hiddenSplash");
+      splash.classList.remove("fadeOut");
+    }, 350);
+  }, 3500);
+}
+
 function enterRiderAppFromLogin(offlineMode = false) {
   unlockBookingSound();
   initAudioContext();
@@ -2400,7 +2519,7 @@ function enterRiderAppFromLogin(offlineMode = false) {
   saveRiderProfile();
 
   document.getElementById("loginScreen").classList.add("hiddenScreen");
-  setTimeout(() => { if (map) map.resize(); }, 150);
+  if (map) map.resize();
 
   if (!offlineMode) {
     if (!loginName || !loginContact) {
@@ -2430,6 +2549,7 @@ function logoutRiderToLogin() {
   if (name) document.getElementById("loginRiderNameInput").value = name;
   if (contact) document.getElementById("loginRiderContactInput").value = contact;
   document.getElementById("loginScreen").classList.remove("hiddenScreen");
+  playSplashScreen();
 }
 
 function openAIChatModal() { document.getElementById("aiChatModal").classList.add("open"); }
@@ -2782,6 +2902,7 @@ async function restoreActiveRide(){
     if(restoredRide.rider_contact) document.getElementById("riderContact").value = restoredRide.rider_contact;
     saveRiderProfile();
     document.getElementById("loginScreen").classList.add("hiddenScreen");
+    document.getElementById("splashScreen").classList.add("hiddenSplash");
     const existingIndex = rides.findIndex(r => String(r.id) === String(restoredRide.id));
     if(existingIndex >= 0) rides[existingIndex] = restoredRide; else rides.push(restoredRide);
     selectedRide = restoredRide; saveActiveRide(restoredRide); bookingSignature = "";
@@ -3826,6 +3947,7 @@ window.addEventListener("resize", () => { if(map) map.resize(); });
 
 function startApp() {
   loadSavedUiTheme();
+  playSplashScreen();
   setupMapLayerControls();
   initMap();
   setupBookingSheetSwipe();
