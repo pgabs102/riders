@@ -1071,7 +1071,8 @@ body.nav-active .aiSupportBtn { top: 198px; }
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  margin-top: 6px;
+  margin-top: 4px;
+  margin-bottom: 4px;
   padding: 3px 8px;
   border-radius: 6px;
   background: var(--bg-input);
@@ -1415,7 +1416,7 @@ body.nav-active .aiSupportBtn { top: 198px; }
   </symbol>
   <symbol id="ic-settings" viewBox="0 0 24 24">
     <circle cx="12" cy="12" r="3"></circle>
-    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
   </symbol>
   <symbol id="ic-history" viewBox="0 0 24 24">
     <path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path>
@@ -1542,14 +1543,14 @@ body.nav-active .aiSupportBtn { top: 198px; }
     </button>
   </div>
 
-  <div class="loginFoot">TUKLAS Rider V5.8.13 • No-Toll Routing</div>
+  <div class="loginFoot">TUKLAS Rider V5.8.14 • No-Toll Routing</div>
 </div>
 
 <!-- TOP HEADER -->
 <header id="topHeader">
   <div class="headerBrand">
     <strong>T U K L A S</strong>
-    <small>Rider V5.8.13 • No Tollgate</small>
+    <small>Rider V5.8.14 • No Tollgate</small>
   </div>
   <div class="statusIndicator" onclick="toggleOnlineStatus()">
     <div id="statusDot" class="statusDot"></div>
@@ -2124,8 +2125,6 @@ const MAP_STYLES = {
   bright:   "https://tiles.openfreemap.org/styles/bright"
 };
 
-  
-
 const LAYER_CONFIGS = {
   road: {
     keywords: ["road", "street", "highway", "motorway", "trunk", "primary", "secondary", "tertiary", "path", "bridge", "tunnel", "link"],
@@ -2155,7 +2154,6 @@ const LAYER_CONFIGS = {
     valId: "buildingOpacityVal"
   }
 };
-
 
 let currentStyleKey = localStorage.getItem(STYLE_KEY) || "liberty";
 let customLayerState = {
@@ -2207,6 +2205,7 @@ let audioCtx = null;
 let isDrawingRoute = false;
 let bookingSoundUnlocked = false;
 let wakeLock = null;
+let latestDropoffRemainingMeters = null;
 
 function svgIcon(id, size = 16) {
   return `<span class="monoIcon" style="width:${size}px;height:${size}px"><svg><use href="#${id}"></use></svg></span>`;
@@ -2871,6 +2870,14 @@ function getPickupDistance(ride){
   if(!riderLocation || ride.pickup_lat == null || ride.pickup_lng == null) return null;
   return calculateDistanceKm(riderLocation.lat, riderLocation.lng, ride.pickup_lat, ride.pickup_lng);
 }
+function getDropoffDistance(ride){
+  if(!riderLocation || ride.destination_lat == null || ride.destination_lng == null) return null;
+  return calculateDistanceKm(riderLocation.lat, riderLocation.lng, ride.destination_lat, ride.destination_lng);
+}
+function formatLiveDistanceText(meters) {
+  const m = Math.max(0, Number(meters || 0));
+  return m < 1000 ? Math.round(m) + "m away" : (m / 1000).toFixed(1) + " km away";
+}
 function sortBookingsByPickupDistance(){
   rides.forEach(r => { r._pickupDistanceKm = getPickupDistance(r); });
   rides.sort((a,b) => {
@@ -2885,6 +2892,47 @@ function pickupDistanceText(ride){
   if(d === null) return `<span class="pickupDistance">${svgIcon("ic-gps", 12)} GPS OFF</span>`;
   const text = d < 1 ? Math.round(d * 1000) + "m away" : d.toFixed(2) + " km away";
   return `<span class="pickupDistance">${svgIcon("ic-bike", 12)} ${escapeHTML(text)}</span>`;
+}
+function dropoffDistanceText(ride){
+  if(ride.status === "arrived") {
+    return `<span id="selected-dropoff-distance" class="pickupDistance">${svgIcon("ic-pin", 12)} 0m away</span>`;
+  }
+  if(ride.status === "picked_up" && latestDropoffRemainingMeters !== null) {
+    return `<span id="selected-dropoff-distance" class="pickupDistance">${svgIcon("ic-bike", 12)} ${escapeHTML(formatLiveDistanceText(latestDropoffRemainingMeters))}</span>`;
+  }
+  const d = getDropoffDistance(ride);
+  if(d === null) {
+    const estKm = Number(ride.distance_km || 0);
+    const estText = estKm > 0 ? estKm.toFixed(1) + " km away" : "GPS OFF";
+    return `<span id="selected-dropoff-distance" class="pickupDistance">${svgIcon("ic-gps", 12)} ${escapeHTML(estText)}</span>`;
+  }
+  const text = d < 1 ? Math.round(d * 1000) + "m away" : d.toFixed(1) + " km away";
+  return `<span id="selected-dropoff-distance" class="pickupDistance">${svgIcon("ic-bike", 12)} ${escapeHTML(text)}</span>`;
+}
+function syncSelectedCardDistances() {
+  if(!selectedRide) return;
+  const dropoffBadge = document.getElementById("selected-dropoff-distance");
+  if(dropoffBadge) {
+    if(selectedRide.status === "arrived") {
+      dropoffBadge.innerHTML = `${svgIcon("ic-pin", 12)} 0m away`;
+    } else if(selectedRide.status === "picked_up" && latestDropoffRemainingMeters !== null) {
+      dropoffBadge.innerHTML = `${svgIcon("ic-bike", 12)} ${escapeHTML(formatLiveDistanceText(latestDropoffRemainingMeters))}`;
+    } else {
+      const d = getDropoffDistance(selectedRide);
+      if(d !== null) {
+        const text = d < 1 ? Math.round(d * 1000) + "m away" : d.toFixed(1) + " km away";
+        dropoffBadge.innerHTML = `${svgIcon("ic-bike", 12)} ${escapeHTML(text)}`;
+      }
+    }
+  }
+  const pickupBadge = document.getElementById("selected-pickup-distance");
+  if(pickupBadge) {
+    const p = getPickupDistance(selectedRide);
+    if(p !== null) {
+      const pText = p < 1 ? Math.round(p * 1000) + "m away" : p.toFixed(2) + " km away";
+      pickupBadge.innerHTML = `${svgIcon("ic-bike", 12)} ${escapeHTML(pText)}`;
+    }
+  }
 }
 
 let bookingSheetExpanded = false;
@@ -3007,6 +3055,7 @@ function selectRide(id){
   if(!ride) return;
   if(waitingListHidden && selectedRide && String(selectedRide.id) !== String(ride.id)) return;
   selectedRide = ride;
+  latestDropoffRemainingMeters = null;
   if(isActiveRideStatus(ride.status)) saveActiveRide(ride);
   setWaitingListHidden(true); showSelectedBooking(); drawRideOnMap(ride); openBookingSheet();
 }
@@ -3019,6 +3068,10 @@ function showSelectedBooking(){
   box.style.display = "block";
   const r = selectedRide;
   const pickupText = getPickupName(r);
+  const showPickupBadge = (r.status === "searching" || r.status === "accepted");
+  const pickupDistHtml = showPickupBadge
+    ? `${pickupDistanceText(r).replace('class="pickupDistance"', 'id="selected-pickup-distance" class="pickupDistance"')}<br>`
+    : "";
 
   content.innerHTML = `
     <div class="selectedTitle">${svgIcon("ic-bike", 17)}<span>Selected Booking</span></div>
@@ -3026,8 +3079,9 @@ function showSelectedBooking(){
       <b>Passenger:</b> ${escapeHTML(r.passenger_name)}<br>
       <b>Contact:</b> ${escapeHTML(r.passenger_contact)}<br>
       <b>Pickup:</b> <span id="selected-pickup-text">${escapeHTML(pickupText)}</span><br>
-      ${pickupDistanceText(r)}<br>
+      ${pickupDistHtml}
       <b>Destination:</b> ${escapeHTML(r.destination)}<br>
+      ${dropoffDistanceText(r)}<br>
       <b>Distance:</b> ${Number(r.distance_km || 0).toFixed(2)} km<br>
       <b>Fare:</b> ₱${Number(r.estimated_fare || 0).toFixed(2)}<br>
       <span class="status">${statusText(r.status)}</span>
@@ -3152,7 +3206,7 @@ async function markPickedUp(){
   if(!selectedRide) return;
   const { data, error } = await supabaseClient.from("rides").update({ status: "picked_up" }).eq("id", selectedRide.id).select().single();
   if(error){ showToast("Failed to update status"); return; }
-  selectedRide = data; saveActiveRide(data); setWaitingListHidden(true);
+  selectedRide = data; latestDropoffRemainingMeters = null; saveActiveRide(data); setWaitingListHidden(true);
   updateLocalRide(data); showSelectedBooking(); drawRideOnMap(data);
 }
 
@@ -3160,7 +3214,7 @@ async function markArrived(){
   if(!selectedRide) return;
   const { data, error } = await supabaseClient.from("rides").update({ status: "arrived" }).eq("id", selectedRide.id).select().single();
   if(error){ showToast("Failed to update status"); return; }
-  selectedRide = data; saveActiveRide(data); setWaitingListHidden(true);
+  selectedRide = data; latestDropoffRemainingMeters = 0; saveActiveRide(data); setWaitingListHidden(true);
   updateLocalRide(data); showSelectedBooking();
   
   stopAutoNavigation();
@@ -3193,7 +3247,7 @@ async function completeRide(){
   if(!selectedRide) return;
   const completedId = selectedRide.id;
   await supabaseClient.from("rides").update({ status: "completed" }).eq("id", completedId).select().single();
-  clearActiveRide(); closeChat(); selectedRide = null; acceptingRideId = null;
+  clearActiveRide(); closeChat(); selectedRide = null; latestDropoffRemainingMeters = null; acceptingRideId = null;
   stopAutoNavigation(); setWaitingListHidden(false);
   rides = rides.filter(r => String(r.id) !== String(completedId));
   bookingSignature = ""; await loadBookings(); renderBookings();
@@ -3307,6 +3361,7 @@ function startRiderGPS(){
     riderLocation = { lat, lng };
     updateRiderMarker(lng, lat, lastHeading);
     updateNavigationProgress(lat, lng, speedKmh);
+    syncSelectedCardDistances();
     sortBookingsByPickupDistance();
     if(!waitingListHidden) renderBookings();
 
@@ -3521,6 +3576,11 @@ function updateNavigationProgress(currentLat, currentLng, speedKmh = 0) {
     totalRemainingDist += calculateDistanceMeters(remainingCoords[i][1], remainingCoords[i][0], remainingCoords[i+1][1], remainingCoords[i+1][0]);
   }
   document.getElementById("navDistance").textContent = formatNavDistance(totalRemainingDist);
+
+  if (selectedRide && selectedRide.status === "picked_up") {
+    latestDropoffRemainingMeters = totalRemainingDist;
+    syncSelectedCardDistances();
+  }
 
   const turnInfo = getIndependentTurnCountdown(remainingCoords);
   document.getElementById("turnDistanceBadge").textContent = formatNavDistance(turnInfo.turnDist);
@@ -3743,6 +3803,7 @@ function subscribeRealtime(){
           closeChat(); 
           stopAutoNavigation(); 
           selectedRide = null; 
+          latestDropoffRemainingMeters = null;
           setWaitingListHidden(false); 
         }
         rides = rides.filter(x => String(x.id) !== String(r.id)); 
