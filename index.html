@@ -2890,23 +2890,27 @@ function sortBookingsByPickupDistance(){
 function pickupDistanceText(ride){
   const d = getPickupDistance(ride);
   if(d === null) return `<span class="pickupDistance">${svgIcon("ic-gps", 12)} GPS OFF</span>`;
-  const text = d < 1 ? Math.round(d * 1000) + "m away" : d.toFixed(2) + " km away";
+  const text = d < 1 ? Math.round(d * 1000) + "m to pickup" : d.toFixed(2) + " km to pickup";
   return `<span class="pickupDistance">${svgIcon("ic-bike", 12)} ${escapeHTML(text)}</span>`;
 }
 function dropoffDistanceText(ride){
+  const routeKm = Number(ride.distance_km || 0);
   if(ride.status === "arrived") {
-    return `<span id="selected-dropoff-distance" class="pickupDistance">${svgIcon("ic-pin", 12)} 0m away</span>`;
+    return `<span id="selected-dropoff-distance" class="pickupDistance">${svgIcon("ic-pin", 12)} 0m remaining</span>`;
   }
   if(ride.status === "picked_up" && latestDropoffRemainingMeters !== null) {
-    return `<span id="selected-dropoff-distance" class="pickupDistance">${svgIcon("ic-bike", 12)} ${escapeHTML(formatLiveDistanceText(latestDropoffRemainingMeters))}</span>`;
+    const remKm = latestDropoffRemainingMeters / 1000;
+    const text = remKm < 1 ? Math.round(latestDropoffRemainingMeters) + "m remaining" : remKm.toFixed(2) + " km remaining";
+    return `<span id="selected-dropoff-distance" class="pickupDistance">${svgIcon("ic-bike", 12)} ${escapeHTML(text)}</span>`;
+  }
+  if(routeKm > 0) {
+    return `<span id="selected-dropoff-distance" class="pickupDistance">${svgIcon("ic-nav", 12)} ${routeKm.toFixed(2)} km trip route</span>`;
   }
   const d = getDropoffDistance(ride);
   if(d === null) {
-    const estKm = Number(ride.distance_km || 0);
-    const estText = estKm > 0 ? estKm.toFixed(1) + " km away" : "GPS OFF";
-    return `<span id="selected-dropoff-distance" class="pickupDistance">${svgIcon("ic-gps", 12)} ${escapeHTML(estText)}</span>`;
+    return `<span id="selected-dropoff-distance" class="pickupDistance">${svgIcon("ic-gps", 12)} GPS OFF</span>`;
   }
-  const text = d < 1 ? Math.round(d * 1000) + "m away" : d.toFixed(1) + " km away";
+  const text = d < 1 ? Math.round(d * 1000) + "m away" : d.toFixed(2) + " km away";
   return `<span id="selected-dropoff-distance" class="pickupDistance">${svgIcon("ic-bike", 12)} ${escapeHTML(text)}</span>`;
 }
 function syncSelectedCardDistances() {
@@ -2914,14 +2918,15 @@ function syncSelectedCardDistances() {
   const dropoffBadge = document.getElementById("selected-dropoff-distance");
   if(dropoffBadge) {
     if(selectedRide.status === "arrived") {
-      dropoffBadge.innerHTML = `${svgIcon("ic-pin", 12)} 0m away`;
+      dropoffBadge.innerHTML = `${svgIcon("ic-pin", 12)} 0m remaining`;
     } else if(selectedRide.status === "picked_up" && latestDropoffRemainingMeters !== null) {
-      dropoffBadge.innerHTML = `${svgIcon("ic-bike", 12)} ${escapeHTML(formatLiveDistanceText(latestDropoffRemainingMeters))}`;
+      const remKm = latestDropoffRemainingMeters / 1000;
+      const text = remKm < 1 ? Math.round(latestDropoffRemainingMeters) + "m remaining" : remKm.toFixed(2) + " km remaining";
+      dropoffBadge.innerHTML = `${svgIcon("ic-bike", 12)} ${escapeHTML(text)}`;
     } else {
-      const d = getDropoffDistance(selectedRide);
-      if(d !== null) {
-        const text = d < 1 ? Math.round(d * 1000) + "m away" : d.toFixed(1) + " km away";
-        dropoffBadge.innerHTML = `${svgIcon("ic-bike", 12)} ${escapeHTML(text)}`;
+      const routeKm = Number(selectedRide.distance_km || 0);
+      if(routeKm > 0) {
+        dropoffBadge.innerHTML = `${svgIcon("ic-nav", 12)} ${routeKm.toFixed(2)} km trip route`;
       }
     }
   }
@@ -2929,7 +2934,7 @@ function syncSelectedCardDistances() {
   if(pickupBadge) {
     const p = getPickupDistance(selectedRide);
     if(p !== null) {
-      const pText = p < 1 ? Math.round(p * 1000) + "m away" : p.toFixed(2) + " km away";
+      const pText = p < 1 ? Math.round(p * 1000) + "m to pickup" : p.toFixed(2) + " km to pickup";
       pickupBadge.innerHTML = `${svgIcon("ic-bike", 12)} ${escapeHTML(pText)}`;
     }
   }
