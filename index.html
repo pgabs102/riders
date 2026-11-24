@@ -132,7 +132,7 @@ html, body {
   color: var(--text-light);
 }
 
-button, input {
+button, input, select {
   font-family: inherit;
 }
 
@@ -241,7 +241,7 @@ button, input {
 }
 
 /* =========================================================
-   LOGIN OVERLAY (MATCHING PASSENGER UI & LOGO)
+   LOGIN OVERLAY
    ========================================================= */
 .loginOverlay {
   position: fixed;
@@ -252,7 +252,7 @@ button, input {
   justify-content: space-between;
   padding: 28px 20px 24px;
   background: radial-gradient(circle at top, var(--orange-soft), transparent 60%), var(--bg-dark);
-  overflow: hidden;
+  overflow-y: auto;
   transition: opacity 0.28s ease;
 }
 
@@ -264,13 +264,13 @@ button, input {
   position: relative;
   z-index: 3;
   text-align: center;
-  margin-top: 12px;
+  margin-top: 8px;
 }
 
 .loginBrandBadge {
-  width: 64px;
-  height: 64px;
-  margin: 0 auto 12px;
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 10px;
   border-radius: var(--card-radius);
   background: var(--bg-card);
   border: 1.5px solid var(--orange);
@@ -283,7 +283,7 @@ button, input {
 
 .loginBrand h1 {
   margin: 0;
-  font-size: 30px;
+  font-size: 28px;
   font-weight: 900;
   letter-spacing: 1.2px;
 }
@@ -293,7 +293,7 @@ button, input {
 }
 
 .loginBrand p {
-  margin: 5px 0 0;
+  margin: 4px 0 0;
   font-size: 12px;
   color: var(--text-muted);
   font-weight: 600;
@@ -304,22 +304,22 @@ button, input {
   z-index: 3;
   width: 100%;
   max-width: 440px;
-  margin: 18px auto;
+  margin: 14px auto;
   background: var(--bg-card);
   border: 1px solid var(--border-dark);
   border-radius: var(--card-radius);
-  padding: 22px 18px;
+  padding: 20px 18px;
   box-shadow: 0 12px 32px rgba(0,0,0,.45);
 }
 
 .loginBox h2 {
   margin: 0;
-  font-size: 20px;
+  font-size: 19px;
   color: var(--text-light);
 }
 
 .loginBox .sub {
-  margin: 4px 0 16px;
+  margin: 4px 0 14px;
   font-size: 12px;
   color: var(--text-muted);
 }
@@ -340,9 +340,9 @@ button, input {
   color: var(--text-muted);
 }
 
-input {
+input, select {
   width: 100%;
-  padding: 12px;
+  padding: 11px 12px;
   margin-top: 6px;
   margin-bottom: 10px;
   border-radius: var(--btn-radius);
@@ -353,7 +353,7 @@ input {
   outline: none;
 }
 
-input:focus {
+input:focus, select:focus {
   border-color: var(--orange);
 }
 
@@ -400,7 +400,7 @@ input:focus {
 }
 
 /* =========================================================
-   TOP HEADER (MATCHING PASSENGER UI)
+   TOP HEADER
    ========================================================= */
 header {
   position: fixed;
@@ -858,23 +858,36 @@ body.nav-active .speedometer-badge {
   color: var(--orange);
 }
 
-.sosBtn {
+.tollToggleBtn {
   top: 122px;
+  background: var(--bg-card);
+  color: var(--text-light);
+}
+
+.tollToggleBtn.toll-active {
+  background: var(--green-status);
+  color: #ffffff;
+  border-color: var(--green-status);
+}
+
+.sosBtn {
+  top: 168px;
   background: var(--red-status);
   color: #ffffff;
   border: none;
 }
 
 .aiSupportBtn {
-  top: 168px;
+  top: 214px;
   background: var(--orange);
   color: #ffffff;
   border: none;
 }
 
 body.nav-active .mapModeBtn { top: 106px; }
-body.nav-active .sosBtn { top: 152px; }
-body.nav-active .aiSupportBtn { top: 198px; }
+body.nav-active .tollToggleBtn { top: 152px; }
+body.nav-active .sosBtn { top: 198px; }
+body.nav-active .aiSupportBtn { top: 244px; }
 
 .rider-marker-wrapper {
   position: relative;
@@ -969,7 +982,7 @@ body.nav-active .aiSupportBtn { top: 198px; }
 }
 
 /* =========================================================
-   BOOKINGS SHEET (MATCHING PASSENGER BOTTOM SHEET)
+   BOOKINGS SHEET
    ========================================================= */
 #availableBookingsCard {
   position: fixed;
@@ -1062,7 +1075,6 @@ body.nav-active .aiSupportBtn { top: 198px; }
   gap: 8px;
 }
 
-/* UNIFORM MONOCHROME CIRCULAR ACTION BUTTONS (MATCHING PASSENGER UI) */
 .actionGroup {
   display: flex !important;
   align-items: center;
@@ -1158,6 +1170,19 @@ body.nav-active .aiSupportBtn { top: 198px; }
   margin-top: 6px;
   color: var(--orange);
   border: 1px solid var(--orange);
+}
+
+.vehicleBadge {
+  display: inline-block;
+  padding: 3px 7px;
+  border-radius: 5px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-dark);
+  color: var(--text-light);
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  margin-left: 4px;
 }
 
 .pickupDistance {
@@ -1456,7 +1481,7 @@ body.nav-active .aiSupportBtn { top: 198px; }
   cursor: pointer;
 }
 
-/* MAPLIBRE PIN POPUP CARD (MATCHING PASSENGER UI) */
+/* MAPLIBRE PIN POPUP CARD */
 .maplibregl-popup {
   z-index: 6000;
   max-width: 280px !important;
@@ -1486,7 +1511,7 @@ body.nav-active .aiSupportBtn { top: 198px; }
 </head>
 <body>
 
-<!-- SHARED MONOCHROME SVG ICON SPRITE (MATCHING PASSENGER APP) -->
+<!-- SHARED MONOCHROME SVG ICON SPRITE -->
 <svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden;">
   <symbol id="ic-user" viewBox="0 0 24 24">
     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -1498,14 +1523,15 @@ body.nav-active .aiSupportBtn { top: 198px; }
     <path d="M15 6h-5l-2 6h7l2 5.5"></path>
     <path d="M12 6l1.5-2.5H17"></path>
   </symbol>
+  <symbol id="ic-car" viewBox="0 0 24 24">
+    <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"></path>
+    <circle cx="7" cy="17" r="2"></circle>
+    <path d="M9 17h6"></path>
+    <circle cx="17" cy="17" r="2"></circle>
+  </symbol>
   <symbol id="ic-gps" viewBox="0 0 24 24">
     <circle cx="12" cy="12" r="3"></circle>
     <path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path>
-  </symbol>
-  <symbol id="ic-target" viewBox="0 0 24 24">
-    <circle cx="12" cy="12" r="9"></circle>
-    <circle cx="12" cy="12" r="5"></circle>
-    <circle cx="12" cy="12" r="1.5"></circle>
   </symbol>
   <symbol id="ic-settings" viewBox="0 0 24 24">
     <circle cx="12" cy="12" r="3"></circle>
@@ -1595,34 +1621,33 @@ body.nav-active .aiSupportBtn { top: 198px; }
   </symbol>
 </svg>
 
-<!-- CLEAN MINIMAL SOLID ORANGE & BLACK SPLASH SCREEN -->
+<!-- SPLASH SCREEN -->
 <div id="splashScreen" class="splashScreen">
   <div class="splashBox">
     <span class="monoIcon" style="width:42px;height:42px"><svg><use href="#ic-bike"></use></svg></span>
   </div>
   <h1 class="splashTitle"><span>TUK</span>LAS</h1>
-  <p class="splashTag">RIDER NAVIGATION & DISPATCH</p>
+  <p class="splashTag">RIDER & DRIVER NAVIGATION</p>
   <div class="splashBarWrap">
     <div class="splashBarFill"></div>
   </div>
 </div>
 
-<!-- LOGIN SCREEN OVERLAY (MATCHING PASSENGER UI & LOGO) -->
+<!-- LOGIN SCREEN OVERLAY -->
 <div id="loginScreen" class="loginOverlay">
   <div class="loginBrand">
     <div class="loginBrandBadge">
       <span class="monoIcon" style="width:32px;height:32px"><svg><use href="#ic-bike"></use></svg></span>
     </div>
     <h1><span>TUK</span>LAS</h1>
-    <p>Rider Partner • 3D Navigation • Dispatch</p>
+    <p>Partner Dispatch • Smart Highway & Toll Routing</p>
   </div>
 
   <div class="loginBox">
-    <h2>Rider Partner Login</h2>
-    <p class="sub">Sign in to receive passenger bookings</p>
+    <h2>Partner Login</h2>
+    <p class="sub">Select your vehicle type and sign in to receive bookings</p>
 
-    <!-- Theme Switcher inside Login -->
-    <div style="margin-bottom:14px;">
+    <div style="margin-bottom:12px;">
       <label class="profileLabel" style="margin-top:0;margin-bottom:6px;">Select App Design UI</label>
       <div style="display:flex;gap:4px;overflow-x:auto;padding-bottom:4px;">
         <button type="button" class="uiThemeBtn active" data-theme="theme-classic" onclick="setUiTheme('theme-classic')">1. Classic</button>
@@ -1633,10 +1658,17 @@ body.nav-active .aiSupportBtn { top: 198px; }
       </div>
     </div>
 
-    <label class="profileLabel">Rider Full Name</label>
-    <input id="loginRiderNameInput" placeholder="Enter your rider name">
+    <label class="profileLabel">Vehicle Category</label>
+    <select id="loginVehicleTypeInput" onchange="syncVehicleTypeSelection(this.value)">
+      <option value="motorcycle">Motorcycle (National Highway / No Toll Expressway)</option>
+      <option value="car">Car / Sedan (Configurable Toll / No Toll)</option>
+      <option value="van">Van / MPV (Configurable Toll / No Toll)</option>
+    </select>
 
-    <label class="profileLabel">Rider Contact Number</label>
+    <label class="profileLabel">Driver / Rider Full Name</label>
+    <input id="loginRiderNameInput" placeholder="Enter your full name">
+
+    <label class="profileLabel">Contact Number</label>
     <input id="loginRiderContactInput" type="tel" placeholder="09XX XXX XXXX">
 
     <button class="primaryBtn" onclick="enterRiderAppFromLogin()">
@@ -1648,30 +1680,30 @@ body.nav-active .aiSupportBtn { top: 198px; }
     </button>
   </div>
 
-  <div class="loginFoot">TUKLAS Rider V5.8.14 • No-Toll Routing</div>
+  <div class="loginFoot">TUKLAS Partner V5.9.0 • Anti-Jitter 30m Shortcut Routing</div>
 </div>
 
 <!-- TOP HEADER -->
 <header id="topHeader">
   <div class="headerBrand">
     <strong>T U K L A S</strong>
-    <small>Rider V5.8.14 • No Tollgate</small>
+    <small id="headerSubText">Motorcycle • Hwy No-Toll</small>
   </div>
   <div class="statusIndicator" onclick="toggleOnlineStatus()">
     <div id="statusDot" class="statusDot"></div>
     <span id="statusText" class="statusText">OFFLINE</span>
   </div>
-  <button id="menuButton" class="profileButton" onclick="toggleRiderMenu(event)" title="Rider Profile & Settings">
+  <button id="menuButton" class="profileButton" onclick="toggleRiderMenu(event)" title="Driver Profile & Settings">
     <span class="monoIcon" style="width:22px;height:22px"><svg><use href="#ic-user"></use></svg></span>
   </button>
 </header>
 
-<!-- RIDER MENU WITH DUAL TABS (PROFILE/HISTORY & MAP SETTINGS) -->
+<!-- RIDER MENU WITH DUAL TABS -->
 <div id="riderMenu" class="riderMenu">
   <div class="menuPanelHeader">
     <div class="menuPanelTitle">
       <span class="monoIcon" style="width:18px;height:18px"><svg><use href="#ic-bike"></use></svg></span>
-      <span>Rider Dashboard</span>
+      <span>Partner Dashboard</span>
     </div>
     <button class="closeMenu" onclick="closeRiderMenu()">
       <span class="monoIcon" style="width:18px;height:18px"><svg><use href="#ic-close"></use></svg></span>
@@ -1679,7 +1711,6 @@ body.nav-active .aiSupportBtn { top: 198px; }
   </div>
 
   <div class="menuPanelBody">
-    <!-- TABS NAVIGATION HEADER -->
     <div class="menuNavTabs">
       <button class="tabBtn active" onclick="switchMenuTab('tabProfile', this)">
         <span class="monoIcon" style="width:15px;height:15px"><svg><use href="#ic-user"></use></svg></span>
@@ -1687,11 +1718,11 @@ body.nav-active .aiSupportBtn { top: 198px; }
       </button>
       <button class="tabBtn" onclick="switchMenuTab('tabMapSettings', this)">
         <span class="monoIcon" style="width:15px;height:15px"><svg><use href="#ic-settings"></use></svg></span>
-        <span>UI & Map Settings</span>
+        <span>Routing & Map</span>
       </button>
     </div>
 
-    <!-- TAB 1: PROFILE & HISTORY COMBINED -->
+    <!-- TAB 1: PROFILE & HISTORY -->
     <div id="tabProfile" class="tabContent active">
       <div class="earnings-card">
         <div>
@@ -1707,19 +1738,33 @@ body.nav-active .aiSupportBtn { top: 198px; }
       <div class="profileCard">
         <h3>
           <span class="monoIcon" style="width:16px;height:16px;color:var(--orange)"><svg><use href="#ic-user"></use></svg></span>
-          <span>Rider Credentials</span>
+          <span>Partner & Vehicle Credentials</span>
         </h3>
-        <label class="profileLabel">Rider Name</label>
-        <input id="riderName" type="text" placeholder="Rider Name">
-        <label class="profileLabel">Rider Contact</label>
-        <input id="riderContact" type="tel" placeholder="Rider Contact">
+        <label class="profileLabel">Vehicle Category</label>
+        <select id="riderVehicleType" onchange="syncVehicleTypeSelection(this.value)">
+          <option value="motorcycle">Motorcycle (Highway OK • No Expressway)</option>
+          <option value="car">Car / Sedan (Toll / No-Toll Option)</option>
+          <option value="van">Van / MPV (Toll / No-Toll Option)</option>
+        </select>
+
+        <div id="menuTollPreferenceBox" style="display:none; margin-bottom:8px;">
+          <label class="profileLabel">Expressway Toll Preference (Car / Van)</label>
+          <select id="menuTollPreference" onchange="setTollPreference(this.value === 'with_toll')">
+            <option value="no_toll">No Toll (National Highway / Service Road)</option>
+            <option value="with_toll">With Toll (Expressway Allowed + Toll Fare)</option>
+          </select>
+        </div>
+
+        <label class="profileLabel">Partner Name</label>
+        <input id="riderName" type="text" placeholder="Full Name">
+        <label class="profileLabel">Contact Number</label>
+        <input id="riderContact" type="tel" placeholder="Contact Number">
         <div id="gpsStatus" class="gpsStatus">
           <span class="monoIcon" style="width:15px;height:15px"><svg><use href="#ic-gps"></use></svg></span>
           <span>GPS Always Active</span>
         </div>
       </div>
 
-      <!-- COMBINED RIDE HISTORY LIST -->
       <div class="profileCard">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
           <h3 style="margin:0;">
@@ -1773,9 +1818,8 @@ body.nav-active .aiSupportBtn { top: 198px; }
           <button type="button" class="styleBtn" style="border:1px solid var(--border-dark);" onclick="resetAllMapLayersToDefault()">Reset Liberty</button>
         </div>
 
-        <!-- ROAD COLOR & OPACITY -->
         <div class="layerColorControl">
-          <label class="colorPickerBtn" title="Piliin ang kulay ng road layer">
+          <label class="colorPickerBtn">
             <span class="colorSwatch" id="roadColorSwatch"></span>
             <span>Road Color</span>
             <input type="color" id="roadColorInput" value="#ff6b00">
@@ -1786,9 +1830,8 @@ body.nav-active .aiSupportBtn { top: 198px; }
           </label>
         </div>
 
-        <!-- LAND COLOR & OPACITY -->
         <div class="layerColorControl">
-          <label class="colorPickerBtn" title="Piliin ang kulay ng land layer">
+          <label class="colorPickerBtn">
             <span class="colorSwatch" id="landColorSwatch" style="background:#22c55e;"></span>
             <span>Land Color</span>
             <input type="color" id="landColorInput" value="#22c55e">
@@ -1799,9 +1842,8 @@ body.nav-active .aiSupportBtn { top: 198px; }
           </label>
         </div>
 
-        <!-- BUILDING COLOR & OPACITY -->
         <div class="layerColorControl">
-          <label class="colorPickerBtn" title="Piliin ang kulay ng building layer">
+          <label class="colorPickerBtn">
             <span class="colorSwatch" id="buildingColorSwatch" style="background:#94a3b8;"></span>
             <span>Building Color</span>
             <input type="color" id="buildingColorInput" value="#94a3b8">
@@ -1836,6 +1878,12 @@ body.nav-active .aiSupportBtn { top: 198px; }
       <span class="monoIcon" style="width:15px;height:15px"><svg><use href="#ic-nav"></use></svg></span>
       <span id="mapModeLabel">3D LOCK</span>
     </button>
+
+    <button id="tollToggleBtn" class="hudSideBtn tollToggleBtn" onclick="toggleTollMode()">
+      <span class="monoIcon" style="width:15px;height:15px"><svg><use href="#ic-bike"></use></svg></span>
+      <span id="tollToggleLabel">MOTO: NO TOLL</span>
+    </button>
+
     <button id="sosBtn" class="hudSideBtn sosBtn" onclick="triggerSOSAlert()">
       <span class="monoIcon" style="width:15px;height:15px"><svg><use href="#ic-alert"></use></svg></span>
       <span>SOS</span>
@@ -1967,7 +2015,7 @@ body.nav-active .aiSupportBtn { top: 198px; }
       <div>
         <div class="chatHeaderTitle">
           <span class="monoIcon" style="width:18px;height:18px"><svg><use href="#ic-bot"></use></svg></span>
-          <span>TUKLAS Rider Assistant</span>
+          <span>TUKLAS Partner Assistant</span>
         </div>
         <div class="chatHeaderSmall">Powered by Gemini AI</div>
       </div>
@@ -1979,14 +2027,14 @@ body.nav-active .aiSupportBtn { top: 198px; }
       <div class="chatRow other">
         <div class="chatBubble">
           <div class="chatSender">TUKLAS AI</div>
-          <div>Kamusta paps! Ako ang iyong Rider Assistant. Ano ang maipaglilingkod ko sa biyahe mo ngayon?</div>
+          <div>Kamusta paps! Ako ang iyong Partner Assistant. Ano ang maipaglilingkod ko sa biyahe mo ngayon?</div>
         </div>
       </div>
     </div>
     <div class="aiQuickActions">
       <button class="aiQuickBtn" onclick="sendQuickAIPrompt('Paano mag top-up ng wallet?')">Top-up Wallet</button>
       <button class="aiQuickBtn" onclick="sendQuickAIPrompt('Mali ang pickup location ng pasahero')">Mali ang Pickup</button>
-      <button class="aiQuickBtn" onclick="sendQuickAIPrompt('Paano i-verify ang account ko?')">Account Verification</button>
+      <button class="aiQuickBtn" onclick="sendQuickAIPrompt('Paano ang computation ng toll fee sa Car at Van?')">Toll Fee Computation</button>
     </div>
     <div class="chatInputArea">
       <input id="aiChatInput" type="text" maxlength="500" placeholder="Magtanong sa AI Support..." onkeypress="handleAIChatKeyPress(event)">
@@ -2002,8 +2050,10 @@ body.nav-active .aiSupportBtn { top: 198px; }
       <span class="monoIcon" style="width:20px;height:20px"><svg><use href="#ic-receipt"></use></svg></span>
       <span>Trip Receipt</span>
     </div>
+    <div class="receiptRow"><span>Vehicle / Route:</span><span id="recRouteMode">Motorcycle (No Toll)</span></div>
     <div class="receiptRow"><span>Distance:</span><span id="recDistance">0 km</span></div>
-    <div class="receiptRow"><span>Base Fare:</span><span id="recBase">₱50.00</span></div>
+    <div class="receiptRow"><span>Base + Distance Fare:</span><span id="recBase">₱50.00</span></div>
+    <div class="receiptRow" id="recTollRow" style="display:none;"><span>Expressway Toll Fee:</span><span id="recTollFee">₱0.00</span></div>
     <div class="receiptRow"><span>Tip / Extra:</span><input id="recTip" type="number" value="0" style="width:82px; padding:5px 8px; text-align:right; margin:0;" oninput="updateReceiptTotal()"></div>
     <div class="receiptRow receiptTotal"><span>Total Fare:</span><span id="recTotal">₱50.00</span></div>
     <button class="primaryBtn" onclick="confirmCompleteRide()">
@@ -2029,6 +2079,132 @@ const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, 
     }
   }
 });
+
+/* ===== VEHICLE & TOLL FARE CONFIGURATION ===== */
+const VEHICLE_RATES = {
+  motorcycle: { label: "Motorcycle", baseFare: 50, perKm: 10, tollPerKm: 0, allowTollToggle: false },
+  car:        { label: "Car / Sedan", baseFare: 85, perKm: 16, tollPerKm: 4.5, allowTollToggle: true },
+  van:        { label: "Van / MPV", baseFare: 120, perKm: 22, tollPerKm: 6.5, allowTollToggle: true }
+};
+
+let partnerVehicleType = "motorcycle"; // "motorcycle" | "car" | "van"
+let useTollRoute = false; // false = National Highway / No Expressway; true = With Toll (Car/Van only)
+let currentRouteTollMeters = 0;
+
+function getEffectiveVehicleType(ride = null) {
+  const v = (ride?.vehicle_type || ride?.vehicle || partnerVehicleType || "motorcycle").toLowerCase();
+  if (v.includes("van")) return "van";
+  if (v.includes("car") || v.includes("sedan") || v.includes("suv")) return "car";
+  return "motorcycle";
+}
+
+function isEffectiveTollEnabled(ride = null) {
+  const vType = getEffectiveVehicleType(ride);
+  if (vType === "motorcycle") return false; // Motorcycle NEVER enters expressway/toll
+  if (ride && typeof ride.use_toll === "boolean") return ride.use_toll;
+  return useTollRoute;
+}
+
+function computeRideFareDetails(ride) {
+  const vType = getEffectiveVehicleType(ride);
+  const rateCfg = VEHICLE_RATES[vType] || VEHICLE_RATES.motorcycle;
+  const distKm = Number(ride?.distance_km || 0);
+  const tollAllowed = isEffectiveTollEnabled(ride);
+
+  // Use passenger's estimated_fare as base if present, otherwise compute by vehicle tier
+  let baseAndDist = Number(ride?.estimated_fare || 0);
+  if (baseAndDist <= 0) {
+    baseAndDist = rateCfg.baseFare + Math.max(0, distKm - 2) * rateCfg.perKm;
+  } else if (vType === "car" && rateCfg.baseFare > 50 && baseAndDist < 85) {
+    baseAndDist = rateCfg.baseFare + Math.max(0, distKm - 2) * rateCfg.perKm;
+  } else if (vType === "van" && rateCfg.baseFare > 50 && baseAndDist < 120) {
+    baseAndDist = rateCfg.baseFare + Math.max(0, distKm - 2) * rateCfg.perKm;
+  }
+
+  let tollFee = 0;
+  if (tollAllowed && vType !== "motorcycle") {
+    const tollKm = currentRouteTollMeters > 0 ? (currentRouteTollMeters / 1000) : (distKm * 0.45);
+    tollFee = Math.round(Math.max(25, tollKm * rateCfg.tollPerKm));
+  }
+
+  return {
+    vType,
+    vehicleLabel: rateCfg.label,
+    tollAllowed,
+    baseAndDist: Math.round(baseAndDist * 100) / 100,
+    tollFee,
+    totalFare: Math.round((baseAndDist + tollFee) * 100) / 100
+  };
+}
+
+function updateRoutingModeUI() {
+  const vType = getEffectiveVehicleType(selectedRide);
+  const tollBtn = document.getElementById("tollToggleBtn");
+  const tollLabel = document.getElementById("tollToggleLabel");
+  const headerSub = document.getElementById("headerSubText");
+  const menuTollBox = document.getElementById("menuTollPreferenceBox");
+  const menuTollSel = document.getElementById("menuTollPreference");
+
+  if (vType === "motorcycle") {
+    useTollRoute = false;
+    if (menuTollBox) menuTollBox.style.display = "none";
+    if (tollBtn) {
+      tollBtn.classList.remove("toll-active");
+      tollBtn.innerHTML = `${svgIcon("ic-bike", 15)}<span id="tollToggleLabel">MOTO: HWY NO-TOLL</span>`;
+    }
+    if (headerSub) headerSub.textContent = "Motorcycle • National Hwy (No Toll)";
+  } else {
+    if (menuTollBox) menuTollBox.style.display = "block";
+    if (menuTollSel) menuTollSel.value = useTollRoute ? "with_toll" : "no_toll";
+    const vTitle = vType === "van" ? "VAN" : "CAR";
+    if (tollBtn) {
+      tollBtn.classList.toggle("toll-active", useTollRoute);
+      tollBtn.innerHTML = `${svgIcon("ic-car", 15)}<span id="tollToggleLabel">${vTitle}: ${useTollRoute ? "WITH TOLL" : "NO TOLL"}</span>`;
+    }
+    if (headerSub) headerSub.textContent = `${vType === "van" ? "Van" : "Car"} • ${useTollRoute ? "With Toll (Expressway)" : "No Toll (National Hwy)"}`;
+  }
+}
+
+function syncVehicleTypeSelection(val) {
+  partnerVehicleType = ["motorcycle", "car", "van"].includes(val) ? val : "motorcycle";
+  const loginSel = document.getElementById("loginVehicleTypeInput");
+  const menuSel = document.getElementById("riderVehicleType");
+  if (loginSel) loginSel.value = partnerVehicleType;
+  if (menuSel) menuSel.value = partnerVehicleType;
+  if (partnerVehicleType === "motorcycle") useTollRoute = false;
+  saveRiderProfile();
+  updateRoutingModeUI();
+  if (selectedRide) {
+    showSelectedBooking();
+    drawRideOnMap(selectedRide);
+  }
+}
+
+function setTollPreference(allowToll) {
+  if (getEffectiveVehicleType(selectedRide) === "motorcycle") {
+    useTollRoute = false;
+    updateRoutingModeUI();
+    showToast("Motorcycle: National Highway lang (No Expressway Toll)");
+    return;
+  }
+  useTollRoute = Boolean(allowToll);
+  saveRiderProfile();
+  updateRoutingModeUI();
+  showToast(useTollRoute ? "WITH TOLL: Pinayagan ang Expressway (+Toll Fare)" : "NO TOLL: National Highway / Service Road lang");
+  if (selectedRide) {
+    showSelectedBooking();
+    drawRideOnMap(selectedRide);
+  }
+}
+
+function toggleTollMode() {
+  const vType = getEffectiveVehicleType(selectedRide);
+  if (vType === "motorcycle") {
+    showToast("Motorcycle mode: Naka-route sa National Highway (No Toll Expressway).");
+    return;
+  }
+  setTollPreference(!useTollRoute);
+}
 
 /* ===== RIDER BOOKING WATCHER (REALTIME + POLLING + ALERT) ===== */
 let riderIncomingTimer = null;
@@ -2196,20 +2372,20 @@ function stopRiderBookingWatcher() {
   }
 }
 
-/* ===== GEMINI API CONFIGURATION & RIDER SYSTEM INSTRUCTION ===== */
+/* ===== GEMINI API CONFIGURATION ===== */
 const GEMINI_API_KEY = "AIzaSyCEUXUczzbTkX19Yk3OQApHOylJrUqbKF0";
 
 const riderSystemInstruction = `
-Ikaw ang TUKLAS / Habal Na Rider Support Assistant. 
-Ang kausap mo ay isang accredited motorcycle rider / driver.
+Ikaw ang TUKLAS / Habal Na Partner Support Assistant. 
+Ang kausap mo ay isang accredited motorcycle rider, car, o van driver.
 
 Mga Tungkulin at Alituntunin:
 1. Tumulong sa mga usapin tungkol sa:
    - Wallet top-up / Cash-in (GCash, Over-the-counter)
-   - Pagtanggap ng booking / GPS Navigation
-   - Fare breakdown at incentives
+   - Pagtanggap ng booking / GPS Navigation (Motorcycle National Highway No-Toll vs Car/Van With/No Toll)
+   - Fare breakdown at toll fee computation
    - Account verification (License, OR/CR)
-2. Sagutin ang rider sa maikli, mabilis, at madaling intindihing Tagalog / Taglish (bagay sa nagbi-biyahe).
+2. Sagutin ang partner sa maikli, mabilis, at madaling intindihing Tagalog / Taglish (bagay sa nagbi-biyahe).
 3. Kung may emergency o aksidente, sabihan agad silang tumawag sa Emergency Hotline: 0917-XXX-XXXX.
 4. Huwag sasagutin ang mga paksang walang kinalaman sa pagiging Rider / Driver.
 `;
@@ -2301,7 +2477,8 @@ let fullRouteCoordinates = [];
 let lastMatchedSegmentIndex = 0;
 let isRerouting = false;
 let lastRerouteTime = 0;
-const OFF_ROUTE_THRESHOLD_METERS = 50;
+// CONDITION 2: Only recalculate if rider turns/shortcuts >= 30m away from the locked booking routeline
+const SHORTCUT_REROUTE_THRESHOLD_METERS = 30;
 
 let currentMapMode = 'headup';
 let isRiderOnline = false;
@@ -2513,9 +2690,11 @@ function enterRiderAppFromLogin(offlineMode = false) {
 
   const loginName = document.getElementById("loginRiderNameInput").value.trim();
   const loginContact = document.getElementById("loginRiderContactInput").value.trim();
+  const loginVehicle = document.getElementById("loginVehicleTypeInput").value;
 
   if (loginName) document.getElementById("riderName").value = loginName;
   if (loginContact) document.getElementById("riderContact").value = loginContact;
+  syncVehicleTypeSelection(loginVehicle);
   saveRiderProfile();
 
   document.getElementById("loginScreen").classList.add("hiddenScreen");
@@ -2548,6 +2727,7 @@ function logoutRiderToLogin() {
   const contact = document.getElementById("riderContact").value.trim();
   if (name) document.getElementById("loginRiderNameInput").value = name;
   if (contact) document.getElementById("loginRiderContactInput").value = contact;
+  document.getElementById("loginVehicleTypeInput").value = partnerVehicleType;
   document.getElementById("loginScreen").classList.remove("hiddenScreen");
   playSplashScreen();
 }
@@ -2579,7 +2759,7 @@ async function askGeminiRiderBot(userMessage) {
     return "Paps, paki-lagay muna ang tunay mong Gemini API Key sa code.";
   }
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
   const payload = {
     system_instruction: { parts: [{ text: riderSystemInstruction }] },
     contents: [
@@ -2850,13 +3030,21 @@ function saveRiderProfile(){
   try{
     const name = document.getElementById("riderName")?.value.trim() || "";
     const contact = document.getElementById("riderContact")?.value.trim() || "";
-    localStorage.setItem(RIDER_PROFILE_KEY, JSON.stringify({ name, contact }));
+    localStorage.setItem(RIDER_PROFILE_KEY, JSON.stringify({
+      name,
+      contact,
+      vehicleType: partnerVehicleType,
+      useToll: useTollRoute
+    }));
   }catch(e){}
 }
 function restoreRiderProfile(){
   try{
     const saved = localStorage.getItem(RIDER_PROFILE_KEY);
-    if(!saved) return;
+    if(!saved) {
+      updateRoutingModeUI();
+      return;
+    }
     const profile = JSON.parse(saved);
     if(profile.name) {
       document.getElementById("riderName").value = profile.name;
@@ -2866,6 +3054,15 @@ function restoreRiderProfile(){
       document.getElementById("riderContact").value = profile.contact;
       document.getElementById("loginRiderContactInput").value = profile.contact;
     }
+    if(profile.vehicleType) {
+      partnerVehicleType = profile.vehicleType;
+      document.getElementById("riderVehicleType").value = partnerVehicleType;
+      document.getElementById("loginVehicleTypeInput").value = partnerVehicleType;
+    }
+    if(typeof profile.useToll === "boolean") {
+      useTollRoute = partnerVehicleType === "motorcycle" ? false : profile.useToll;
+    }
+    updateRoutingModeUI();
   }catch(e){}
 }
 function setupRiderProfilePersistence(){
@@ -2905,7 +3102,9 @@ async function restoreActiveRide(){
     document.getElementById("splashScreen").classList.add("hiddenSplash");
     const existingIndex = rides.findIndex(r => String(r.id) === String(restoredRide.id));
     if(existingIndex >= 0) rides[existingIndex] = restoredRide; else rides.push(restoredRide);
-    selectedRide = restoredRide; saveActiveRide(restoredRide); bookingSignature = "";
+    selectedRide = restoredRide;
+    updateRoutingModeUI();
+    saveActiveRide(restoredRide); bookingSignature = "";
     setWaitingListHidden(true); showSelectedBooking(); drawRideOnMap(restoredRide); openBookingSheet();
   }catch(e){}finally{ restoringActiveRide = false; }
 }
@@ -2915,7 +3114,7 @@ async function loadRideHistory(){
   if(!list) return;
   const riderName = document.getElementById("riderName").value.trim();
   const riderContact = document.getElementById("riderContact").value.trim();
-  if(!riderName || !riderContact){ list.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:10px;">Enter rider name and contact first.</div>`; return; }
+  if(!riderName || !riderContact){ list.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:10px;">Enter partner name and contact first.</div>`; return; }
   list.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:10px;">Loading history...</div>`;
   try{
     const { data, error } = await supabaseClient.from("rides").select("*").eq("status", "completed").eq("rider_name", riderName).eq("rider_contact", riderContact).order("created_at", { ascending: false });
@@ -2994,10 +3193,6 @@ function getPickupDistance(ride){
 function getDropoffDistance(ride){
   if(!riderLocation || ride.destination_lat == null || ride.destination_lng == null) return null;
   return calculateDistanceKm(riderLocation.lat, riderLocation.lng, ride.destination_lat, ride.destination_lng);
-}
-function formatLiveDistanceText(meters) {
-  const m = Math.max(0, Number(meters || 0));
-  return m < 1000 ? Math.round(m) + "m away" : (m / 1000).toFixed(1) + " km away";
 }
 function sortBookingsByPickupDistance(){
   rides.forEach(r => { r._pickupDistanceKm = getPickupDistance(r); });
@@ -3182,6 +3377,7 @@ function selectRide(id){
   if(waitingListHidden && selectedRide && String(selectedRide.id) !== String(ride.id)) return;
   selectedRide = ride;
   latestDropoffRemainingMeters = null;
+  updateRoutingModeUI();
   if(isActiveRideStatus(ride.status)) saveActiveRide(ride);
   setWaitingListHidden(true); showSelectedBooking(); drawRideOnMap(ride); openBookingSheet();
 }
@@ -3193,23 +3389,29 @@ function showSelectedBooking(){
   if(isActiveRideStatus(selectedRide.status)) saveActiveRide(selectedRide);
   box.style.display = "block";
   const r = selectedRide;
+  const fareInfo = computeRideFareDetails(r);
   const pickupText = getPickupName(r);
   const showPickupBadge = (r.status === "searching" || r.status === "accepted");
   const pickupDistHtml = showPickupBadge
     ? `${pickupDistanceText(r).replace('class="pickupDistance"', 'id="selected-pickup-distance" class="pickupDistance"')}<br>`
     : "";
 
+  const routeModeLabel = fareInfo.vType === "motorcycle"
+    ? "Motorcycle (National Hwy • No Toll)"
+    : `${fareInfo.vehicleLabel} (${fareInfo.tollAllowed ? "With Toll +₱" + fareInfo.tollFee.toFixed(2) : "No Toll • Hwy"})`;
+
   content.innerHTML = `
-    <div class="selectedTitle">${svgIcon("ic-bike", 17)}<span>Selected Booking</span></div>
+    <div class="selectedTitle">${svgIcon("ic-bike", 17)}<span>Selected Booking</span> <span class="vehicleBadge">${escapeHTML(fareInfo.vehicleLabel)}</span></div>
     <div class="bookingInfo">
       <b>Passenger:</b> ${escapeHTML(r.passenger_name)}<br>
       <b>Contact:</b> ${escapeHTML(r.passenger_contact)}<br>
+      <b>Route Mode:</b> ${escapeHTML(routeModeLabel)}<br>
       <b>Pickup:</b> <span id="selected-pickup-text">${escapeHTML(pickupText)}</span><br>
       ${pickupDistHtml}
       <b>Destination:</b> ${escapeHTML(r.destination)}<br>
       ${dropoffDistanceText(r)}<br>
       <b>Distance:</b> ${Number(r.distance_km || 0).toFixed(2)} km<br>
-      <b>Fare:</b> ₱${Number(r.estimated_fare || 0).toFixed(2)}<br>
+      <b>Total Fare:</b> ₱${fareInfo.totalFare.toFixed(2)} ${fareInfo.tollFee > 0 ? `<small>(incl. ₱${fareInfo.tollFee} toll)</small>` : ""}<br>
       <span class="status">${statusText(r.status)}</span>
     </div>
   `;
@@ -3248,18 +3450,20 @@ function renderBookings(){
     if(selectedRide && String(selectedRide.id) === String(ride.id)) div.classList.add("active");
     let nearestBadge = (index === 0 && getPickupDistance(ride) !== null) ? `<span class="nearestBadge">NEAREST</span>` : "";
     const pickupText = getPickupName(ride);
+    const fareInfo = computeRideFareDetails(ride);
 
     div.innerHTML = `
       <div class="bookingTitle">
         ${svgIcon("ic-user", 15)}
         <span>Passenger</span>
+        <span class="vehicleBadge">${escapeHTML(fareInfo.vehicleLabel)}</span>
         ${nearestBadge}
       </div>
       <div class="bookingInfo">
         <b>Pickup:</b> <span id="pickup-text-${ride.id}">${escapeHTML(pickupText)}</span><br>
         ${pickupDistanceText(ride)}<br>
         <b>Destination:</b> ${escapeHTML(ride.destination)}<br>
-        <b>Fare:</b> ₱${Number(ride.estimated_fare || 0).toFixed(2)}<br>
+        <b>Fare:</b> ₱${fareInfo.totalFare.toFixed(2)}<br>
         <span class="status">${statusText(ride.status)}</span>
       </div>
     `;
@@ -3293,8 +3497,8 @@ async function acceptRide(rideId){
   acceptingRideId = rideId;
   const name = document.getElementById("riderName").value.trim();
   const contact = document.getElementById("riderContact").value.trim();
-  if(!name){ acceptingRideId = null; toggleRiderMenu(); showToast("Enter rider name first"); return false; }
-  if(!contact){ acceptingRideId = null; toggleRiderMenu(); showToast("Enter rider contact first"); return false; }
+  if(!name){ acceptingRideId = null; toggleRiderMenu(); showToast("Enter partner name first"); return false; }
+  if(!contact){ acceptingRideId = null; toggleRiderMenu(); showToast("Enter contact number first"); return false; }
   saveRiderProfile();
   try{
     const { data, error } = await supabaseClient.from("rides").update({
@@ -3309,7 +3513,7 @@ async function acceptRide(rideId){
     bookingSignature = ""; showSelectedBooking();
 
     setTimeout(() => { drawRideOnMap(data); }, 150);
-    showToast("3D Navigation Active!");
+    showToast("Booking Routeline Locked!");
     return true;
   }catch(e){ acceptingRideId = null; return false; }
 }
@@ -3349,22 +3553,38 @@ async function markArrived(){
 
 function openReceiptModal() {
   if (!selectedRide) return;
-  const baseFare = Number(selectedRide.estimated_fare || 50);
+  const fareInfo = computeRideFareDetails(selectedRide);
+  document.getElementById("recRouteMode").textContent = `${fareInfo.vehicleLabel} (${fareInfo.tollAllowed ? "With Toll" : "No Toll"})`;
   document.getElementById("recDistance").textContent = Number(selectedRide.distance_km || 0).toFixed(2) + " km";
-  document.getElementById("recBase").textContent = "₱" + baseFare.toFixed(2);
+  document.getElementById("recBase").textContent = "₱" + fareInfo.baseAndDist.toFixed(2);
+
+  const tollRow = document.getElementById("recTollRow");
+  if (fareInfo.tollAllowed && fareInfo.tollFee > 0) {
+    tollRow.style.display = "flex";
+    document.getElementById("recTollFee").textContent = "₱" + fareInfo.tollFee.toFixed(2);
+  } else {
+    tollRow.style.display = "none";
+  }
+
   document.getElementById("recTip").value = 0;
-  document.getElementById("recTotal").textContent = "₱" + baseFare.toFixed(2);
+  document.getElementById("recTotal").textContent = "₱" + fareInfo.totalFare.toFixed(2);
   document.getElementById("receiptModal").classList.add("open");
 }
 
 function updateReceiptTotal() {
   if (!selectedRide) return;
-  const baseFare = Number(selectedRide.estimated_fare || 50);
+  const fareInfo = computeRideFareDetails(selectedRide);
   const tip = Number(document.getElementById("recTip").value || 0);
-  document.getElementById("recTotal").textContent = "₱" + (baseFare + tip).toFixed(2);
+  document.getElementById("recTotal").textContent = "₱" + (fareInfo.totalFare + tip).toFixed(2);
 }
 
 async function confirmCompleteRide() {
+  if (selectedRide) {
+    const fareInfo = computeRideFareDetails(selectedRide);
+    const tip = Number(document.getElementById("recTip").value || 0);
+    const finalTotal = fareInfo.totalFare + tip;
+    await supabaseClient.from("rides").update({ estimated_fare: finalTotal }).eq("id", selectedRide.id);
+  }
   document.getElementById("receiptModal").classList.remove("open");
   await completeRide();
 }
@@ -3381,7 +3601,11 @@ async function completeRide(){
   loadRideHistory();
 }
 
-function openWaze(lat, lng){ if(lat != null && lng != null) window.location.href = `waze://?ll=${lat},${lng}&navigate=yes&avoid=tolls,highways`; }
+function openWaze(lat, lng){
+  if(lat == null || lng == null) return;
+  const tollParam = isEffectiveTollEnabled(selectedRide) ? "" : "&avoid=tolls";
+  window.location.href = `waze://?ll=${lat},${lng}&navigate=yes${tollParam}`;
+}
 function wazeToPickup(){ if(selectedRide) openWaze(selectedRide.pickup_lat, selectedRide.pickup_lng); }
 function wazeToDestination(){ if(selectedRide) openWaze(selectedRide.destination_lat, selectedRide.destination_lng); }
 function callPassenger(){ if(selectedRide?.passenger_contact) window.location.href = "tel:" + selectedRide.passenger_contact; }
@@ -3433,7 +3657,7 @@ function chatBackdropClose(e){ if(e.target.id === "chatModal") closeChat(); }
 async function sendChatMessage(){
   const input = document.getElementById("chatInput"); const msg = input?.value.trim();
   if(!msg || !chatRideId || !selectedRide) return;
-  const riderName = document.getElementById("riderName").value.trim() || "Rider";
+  const riderName = document.getElementById("riderName").value.trim() || "Partner";
   const { data } = await supabaseClient.from("ride_messages").insert({ ride_id: Number(chatRideId), sender_type: "rider", sender_name: riderName, message: msg }).select().single();
   if(input) input.value = "";
   if(data) appendChatMessage(data);
@@ -3531,6 +3755,7 @@ function updateRiderMarker(lng, lat, heading = 0){
 function stopAutoNavigation(){
   fullRouteCoordinates = [];
   lastMatchedSegmentIndex = 0;
+  currentRouteTollMeters = 0;
   isRerouting = false;
   isDrawingRoute = false;
   const voiceNav = document.getElementById("voiceNav");
@@ -3581,20 +3806,27 @@ function projectPointToSegment(pLat, pLng, aLat, aLng, bLat, bLng) {
   return { lat: projLat, lng: projLng, t, distMeters };
 }
 
-async function triggerOffRouteRecalculation(currentLat, currentLng) {
+/* =========================================================
+   CONDITION 2: ANTI-JITTER INTERSECTION LOCK + 30M SHORTCUT REROUTE
+   - Passing corners/intersections within < 30m of the locked booking
+     routeline will NEVER recalculate or disrupt the trip.
+   - Only when the rider turns into a shortcut/alternate street and
+     diverges >= 30m from the locked routeline will a new route generate.
+   ========================================================= */
+async function triggerShortcutRecalculation(currentLat, currentLng) {
   if (!selectedRide || isRerouting || isDrawingRoute) return;
   const now = Date.now();
-  if (now - lastRerouteTime < 6000) return;
+  if (now - lastRerouteTime < 5000) return;
 
   const target = getNavigationTarget(selectedRide);
   if (!target) return;
 
   isRerouting = true;
   lastRerouteTime = now;
-  showToast("Lumihis ng 50m+ — Kinakalkula ang bagong ruta...");
+  showToast("Lumiko sa shortcut (30m+) — Ina-update ang routeline...");
 
   try {
-    const newCoords = await fetchNoTollRouteCoords(currentLng, currentLat, target.lng, target.lat);
+    const newCoords = await fetchVehicleRouteCoords(currentLng, currentLat, target.lng, target.lat, selectedRide);
     if (newCoords && newCoords.length >= 2) {
       fullRouteCoordinates = newCoords;
       lastMatchedSegmentIndex = 0;
@@ -3610,8 +3842,9 @@ function updateNavigationProgress(currentLat, currentLng, speedKmh = 0) {
   if (!fullRouteCoordinates || fullRouteCoordinates.length < 2 || !map) return;
 
   const maxSegmentIdx = fullRouteCoordinates.length - 2;
-  const searchStart = Math.max(0, lastMatchedSegmentIndex - 1);
-  const searchEnd = Math.min(maxSegmentIdx, lastMatchedSegmentIndex + 25);
+  // Tight local window around current segment so passing side-streets/corners doesn't jump ahead
+  const searchStart = Math.max(0, lastMatchedSegmentIndex);
+  const searchEnd = Math.min(maxSegmentIdx, lastMatchedSegmentIndex + 12);
 
   let bestSegIndex = lastMatchedSegmentIndex;
   let bestProjection = null;
@@ -3627,10 +3860,12 @@ function updateNavigationProgress(currentLat, currentLng, speedKmh = 0) {
     }
   }
 
-  if (bestProjection && bestProjection.distMeters > OFF_ROUTE_THRESHOLD_METERS) {
+  // If rider diverged >= 30m from the local segment, check entire locked booking routeline first
+  // (e.g., if rider took an authorized loop/shortcut that rejoins the locked booking route)
+  if (bestProjection && bestProjection.distMeters >= SHORTCUT_REROUTE_THRESHOLD_METERS) {
     let globalBestSeg = bestSegIndex;
     let globalBestProj = bestProjection;
-    for (let i = 0; i <= maxSegmentIdx; i++) {
+    for (let i = lastMatchedSegmentIndex; i <= maxSegmentIdx; i++) {
       const a = fullRouteCoordinates[i];
       const b = fullRouteCoordinates[i + 1];
       const proj = projectPointToSegment(currentLat, currentLng, a[1], a[0], b[1], b[0]);
@@ -3640,8 +3875,9 @@ function updateNavigationProgress(currentLat, currentLng, speedKmh = 0) {
       }
     }
 
-    if (globalBestProj.distMeters >= OFF_ROUTE_THRESHOLD_METERS) {
-      triggerOffRouteRecalculation(currentLat, currentLng);
+    // Only trigger new route if truly >= 30m off the locked booking routeline (turned onto shortcut)
+    if (globalBestProj.distMeters >= SHORTCUT_REROUTE_THRESHOLD_METERS) {
+      triggerShortcutRecalculation(currentLat, currentLng);
       return;
     } else {
       bestSegIndex = globalBestSeg;
@@ -3649,7 +3885,8 @@ function updateNavigationProgress(currentLat, currentLng, speedKmh = 0) {
     }
   }
 
-  if (bestSegIndex > lastMatchedSegmentIndex) {
+  // Advance smoothly along the locked booking routeline without jittering at corners
+  if (bestSegIndex > lastMatchedSegmentIndex && bestProjection && bestProjection.distMeters < SHORTCUT_REROUTE_THRESHOLD_METERS) {
     lastMatchedSegmentIndex = bestSegIndex;
   }
 
@@ -3769,12 +4006,40 @@ function getIndependentTurnCountdown(remainingCoords) {
   return { turnDist: turnDist, arrowId: turnType.arrowId, text: turnType.text, turnAngle: detectedTurnAngle };
 }
 
-async function fetchNoTollRouteCoords(originLng, originLat, targetLng, targetLat) {
+/* =========================================================
+   CONDITION 1: VEHICLE ROUTING ENGINE
+   - Motorcycle: costing = "motorcycle", use_tolls = 0, use_highways = 1
+     (Stays on National Highways & Main Roads, strictly avoids Toll Expressways)
+   - Car / Van: costing = "auto", use_tolls = 1 (With Toll) or 0 (No Toll)
+     (Tracks toll segment length so Car/Van fare updates accordingly)
+   ========================================================= */
+async function fetchVehicleRouteCoords(originLng, originLat, targetLng, targetLat, ride = null) {
+  const vType = getEffectiveVehicleType(ride);
+  const allowToll = isEffectiveTollEnabled(ride);
+  currentRouteTollMeters = 0;
+
   try {
+    const isMoto = (vType === "motorcycle");
+    const costingModel = isMoto ? "motorcycle" : "auto";
+    const costingOptions = isMoto
+      ? {
+          motorcycle: {
+            use_tolls: 0,       // Strictly avoid expressway tollgates
+            use_highways: 1,    // Keep routing on National Highways & primary main roads
+            use_trails: 0
+          }
+        }
+      : {
+          auto: {
+            use_tolls: allowToll ? 1 : 0,
+            use_highways: 1
+          }
+        };
+
     const valhallaPayload = {
       locations: [{ lat: originLat, lon: originLng }, { lat: targetLat, lon: targetLng }],
-      costing: "auto",
-      costing_options: { auto: { use_tolls: 0, use_highways: 0 } }
+      costing: costingModel,
+      costing_options: costingOptions
     };
 
     const res = await fetch(`https://valhalla1.openstreetmap.de/route`, {
@@ -3786,13 +4051,40 @@ async function fetchNoTollRouteCoords(originLng, originLat, targetLng, targetLat
     if (res.ok) {
       const data = await res.json();
       if (data.trip && data.trip.legs && data.trip.legs[0]) {
-        return decodePolyline(data.trip.legs[0].shape);
+        const leg = data.trip.legs[0];
+        // Calculate toll road distance from Valhalla maneuvers when Car/Van is set to With Toll
+        if (allowToll && !isMoto && Array.isArray(leg.maneuvers)) {
+          let tollKmSum = 0;
+          leg.maneuvers.forEach(m => {
+            if (m.toll || (m.street_names && m.street_names.some(s => /expressway|skyway|slex|nlex|cavitex|calax|sctex|tplex|star tollway/i.test(s)))) {
+              tollKmSum += Number(m.length || 0);
+            }
+          });
+          currentRouteTollMeters = tollKmSum * 1000;
+          if (selectedRide) showSelectedBooking();
+        }
+        return decodePolyline(leg.shape);
       }
     }
   } catch (err) {}
 
+  // Fallback 1: OSRM (always keeps National Highways & main roads; excludes motorway toll links when !allowToll)
   try {
-    const orsUrl = `https://api.openrouteservice.org/v2/directions/driving-car?start=${originLng},${originLat}&end=${targetLng},${targetLat}&options={"avoid_features":["tollways"]}`;
+    const excludeParam = allowToll ? "" : "&exclude=motorway";
+    const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${originLng},${originLat};${targetLng},${targetLat}?overview=full&geometries=geojson${excludeParam}`;
+    const res = await fetch(osrmUrl);
+    if (res.ok) {
+      const data = await res.json();
+      if (data.routes && data.routes[0]?.geometry?.coordinates) {
+        return data.routes[0].geometry.coordinates;
+      }
+    }
+  } catch (e) {}
+
+  // Fallback 2: OpenRouteService
+  try {
+    const optionsParam = allowToll ? "" : `&options={"avoid_features":["tollways"]}`;
+    const orsUrl = `https://api.openrouteservice.org/v2/directions/driving-car?start=${originLng},${originLat}&end=${targetLng},${targetLat}${optionsParam}`;
     const res = await fetch(orsUrl);
     if(res.ok){
       const data = await res.json();
@@ -3832,7 +4124,9 @@ async function drawRideOnMap(ride){
   document.getElementById("topHeader")?.classList.add("hiddenHeader");
   document.body.classList.add("nav-active");
 
-  const fareText = `₱${Number(ride.estimated_fare || 0).toFixed(2)}`;
+  const fareInfo = computeRideFareDetails(ride);
+  const fareText = `₱${fareInfo.totalFare.toFixed(2)}`;
+  const modeTag = `${fareInfo.vehicleLabel} • ${fareInfo.tollAllowed ? "With Toll" : "No Toll"}`;
 
   if(ride.status === "accepted" && ride.pickup_lat != null && ride.pickup_lng != null) {
     const pLat = Number(ride.pickup_lat);
@@ -3846,7 +4140,7 @@ async function drawRideOnMap(ride){
     const pickupPopupHtml = `
       <div>
         <div style="color:var(--orange);font-size:10px;font-weight:800;text-transform:uppercase;margin-bottom:3px;">Pickup Location</div>
-        <div>${escapeHTML(pickupPlace)} <span style="color:var(--text-muted);">[Motorcycle • No Toll • ${fareText}]</span></div>
+        <div>${escapeHTML(pickupPlace)} <span style="color:var(--text-muted);">[${escapeHTML(modeTag)} • ${fareText}]</span></div>
       </div>
     `;
 
@@ -3876,7 +4170,7 @@ async function drawRideOnMap(ride){
     const destPopupHtml = `
       <div>
         <div style="color:var(--red-status);font-size:10px;font-weight:800;text-transform:uppercase;margin-bottom:3px;">Drop-off Destination</div>
-        <div>${escapeHTML(destPlace)} <span style="color:var(--text-muted);">[Motorcycle • No Toll • ${fareText}]</span></div>
+        <div>${escapeHTML(destPlace)} <span style="color:var(--text-muted);">[${escapeHTML(modeTag)} • ${fareText}]</span></div>
       </div>
     `;
 
@@ -3899,7 +4193,7 @@ async function drawRideOnMap(ride){
   const origin = riderLocation ? { lat: riderLocation.lat, lng: riderLocation.lng } : { lat: target.lat - 0.002, lng: target.lng - 0.002 };
 
   try{
-    const routeCoords = await fetchNoTollRouteCoords(origin.lng, origin.lat, target.lng, target.lat);
+    const routeCoords = await fetchVehicleRouteCoords(origin.lng, origin.lat, target.lng, target.lat, ride);
     if(routeCoords && routeCoords.length) {
       fullRouteCoordinates = routeCoords;
       lastMatchedSegmentIndex = 0;
