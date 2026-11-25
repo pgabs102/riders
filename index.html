@@ -963,7 +963,7 @@ header.hiddenHeader {
 }
 
 body.nav-active .mapGpsStatus {
-  top: calc(104px + var(--safe-top));
+  top: calc(112px + var(--safe-top));
 }
 
 .speedometer-badge {
@@ -1000,7 +1000,7 @@ body.nav-active .mapGpsStatus {
 }
 
 body.nav-active .speedometer-badge {
-  top: calc(104px + var(--safe-top));
+  top: calc(112px + var(--safe-top));
 }
 
 .hudSideBtn {
@@ -1064,13 +1064,13 @@ body.nav-active .speedometer-badge {
 body.moto-no-toll .sosBtn { top: calc(114px + var(--safe-top)); }
 body.moto-no-toll .aiSupportBtn { top: calc(158px + var(--safe-top)); }
 
-body.nav-active .mapModeBtn { top: calc(104px + var(--safe-top)); }
-body.nav-active .tollToggleBtn { top: calc(148px + var(--safe-top)); }
-body.nav-active .sosBtn { top: calc(192px + var(--safe-top)); }
-body.nav-active .aiSupportBtn { top: calc(236px + var(--safe-top)); }
+body.nav-active .mapModeBtn { top: calc(112px + var(--safe-top)); }
+body.nav-active .tollToggleBtn { top: calc(156px + var(--safe-top)); }
+body.nav-active .sosBtn { top: calc(200px + var(--safe-top)); }
+body.nav-active .aiSupportBtn { top: calc(244px + var(--safe-top)); }
 
-body.nav-active.moto-no-toll .sosBtn { top: calc(148px + var(--safe-top)); }
-body.nav-active.moto-no-toll .aiSupportBtn { top: calc(192px + var(--safe-top)); }
+body.nav-active.moto-no-toll .sosBtn { top: calc(156px + var(--safe-top)); }
+body.nav-active.moto-no-toll .aiSupportBtn { top: calc(200px + var(--safe-top)); }
 
 /* RIDER CENTERED ARROW MARKER (ALWAYS ALIGNED ON ROUTELINE) */
 .rider-marker-wrapper {
@@ -1146,7 +1146,7 @@ body.nav-active.moto-no-toll .aiSupportBtn { top: calc(192px + var(--safe-top));
   font-size: clamp(12px, 3.4vw, 13px);
   font-weight: 800;
   color: var(--text-light);
-  line-height: 1.2;
+  line-height: 1.25;
 }
 
 .turnDistanceBadge {
@@ -1155,6 +1155,28 @@ body.nav-active.moto-no-toll .aiSupportBtn { top: calc(192px + var(--safe-top));
   font-size: clamp(14px, 4vw, 16px);
   font-weight: 900;
   margin-top: 2px;
+}
+
+.navRerouteNowBtn {
+  display: none;
+  margin-top: 6px;
+  min-height: 28px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--orange);
+  background: var(--orange);
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.navRerouteNowBtn.visible {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .navDistanceContainer {
@@ -1975,7 +1997,7 @@ body.nav-active.moto-no-toll .aiSupportBtn { top: calc(192px + var(--safe-top));
     </button>
   </div>
 
-  <div class="loginFoot">TUKLAS Partner V6.3 • Toll Corridor Blocker & Nearest No-Toll Route</div>
+  <div class="loginFoot">TUKLAS Partner V6.4 • Toll Corridor Blocker & Nearest No-Toll Route</div>
 </div>
 
 <!-- TOP HEADER -->
@@ -2082,7 +2104,7 @@ body.nav-active.moto-no-toll .aiSupportBtn { top: calc(192px + var(--safe-top));
           <span>Avoided Toll Corridors (Active)</span>
         </h3>
         <div style="font-size:11px; color:var(--text-muted); line-height:1.5;">
-          MCX • SLEX • Skyway • CALAX • CAVITEX • NLEX • SCTEX • TPLEX • STAR Tollway • CCLEX (Auto-blocked on Motorcycle & Car/Van No-Toll; picks nearest non-toll road).
+          MCX • SLEX • Skyway • CALAX • CAVITEX • NLEX • SCTEX • TPLEX • STAR Tollway • CCLEX (Auto-blocked on Motorcycle & Car/Van No-Toll; picks nearest non-toll road with national/main road priority).
         </div>
       </div>
 
@@ -2250,7 +2272,10 @@ body.nav-active.moto-no-toll .aiSupportBtn { top: calc(192px + var(--safe-top));
           </div>
           <div style="min-width:0;">
             <div id="navInstruction">Proceed along street</div>
-            <div id="turnDistanceBadge" class="turnDistanceBadge">0 m</div>
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+              <div id="turnDistanceBadge" class="turnDistanceBadge">0 m</div>
+              <button type="button" id="navRerouteNowBtn" class="navRerouteNowBtn" onclick="forceRerouteFromHold()">Reroute Now</button>
+            </div>
           </div>
         </div>
 
@@ -2539,9 +2564,7 @@ const TOLL_CORRIDORS_LIST = [
 
 const TOLL_EXPRESSWAY_PATTERN = /\b(mcx|muntinlupa.?cavite expressway|slex|south luzon expressway|nlex|north luzon expressway|e1|e2|e3|skyway|cavitex|calax|sctex|tplex|star tollway|cclex|nlex connector|expressway|tollway|toll plaza|toll gate|toll booth|toll ramp)\b/i;
 
-// Known Toll Plaza / Ramp zones (lng, lat) na iiwasan ng Valhalla exclude_polygons
 const TOLL_PLAZA_EXCLUSION_ZONES = [
-  // MCX & Susana Heights / Alabang SLEX Toll Ramps
   { name: "MCX Toll / Daang Hari Ramp", lng: 121.0225, lat: 14.3955, radiusMeters: 320 },
   { name: "Susana Heights SLEX Toll / Ramp", lng: 121.0345, lat: 14.4150, radiusMeters: 300 },
   { name: "Alabang SLEX Toll / Exit Ramp", lng: 121.0445, lat: 14.4185, radiusMeters: 300 },
@@ -2569,7 +2592,6 @@ function getRelevantTollExcludePolygons(originLng, originLat, targetLng, targetL
   TOLL_PLAZA_EXCLUSION_ZONES.forEach(zone => {
     const dOrigin = calculateDistanceMeters(originLat, originLng, zone.lat, zone.lng);
     const dTarget = calculateDistanceMeters(targetLat, targetLng, zone.lat, zone.lng);
-    // Huwag i-block kung mismong loob ng 90m ng toll zone nakatayo ang origin o target
     if (dOrigin > 90 && dTarget > 90) {
       polygons.push(createCirclePolygonCoords(zone.lng, zone.lat, zone.radiusMeters, 10));
     }
@@ -2691,7 +2713,7 @@ function updateRoutingModeUI() {
       tollBtn.classList.toggle("toll-active", useTollRoute);
       tollBtn.innerHTML = `${svgIcon("ic-car", 15)}<span id="tollToggleLabel">${vTitle}: ${useTollRoute ? "WITH TOLL" : "NO TOLL"}</span>`;
     }
-    if (headerSub) headerSub.textContent = `${vType === "van" ? "Van" : "Car"} • ${useTollRoute ? "With Toll (Expressway)" : "No Toll (Nearest Local/Hwy)"}`;
+    if (headerSub) headerSub.textContent = `${vType === "van" ? "Van" : "Car"} • ${useTollRoute ? "With Toll (Expressway)" : "No Toll (Nearest Main/Nat'l Hwy)"}`;
   }
 }
 
@@ -3109,7 +3131,8 @@ let chatMessagesSeen = new Set();
 let geocodeCache = {};
 
 /* =========================================================
-   STRICT ROUTE-LOCK, ZERO-JITTER & FREE 3D / 3D LOCK TOGGLE
+   STRICT ROUTE-LOCK, 30M SHORTCUT REROUTE, 100M+ ALERT
+   & FREE 3D / 3D LOCK TOGGLE
    ========================================================= */
 let fullRouteCoordinates = [];
 let activeRouteKey = "";
@@ -3117,7 +3140,14 @@ let lastMatchedSegmentIndex = 0;
 let offRouteConfirmCount = 0;
 let isRerouting = false;
 let lastRerouteTime = 0;
-const STRICT_OFFROUTE_METERS = 55;
+
+const SHORTCUT_REROUTE_METERS = 30;
+const WRONG_ROAD_ALERT_METERS = 100;
+
+let offRoute30mCount = 0;
+let wrongWay100mAlertShown = false;
+let manualReturnHoldActive = false;
+let wrongWayAnchorLatLng = null;
 
 // 2-Mode Toggle: 'free3d' (Free 3D pan/rotate) <-> 'lock3d' (Locked behind arrow)
 let currentMapMode = 'free3d';
@@ -4066,7 +4096,7 @@ function showSelectedBooking(){
 
   const routeModeLabel = fareInfo.vType === "motorcycle"
     ? "Motorcycle (No Toll • Avoids MCX/SLEX)"
-    : `${fareInfo.vehicleLabel} (${fareInfo.tollAllowed ? "With Toll +₱" + fareInfo.tollFee.toFixed(2) : "No Toll • Nearest Road"})`;
+    : `${fareInfo.vehicleLabel} (${fareInfo.tollAllowed ? "With Toll +₱" + fareInfo.tollFee.toFixed(2) : "No Toll • Nearest Main/Nat'l Hwy"})`;
 
   content.innerHTML = `
     <div class="selectedTitle">${svgIcon("ic-bike", 17)}<span>Selected Booking</span> <span class="vehicleBadge">${escapeHTML(fareInfo.vehicleLabel)}</span></div>
@@ -4488,15 +4518,106 @@ function createUprightPinElement(colorHex) {
   return el;
 }
 
+/* =========================================================
+   30M SHORTCUT REROUTE + 100M+ WRONG ROAD / DEAD-END ALERT
+   ========================================================= */
+function resetRouteDeviationState() {
+  offRouteConfirmCount = 0;
+  offRoute30mCount = 0;
+  wrongWay100mAlertShown = false;
+  manualReturnHoldActive = false;
+  wrongWayAnchorLatLng = null;
+  const rerouteBtn = document.getElementById("navRerouteNowBtn");
+  if (rerouteBtn) rerouteBtn.classList.remove("visible");
+}
+
+function setNavBannerNotice(text, arrowId = "ic-alert", showRerouteBtn = false) {
+  const instrEl = document.getElementById("navInstruction");
+  const arrowEl = document.getElementById("navArrow");
+  const voiceNav = document.getElementById("voiceNav");
+  const rerouteBtn = document.getElementById("navRerouteNowBtn");
+  if (instrEl) instrEl.textContent = text;
+  if (arrowEl) arrowEl.innerHTML = svgIcon(arrowId, 26);
+  if (rerouteBtn) rerouteBtn.classList.toggle("visible", Boolean(showRerouteBtn));
+  if (voiceNav) voiceNav.classList.add("active");
+}
+
+function triggerWrongRoadOrDeadEndAlert(distFromRouteMeters, traveledOffMeters) {
+  const distShown = Math.round(Math.max(distFromRouteMeters || 0, traveledOffMeters || 0));
+  if (!wrongWay100mAlertShown) {
+    wrongWay100mAlertShown = true;
+    manualReturnHoldActive = true;
+    showToast(`Mali ang tinahak na daan / walang daan (${distShown}m). Bahala ka nang bumalik sa ruta.`);
+    try {
+      if (navigator.vibrate) navigator.vibrate([220, 100, 220]);
+    } catch (e) {}
+  }
+  setNavBannerNotice(
+    `Mali ang daan / walang daan (${distShown}m) — Bahala nang bumalik sa ruta`,
+    "ic-uturn",
+    true
+  );
+  hideTuklasSideTurnSignal();
+}
+
+async function forceRerouteFromHold() {
+  if (!riderLocation || !selectedRide) {
+    showToast("Walang GPS location para mag-reroute.");
+    return;
+  }
+  manualReturnHoldActive = false;
+  wrongWay100mAlertShown = false;
+  wrongWayAnchorLatLng = null;
+  offRoute30mCount = 0;
+  const rerouteBtn = document.getElementById("navRerouteNowBtn");
+  if (rerouteBtn) rerouteBtn.classList.remove("visible");
+  lastRerouteTime = 0;
+  await triggerShortcut30mReroute(riderLocation.lat, riderLocation.lng);
+}
+
+async function triggerShortcut30mReroute(currentLat, currentLng) {
+  if (!selectedRide || isRerouting || isDrawingRoute || manualReturnHoldActive) return;
+  const now = Date.now();
+  if (now - lastRerouteTime < 4500) return;
+
+  const target = getNavigationTarget(selectedRide);
+  if (!target) return;
+
+  isRerouting = true;
+  lastRerouteTime = now;
+  offRoute30mCount = 0;
+  showToast("Lumampas sa 30m sa ibang daan — Nag-a-update ng bagong routeline...");
+
+  try {
+    const newCoords = await fetchVehicleRouteCoords(currentLng, currentLat, target.lng, target.lat, selectedRide);
+    if (newCoords && newCoords.length >= 2) {
+      fullRouteCoordinates = newCoords;
+      lastMatchedSegmentIndex = 0;
+      wrongWay100mAlertShown = false;
+      wrongWayAnchorLatLng = null;
+      const rerouteBtn = document.getElementById("navRerouteNowBtn");
+      if (rerouteBtn) rerouteBtn.classList.remove("visible");
+      updateNavigationProgress(currentLat, currentLng, 0);
+      showToast("Bagong routeline na-update (No Toll • Main/Nat'l Hwy Priority)");
+    } else {
+      showToast("Hindi makakuha ng bagong ruta ngayon — Subukan ulit.");
+    }
+  } catch (e) {
+    showToast("May error habang nag-a-update ng routeline.");
+  } finally {
+    isRerouting = false;
+  }
+}
+
 function stopAutoNavigation(){
   fullRouteCoordinates = [];
   currentRouteRoundaboutPoints = [];
   activeRouteKey = "";
   lastMatchedSegmentIndex = 0;
-  offRouteConfirmCount = 0;
   currentRouteTollMeters = 0;
   isRerouting = false;
   isDrawingRoute = false;
+  resetRouteDeviationState();
   hideTuklasSideTurnSignal();
 
   const voiceNav = document.getElementById("voiceNav");
@@ -4547,32 +4668,6 @@ function projectPointToSegment(pLat, pLng, aLat, aLng, bLat, bLng) {
   return { lat: projLat, lng: projLng, t, distMeters };
 }
 
-async function triggerConfirmedReroute(currentLat, currentLng) {
-  if (!selectedRide || isRerouting || isDrawingRoute) return;
-  const now = Date.now();
-  if (now - lastRerouteTime < 10000) return;
-
-  const target = getNavigationTarget(selectedRide);
-  if (!target) return;
-
-  isRerouting = true;
-  lastRerouteTime = now;
-  offRouteConfirmCount = 0;
-  showToast("Lumihis sa ruta — Naghahanap ng pinakamalapit na rutang walang toll...");
-
-  try {
-    const newCoords = await fetchVehicleRouteCoords(currentLng, currentLat, target.lng, target.lat, selectedRide);
-    if (newCoords && newCoords.length >= 2) {
-      fullRouteCoordinates = newCoords;
-      lastMatchedSegmentIndex = 0;
-      updateNavigationProgress(currentLat, currentLng, 0);
-    }
-  } catch (e) {
-  } finally {
-    isRerouting = false;
-  }
-}
-
 function updateNavigationProgress(currentLat, currentLng, speedKmh = 0) {
   if (!fullRouteCoordinates || fullRouteCoordinates.length < 2 || !map) {
     hideTuklasSideTurnSignal();
@@ -4581,7 +4676,7 @@ function updateNavigationProgress(currentLat, currentLng, speedKmh = 0) {
 
   const maxSegmentIdx = fullRouteCoordinates.length - 2;
   const searchStart = Math.max(0, lastMatchedSegmentIndex);
-  const searchEnd = Math.min(maxSegmentIdx, lastMatchedSegmentIndex + 8);
+  const searchEnd = Math.min(maxSegmentIdx, lastMatchedSegmentIndex + 10);
 
   let bestSegIndex = lastMatchedSegmentIndex;
   let bestProjection = null;
@@ -4604,23 +4699,78 @@ function updateNavigationProgress(currentLat, currentLng, speedKmh = 0) {
     }
   }
 
-  if (bestProjection && bestProjection.distMeters > STRICT_OFFROUTE_METERS) {
-    offRouteConfirmCount++;
-    const lockedA = fullRouteCoordinates[lastMatchedSegmentIndex];
-    const lockedB = fullRouteCoordinates[lastMatchedSegmentIndex + 1];
-    bestProjection = projectPointToSegment(currentLat, currentLng, lockedA[1], lockedA[0], lockedB[1], lockedB[0]);
+  const lockedA = fullRouteCoordinates[lastMatchedSegmentIndex];
+  const lockedB = fullRouteCoordinates[lastMatchedSegmentIndex + 1];
+  const lockedProj = projectPointToSegment(currentLat, currentLng, lockedA[1], lockedA[0], lockedB[1], lockedB[0]);
+  const lockedEndDist = calculateDistanceMeters(currentLat, currentLng, lockedB[1], lockedB[0]);
+
+  const distFromRoute = bestProjection ? bestProjection.distMeters : Infinity;
+
+  // Kapag nakabalik na ang rider sa loob ng 25m ng ruta, i-clear ang wrong-way hold
+  if (distFromRoute <= 25 && lockedEndDist <= 45) {
+    wrongWay100mAlertShown = false;
+    manualReturnHoldActive = false;
+    wrongWayAnchorLatLng = null;
+    offRoute30mCount = 0;
+    const rerouteBtn = document.getElementById("navRerouteNowBtn");
+    if (rerouteBtn) rerouteBtn.classList.remove("visible");
+  }
+
+  // I-anchor lang kapag lumampas sa 30m mula sa ruta
+  if (distFromRoute > SHORTCUT_REROUTE_METERS) {
+    if (!wrongWayAnchorLatLng) {
+      wrongWayAnchorLatLng = { lat: currentLat, lng: currentLng };
+    }
+  } else {
+    wrongWayAnchorLatLng = null;
+  }
+
+  const traveledOffMeters = wrongWayAnchorLatLng
+    ? calculateDistanceMeters(wrongWayAnchorLatLng.lat, wrongWayAnchorLatLng.lng, currentLat, currentLng)
+    : 0;
+
+  // Trigger 100m+ wrong-road / dead-end alert kapag >= 100m ang layo sa ruta,
+  // o kapag lumampas sa 30m at dumiretso/lumayo nang >= 100m habang hindi pa bumabalik sa ruta
+  const isWrongRoad100m =
+    distFromRoute >= WRONG_ROAD_ALERT_METERS ||
+    (distFromRoute > SHORTCUT_REROUTE_METERS && traveledOffMeters >= WRONG_ROAD_ALERT_METERS);
+
+  if (isWrongRoad100m) {
+    updateRiderMarker(currentLng, currentLat, lastHeading);
+    triggerWrongRoadOrDeadEndAlert(distFromRoute, traveledOffMeters);
+    return;
+  }
+
+  // Kung naka-hold para bumalik ang rider, huwag muna mag-auto reroute habang bumabalik siya
+  if (manualReturnHoldActive) {
+    updateRiderMarker(currentLng, currentLat, lastHeading);
+    setNavBannerNotice(
+      `Mali ang daan (${Math.round(Math.max(distFromRoute, traveledOffMeters))}m) — Bumalik sa ruta`,
+      "ic-uturn",
+      true
+    );
+    return;
+  }
+
+  // Kapag lumampas sa 30m sa shortcut / ibang daan (at wala pang 100m wrong-way/dead-end)
+  if (distFromRoute > SHORTCUT_REROUTE_METERS) {
+    offRoute30mCount++;
+    bestProjection = lockedProj;
     bestSegIndex = lastMatchedSegmentIndex;
 
-    if (offRouteConfirmCount >= 3) {
-      triggerConfirmedReroute(currentLat, currentLng);
+    if (offRoute30mCount >= 2) {
+      triggerShortcut30mReroute(currentLat, currentLng);
       return;
     }
   } else {
-    offRouteConfirmCount = 0;
+    offRoute30mCount = 0;
     if (bestSegIndex >= lastMatchedSegmentIndex) {
       lastMatchedSegmentIndex = bestSegIndex;
     }
   }
+
+  const rerouteBtn = document.getElementById("navRerouteNowBtn");
+  if (rerouteBtn) rerouteBtn.classList.remove("visible");
 
   const snappedPoint = [bestProjection.lng, bestProjection.lat];
   const segA = fullRouteCoordinates[bestSegIndex];
@@ -4647,7 +4797,7 @@ function updateNavigationProgress(currentLat, currentLng, speedKmh = 0) {
           layout: { 'line-join': 'round', 'line-cap': 'round' },
           paint: { 'line-color': routeColor, 'line-width': 6, 'line-opacity': 0.3 }
         });
-      } catch(e) {}
+      } catch (e) {}
     }
   }
 
@@ -4663,13 +4813,13 @@ function updateNavigationProgress(currentLat, currentLng, speedKmh = 0) {
           layout: { 'line-join': 'round', 'line-cap': 'round' },
           paint: { 'line-color': routeColor, 'line-width': 8, 'line-opacity': 0.95 }
         });
-      } catch(e) {}
+      } catch (e) {}
     }
   }
 
   let totalRemainingDist = 0;
   for (let i = 0; i < remainingCoords.length - 1; i++) {
-    totalRemainingDist += calculateDistanceMeters(remainingCoords[i][1], remainingCoords[i][0], remainingCoords[i+1][1], remainingCoords[i+1][0]);
+    totalRemainingDist += calculateDistanceMeters(remainingCoords[i][1], remainingCoords[i][0], remainingCoords[i + 1][1], remainingCoords[i + 1][0]);
   }
   document.getElementById("navDistance").textContent = formatNavDistance(totalRemainingDist);
 
@@ -4763,10 +4913,10 @@ function getIndependentTurnCountdown(remainingCoords) {
 }
 
 /* =========================================================
-   AVOID TOLL CORRIDORS + NEAREST NO-TOLL ROUTE ENGINE
-   - Hinaharang ang MCX, SLEX, Skyway, CALAX, CAVITEX, NLEX, etc.
-   - Gumagamit ng Valhalla `exclude_polygons` sa mga toll zones
-   - Pinipili ang PINAKAMALAPIT na rutang walang toll
+   PRIORITY SA NATIONAL / MAIN HIGHWAY + AVOID TOLL ONLY
+   - Pinapaboran ang national/main highway
+   - Hinaharang ang toll road / toll ramp / expressway (MCX, SLEX, Skyway, etc.)
+   - Pinipili ang pinakamalapit na rutang walang toll
    ========================================================= */
 function legHasForbiddenTollOrExpressway(leg) {
   if (!leg || !Array.isArray(leg.maneuvers)) return false;
@@ -4778,7 +4928,7 @@ function legHasForbiddenTollOrExpressway(leg) {
   });
 }
 
-function buildValhallaPayload(originLng, originLat, targetLng, targetLat, isMoto, allowToll, forceAvoidAllHighways = false, excludePolygons = []) {
+function buildValhallaPayload(originLng, originLat, targetLng, targetLat, isMoto, allowToll, excludePolygons = []) {
   const costingModel = isMoto ? "motorcycle" : "auto";
   const costingOptions = isMoto
     ? {
@@ -4786,10 +4936,10 @@ function buildValhallaPayload(originLng, originLat, targetLng, targetLat, isMoto
           use_tolls: 0,
           toll_booth_penalty: 999999,
           toll_booth_cost: 999999,
-          use_highways: forceAvoidAllHighways ? 0 : 0.02,
+          use_highways: 0.85,
           use_ferry: 0,
-          use_trails: 0,
-          maneuver_penalty: 400
+          use_trails: 0.15,
+          maneuver_penalty: 120
         }
       }
     : {
@@ -4797,7 +4947,7 @@ function buildValhallaPayload(originLng, originLat, targetLng, targetLat, isMoto
           use_tolls: allowToll ? 1 : 0,
           toll_booth_penalty: allowToll ? 0 : 999999,
           toll_booth_cost: allowToll ? 0 : 999999,
-          use_highways: allowToll ? 1 : (forceAvoidAllHighways ? 0 : 0.10),
+          use_highways: allowToll ? 1 : 0.85,
           use_ferry: 0
         }
       };
@@ -4815,8 +4965,8 @@ function buildValhallaPayload(originLng, originLat, targetLng, targetLat, isMoto
   return payload;
 }
 
-async function queryValhallaCandidate(originLng, originLat, targetLng, targetLat, isMoto, allowToll, forceAvoidAllHighways, excludePolygons) {
-  const payload = buildValhallaPayload(originLng, originLat, targetLng, targetLat, isMoto, allowToll, forceAvoidAllHighways, excludePolygons);
+async function queryValhallaCandidate(originLng, originLat, targetLng, targetLat, isMoto, allowToll, excludePolygons) {
+  const payload = buildValhallaPayload(originLng, originLat, targetLng, targetLat, isMoto, allowToll, excludePolygons);
   const res = await fetch(`https://valhalla1.openstreetmap.de/route`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -4870,20 +5020,18 @@ async function fetchVehicleRouteCoords(originLng, originLat, targetLng, targetLa
     ? getRelevantTollExcludePolygons(originLng, originLat, targetLng, targetLat)
     : [];
 
-  // 1. Valhalla Multi-Pass: Kinukuha ang pinakamalapit na rutang hindi dumadaan sa toll/MCX
+  // 1. Valhalla: Main/National road priority + avoid toll plazas/ramps + pick nearest clean route
   try {
     const candidates = [];
-    const modes = mustBlockToll
+    const passes = mustBlockToll
       ? [
-          { forceNoHwy: false, polys: tollPolygons },
-          { forceNoHwy: true,  polys: tollPolygons },
-          { forceNoHwy: true,  polys: [] }
+          { polys: tollPolygons },
+          { polys: [] }
         ]
-      : [{ forceNoHwy: false, polys: [] }];
+      : [{ polys: [] }];
 
-    for (let i = 0; i < modes.length; i++) {
-      const m = modes[i];
-      const cand = await queryValhallaCandidate(originLng, originLat, targetLng, targetLat, isMoto, allowToll, m.forceNoHwy, m.polys);
+    for (let i = 0; i < passes.length; i++) {
+      const cand = await queryValhallaCandidate(originLng, originLat, targetLng, targetLat, isMoto, allowToll, passes[i].polys);
       if (cand && cand.coords && cand.coords.length >= 2) {
         candidates.push(cand);
         if (!mustBlockToll || cand.isCleanNoToll) {
@@ -4907,9 +5055,9 @@ async function fetchVehicleRouteCoords(originLng, originLat, targetLng, targetLa
     }
   } catch (err) {}
 
-  // 2. Secondary: OSRM (Strictly exclude toll, motorway, and ferry when mustBlockToll)
+  // 2. Secondary: OSRM (Exclude toll & ferry only; keep highway/national roads)
   try {
-    const excludeParam = mustBlockToll ? "&exclude=toll,motorway,ferry" : "";
+    const excludeParam = mustBlockToll ? "&exclude=toll,ferry" : "";
     const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${originLng},${originLat};${targetLng},${targetLat}?overview=full&geometries=geojson${excludeParam}`;
     const res = await fetch(osrmUrl);
     if (res.ok) {
@@ -4920,9 +5068,9 @@ async function fetchVehicleRouteCoords(originLng, originLat, targetLng, targetLa
     }
   } catch (e) {}
 
-  // 3. Tertiary: OpenRouteService (Strictly avoid tollways & highways when mustBlockToll)
+  // 3. Tertiary: OpenRouteService (Avoid tollways & ferries only)
   try {
-    const avoidList = mustBlockToll ? `["tollways","highways","ferries"]` : `[]`;
+    const avoidList = mustBlockToll ? `["tollways","ferries"]` : `[]`;
     const optionsParam = `&options={"avoid_features":${avoidList}}`;
     const orsUrl = `https://api.openrouteservice.org/v2/directions/driving-car?start=${originLng},${originLat}&end=${targetLng},${targetLat}${optionsParam}`;
     const res = await fetch(orsUrl);
@@ -5054,7 +5202,7 @@ async function drawRideOnMap(ride, forceRecompute = false){
       fullRouteCoordinates = routeCoords;
       activeRouteKey = desiredRouteKey;
       lastMatchedSegmentIndex = 0;
-      offRouteConfirmCount = 0;
+      resetRouteDeviationState();
       updateNavigationProgress(origin.lat, origin.lng, 0);
     }
   }catch(e){} finally {
@@ -5162,3 +5310,4 @@ startApp();
 </script>
 </body>
 </html>
+ 
