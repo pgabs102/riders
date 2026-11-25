@@ -1028,6 +1028,12 @@ body.nav-active .speedometer-badge {
   color: var(--orange);
 }
 
+.mapModeBtn.lock-active {
+  background: var(--orange);
+  color: #ffffff;
+  border-color: var(--orange);
+}
+
 .tollToggleBtn {
   top: calc(114px + var(--safe-top));
   background: var(--bg-card);
@@ -1054,10 +1060,17 @@ body.nav-active .speedometer-badge {
   border: none;
 }
 
+/* Kapag Motorcycle (nakatago ang Toll Toggle), akyat ang SOS at AI button */
+body.moto-no-toll .sosBtn { top: calc(114px + var(--safe-top)); }
+body.moto-no-toll .aiSupportBtn { top: calc(158px + var(--safe-top)); }
+
 body.nav-active .mapModeBtn { top: calc(104px + var(--safe-top)); }
 body.nav-active .tollToggleBtn { top: calc(148px + var(--safe-top)); }
 body.nav-active .sosBtn { top: calc(192px + var(--safe-top)); }
 body.nav-active .aiSupportBtn { top: calc(236px + var(--safe-top)); }
+
+body.nav-active.moto-no-toll .sosBtn { top: calc(148px + var(--safe-top)); }
+body.nav-active.moto-no-toll .aiSupportBtn { top: calc(192px + var(--safe-top)); }
 
 /* RIDER CENTERED ARROW MARKER (ALWAYS ALIGNED ON ROUTELINE) */
 .rider-marker-wrapper {
@@ -1087,7 +1100,7 @@ body.nav-active .aiSupportBtn { top: calc(236px + var(--safe-top)); }
   will-change: transform;
 }
 
-/* UPRIGHT PIN MARKERS (HINDI NAKATAGILID SA 3D VIEW) */
+/* UPRIGHT PIN MARKERS */
 .upright-pin-marker {
   display: flex;
   flex-direction: column;
@@ -1749,6 +1762,8 @@ body.nav-active .aiSupportBtn { top: calc(236px + var(--safe-top)); }
   .tollToggleBtn { top: calc(92px + var(--safe-top)); }
   .sosBtn { top: calc(128px + var(--safe-top)); }
   .aiSupportBtn { top: calc(164px + var(--safe-top)); }
+  body.moto-no-toll .sosBtn { top: calc(92px + var(--safe-top)); }
+  body.moto-no-toll .aiSupportBtn { top: calc(128px + var(--safe-top)); }
   .speedometer-badge {
     width: 52px;
     height: 52px;
@@ -1789,7 +1804,7 @@ body.nav-active .aiSupportBtn { top: calc(236px + var(--safe-top)); }
 }
 </style>
 </head>
-<body>
+<body class="moto-no-toll">
 
 <!-- SHARED MONOCHROME SVG ICON SPRITE -->
 <svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden;">
@@ -1940,9 +1955,9 @@ body.nav-active .aiSupportBtn { top: calc(236px + var(--safe-top)); }
 
     <label class="profileLabel">Vehicle Category</label>
     <select id="loginVehicleTypeInput" onchange="syncVehicleTypeSelection(this.value)">
-      <option value="motorcycle">Motorcycle (National Highway / No Toll Expressway)</option>
-      <option value="car">Car / Sedan (Configurable Toll / No Toll)</option>
-      <option value="van">Van / MPV (Configurable Toll / No Toll)</option>
+      <option value="motorcycle">Motorcycle (National Highway Only • Strictly No Toll / No MCX-SLEX)</option>
+      <option value="car">Car / Sedan (With Toll / No Toll Toggle)</option>
+      <option value="van">Van / MPV (With Toll / No Toll Toggle)</option>
     </select>
 
     <label class="profileLabel">Driver / Rider Full Name</label>
@@ -1960,14 +1975,14 @@ body.nav-active .aiSupportBtn { top: calc(236px + var(--safe-top)); }
     </button>
   </div>
 
-  <div class="loginFoot">TUKLAS Partner V6.0 • Zero-Jitter Smart Auto-3D Navigation</div>
+  <div class="loginFoot">TUKLAS Partner V6.3 • Toll Corridor Blocker & Nearest No-Toll Route</div>
 </div>
 
 <!-- TOP HEADER -->
 <header id="topHeader">
   <div class="headerBrand">
     <strong>T U K L A S</strong>
-    <small id="headerSubText">Motorcycle • Hwy No-Toll</small>
+    <small id="headerSubText">Motorcycle • No Toll / No Expressway</small>
   </div>
   <div class="statusIndicator" onclick="toggleOnlineStatus()">
     <div id="statusDot" class="statusDot"></div>
@@ -2022,13 +2037,13 @@ body.nav-active .aiSupportBtn { top: calc(236px + var(--safe-top)); }
         </h3>
         <label class="profileLabel">Vehicle Category</label>
         <select id="riderVehicleType" onchange="syncVehicleTypeSelection(this.value)">
-          <option value="motorcycle">Motorcycle (Highway OK • No Expressway)</option>
-          <option value="car">Car / Sedan (Toll / No-Toll Option)</option>
-          <option value="van">Van / MPV (Toll / No-Toll Option)</option>
+          <option value="motorcycle">Motorcycle (National Highway Only • Strictly No Toll)</option>
+          <option value="car">Car / Sedan (Toll / No-Toll Toggle)</option>
+          <option value="van">Van / MPV (Toll / No-Toll Toggle)</option>
         </select>
 
         <div id="menuTollPreferenceBox" style="display:none; margin-bottom:8px;">
-          <label class="profileLabel">Expressway Toll Preference (Car / Van)</label>
+          <label class="profileLabel">Expressway Toll Preference (Car / Van Only)</label>
           <select id="menuTollPreference" onchange="setTollPreference(this.value === 'with_toll')">
             <option value="no_toll">No Toll (National Highway / Service Road)</option>
             <option value="with_toll">With Toll (Expressway Allowed + Toll Fare)</option>
@@ -2061,6 +2076,16 @@ body.nav-active .aiSupportBtn { top: calc(236px + var(--safe-top)); }
 
     <!-- TAB 2: MAP BASE & THEMES MENU -->
     <div id="tabMapSettings" class="tabContent">
+      <div class="profileCard">
+        <h3>
+          <span class="monoIcon" style="width:16px;height:16px;color:var(--orange)"><svg><use href="#ic-alert"></use></svg></span>
+          <span>Avoided Toll Corridors (Active)</span>
+        </h3>
+        <div style="font-size:11px; color:var(--text-muted); line-height:1.5;">
+          MCX • SLEX • Skyway • CALAX • CAVITEX • NLEX • SCTEX • TPLEX • STAR Tollway • CCLEX (Auto-blocked on Motorcycle & Car/Van No-Toll; picks nearest non-toll road).
+        </div>
+      </div>
+
       <div class="profileCard">
         <h3>
           <span class="monoIcon" style="width:16px;height:16px;color:var(--orange)"><svg><use href="#ic-palette"></use></svg></span>
@@ -2196,14 +2221,16 @@ body.nav-active .aiSupportBtn { top: calc(236px + var(--safe-top)); }
       <div class="speedometer-label">KM/H</div>
     </div>
 
+    <!-- FREE 3D / 3D LOCK TOGGLE BUTTON -->
     <button id="mapModeBtn" class="hudSideBtn mapModeBtn" onclick="toggleMapMode()">
       <span class="monoIcon" style="width:15px;height:15px"><svg><use href="#ic-nav"></use></svg></span>
-      <span id="mapModeLabel">AUTO 3D</span>
+      <span id="mapModeLabel">FREE 3D</span>
     </button>
 
-    <button id="tollToggleBtn" class="hudSideBtn tollToggleBtn" onclick="toggleTollMode()">
-      <span class="monoIcon" style="width:15px;height:15px"><svg><use href="#ic-bike"></use></svg></span>
-      <span id="tollToggleLabel">MOTO: NO TOLL</span>
+    <!-- CAR & VAN ONLY TOLL TOGGLE (HIDDEN FOR MOTORCYCLE) -->
+    <button id="tollToggleBtn" class="hudSideBtn tollToggleBtn" style="display:none;" onclick="toggleTollMode()">
+      <span class="monoIcon" style="width:15px;height:15px"><svg><use href="#ic-car"></use></svg></span>
+      <span id="tollToggleLabel">CAR: NO TOLL</span>
     </button>
 
     <button id="sosBtn" class="hudSideBtn sosBtn" onclick="triggerSOSAlert()">
@@ -2490,7 +2517,99 @@ function hideTuklasSideTurnSignal() {
   syncTuklasSideTurnSignal(null, Infinity);
 }
 
-/* ===== VEHICLE & TOLL FARE CONFIGURATION ===== */
+/* =========================================================
+   LIST NG MGA MAY TOLL (AVOID CORRIDORS & TOLL ZONES)
+   - Pinipigilan nitong hatakin ng Valhalla/OSRM ang ruta
+     papuntang MCX, SLEX, Skyway, CALAX, CAVITEX, NLEX, atbp.
+   ========================================================= */
+const TOLL_CORRIDORS_LIST = [
+  "MCX",
+  "SLEX",
+  "Skyway",
+  "Skyway Stage 3",
+  "CALAX",
+  "CAVITEX",
+  "NLEX",
+  "NLEX Connector",
+  "SCTEX",
+  "TPLEX",
+  "STAR Tollway",
+  "CCLEX"
+];
+
+const TOLL_EXPRESSWAY_PATTERN = /\b(mcx|muntinlupa.?cavite expressway|slex|south luzon expressway|nlex|north luzon expressway|e1|e2|e3|skyway|cavitex|calax|sctex|tplex|star tollway|cclex|nlex connector|expressway|tollway|toll plaza|toll gate|toll booth|toll ramp)\b/i;
+
+// Known Toll Plaza / Ramp zones (lng, lat) na iiwasan ng Valhalla exclude_polygons
+const TOLL_PLAZA_EXCLUSION_ZONES = [
+  // MCX & Susana Heights / Alabang SLEX Toll Ramps
+  { name: "MCX Toll / Daang Hari Ramp", lng: 121.0225, lat: 14.3955, radiusMeters: 320 },
+  { name: "Susana Heights SLEX Toll / Ramp", lng: 121.0345, lat: 14.4150, radiusMeters: 300 },
+  { name: "Alabang SLEX Toll / Exit Ramp", lng: 121.0445, lat: 14.4185, radiusMeters: 300 },
+  { name: "Filinvest Exit / Toll Ramp", lng: 121.0455, lat: 14.4275, radiusMeters: 260 },
+  { name: "Sucat Toll Plaza / Ramp", lng: 121.0462, lat: 14.4535, radiusMeters: 320 }
+];
+
+function createCirclePolygonCoords(centerLng, centerLat, radiusMeters, steps = 12) {
+  const coords = [];
+  const latRad = centerLat * Math.PI / 180;
+  const degPerLat = radiusMeters / 111320;
+  const degPerLng = radiusMeters / (111320 * Math.max(0.2, Math.cos(latRad)));
+
+  for (let i = 0; i <= steps; i++) {
+    const angle = (i / steps) * 2 * Math.PI;
+    const pLng = centerLng + degPerLng * Math.cos(angle);
+    const pLat = centerLat + degPerLat * Math.sin(angle);
+    coords.push([Number(pLng.toFixed(6)), Number(pLat.toFixed(6))]);
+  }
+  return [coords];
+}
+
+function getRelevantTollExcludePolygons(originLng, originLat, targetLng, targetLat) {
+  const polygons = [];
+  TOLL_PLAZA_EXCLUSION_ZONES.forEach(zone => {
+    const dOrigin = calculateDistanceMeters(originLat, originLng, zone.lat, zone.lng);
+    const dTarget = calculateDistanceMeters(targetLat, targetLng, zone.lat, zone.lng);
+    // Huwag i-block kung mismong loob ng 90m ng toll zone nakatayo ang origin o target
+    if (dOrigin > 90 && dTarget > 90) {
+      polygons.push(createCirclePolygonCoords(zone.lng, zone.lat, zone.radiusMeters, 10));
+    }
+  });
+  return polygons;
+}
+
+function routeTouchesTollZone(coords, originLat, originLng, targetLat, targetLng) {
+  if (!Array.isArray(coords) || coords.length === 0) return false;
+  for (let i = 0; i < coords.length; i++) {
+    const [cLng, cLat] = coords[i];
+    const dOrigin = calculateDistanceMeters(originLat, originLng, cLat, cLng);
+    const dTarget = calculateDistanceMeters(targetLat, targetLng, cLat, cLng);
+    if (dOrigin < 90 || dTarget < 90) continue;
+
+    for (let z = 0; z < TOLL_PLAZA_EXCLUSION_ZONES.length; z++) {
+      const zone = TOLL_PLAZA_EXCLUSION_ZONES[z];
+      const distToToll = calculateDistanceMeters(cLat, cLng, zone.lat, zone.lng);
+      if (distToToll <= zone.radiusMeters * 0.85) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+function computePolylineLengthMeters(coords) {
+  if (!Array.isArray(coords) || coords.length < 2) return Infinity;
+  let total = 0;
+  for (let i = 0; i < coords.length - 1; i++) {
+    total += calculateDistanceMeters(coords[i][1], coords[i][0], coords[i + 1][1], coords[i + 1][0]);
+  }
+  return total;
+}
+
+/* =========================================================
+   VEHICLE & TOLL ROUTING RULES:
+   - MOTORCYCLE: STRICTLY NO TOLL / NO EXPRESSWAY (MCX, SLEX, E2, SKYWAY, ETC.)
+   - CAR & VAN: MAY TOGGLE (NO TOLL / WITH TOLL)
+   ========================================================= */
 const VEHICLE_RATES = {
   motorcycle: { label: "Motorcycle", baseFare: 50, perKm: 10, tollPerKm: 0, allowTollToggle: false },
   car:        { label: "Car / Sedan", baseFare: 85, perKm: 16, tollPerKm: 4.5, allowTollToggle: true },
@@ -2502,17 +2621,17 @@ let useTollRoute = false;
 let currentRouteTollMeters = 0;
 
 function getEffectiveVehicleType(ride = null) {
+  if (partnerVehicleType === "motorcycle") return "motorcycle";
   const v = (ride?.vehicle_type || ride?.vehicle || partnerVehicleType || "motorcycle").toLowerCase();
   if (v.includes("van")) return "van";
   if (v.includes("car") || v.includes("sedan") || v.includes("suv")) return "car";
-  return "motorcycle";
+  return partnerVehicleType;
 }
 
 function isEffectiveTollEnabled(ride = null) {
   const vType = getEffectiveVehicleType(ride);
   if (vType === "motorcycle") return false;
-  if (ride && typeof ride.use_toll === "boolean") return ride.use_toll;
-  return useTollRoute;
+  return Boolean(useTollRoute);
 }
 
 function computeRideFareDetails(ride) {
@@ -2555,21 +2674,24 @@ function updateRoutingModeUI() {
 
   if (vType === "motorcycle") {
     useTollRoute = false;
+    document.body.classList.add("moto-no-toll");
     if (menuTollBox) menuTollBox.style.display = "none";
     if (tollBtn) {
+      tollBtn.style.display = "none";
       tollBtn.classList.remove("toll-active");
-      tollBtn.innerHTML = `${svgIcon("ic-bike", 15)}<span id="tollToggleLabel">MOTO: HWY NO-TOLL</span>`;
     }
-    if (headerSub) headerSub.textContent = "Motorcycle • National Hwy (No Toll)";
+    if (headerSub) headerSub.textContent = "Motorcycle • No Toll (MCX/SLEX Blocked)";
   } else {
+    document.body.classList.remove("moto-no-toll");
     if (menuTollBox) menuTollBox.style.display = "block";
     if (menuTollSel) menuTollSel.value = useTollRoute ? "with_toll" : "no_toll";
     const vTitle = vType === "van" ? "VAN" : "CAR";
     if (tollBtn) {
+      tollBtn.style.display = "inline-flex";
       tollBtn.classList.toggle("toll-active", useTollRoute);
       tollBtn.innerHTML = `${svgIcon("ic-car", 15)}<span id="tollToggleLabel">${vTitle}: ${useTollRoute ? "WITH TOLL" : "NO TOLL"}</span>`;
     }
-    if (headerSub) headerSub.textContent = `${vType === "van" ? "Van" : "Car"} • ${useTollRoute ? "With Toll (Expressway)" : "No Toll (National Hwy)"}`;
+    if (headerSub) headerSub.textContent = `${vType === "van" ? "Van" : "Car"} • ${useTollRoute ? "With Toll (Expressway)" : "No Toll (Nearest Local/Hwy)"}`;
   }
 }
 
@@ -2592,13 +2714,13 @@ function setTollPreference(allowToll) {
   if (getEffectiveVehicleType(selectedRide) === "motorcycle") {
     useTollRoute = false;
     updateRoutingModeUI();
-    showToast("Motorcycle: National Highway lang (No Expressway Toll)");
+    showToast("Motorcycle: Strictly No Toll / No MCX-SLEX.");
     return;
   }
   useTollRoute = Boolean(allowToll);
   saveRiderProfile();
   updateRoutingModeUI();
-  showToast(useTollRoute ? "WITH TOLL: Pinayagan ang Expressway (+Toll Fare)" : "NO TOLL: National Highway / Service Road lang");
+  showToast(useTollRoute ? "WITH TOLL: Pinayagan ang Expressway (+Toll Fare)" : "NO TOLL: Hahanapin ang pinakamalapit na rutang walang toll");
   if (selectedRide) {
     showSelectedBooking();
     drawRideOnMap(selectedRide, true);
@@ -2608,7 +2730,9 @@ function setTollPreference(allowToll) {
 function toggleTollMode() {
   const vType = getEffectiveVehicleType(selectedRide);
   if (vType === "motorcycle") {
-    showToast("Motorcycle mode: Naka-route sa National Highway (No Toll Expressway).");
+    useTollRoute = false;
+    updateRoutingModeUI();
+    showToast("Motorcycle: Strictly No Toll Expressway.");
     return;
   }
   setTollPreference(!useTollRoute);
@@ -2985,19 +3109,18 @@ let chatMessagesSeen = new Set();
 let geocodeCache = {};
 
 /* =========================================================
-   STRICT ROUTE-LOCK, ZERO-JITTER & SMART AUTO-3D STATE
+   STRICT ROUTE-LOCK, ZERO-JITTER & FREE 3D / 3D LOCK TOGGLE
    ========================================================= */
 let fullRouteCoordinates = [];
-let activeRouteKey = "";               // Locks route per (rideId + status + targetCoords) so status/GPS updates won't redraw/jump
-let lastMatchedSegmentIndex = 0;       // Monotonic forward-only index (West stays West, East stays East)
-let offRouteConfirmCount = 0;          // Requires 3 consecutive off-route readings >55m before rerouting
+let activeRouteKey = "";
+let lastMatchedSegmentIndex = 0;
+let offRouteConfirmCount = 0;
 let isRerouting = false;
 let lastRerouteTime = 0;
 const STRICT_OFFROUTE_METERS = 55;
-const CORNER_3D_LOCK_METERS = 110;     // Auto-activates 3D Lock within 110m of corner, returns to Free 3D after turn
 
-let currentMapMode = 'auto';           // 'auto' (Free 3D on straight, 3D Lock on turn), 'headup', 'northup'
-let lastAutoCameraPhase = '';          // 'straight' | 'corner'
+// 2-Mode Toggle: 'free3d' (Free 3D pan/rotate) <-> 'lock3d' (Locked behind arrow)
+let currentMapMode = 'free3d';
 let lastCameraUpdateTime = 0;
 let lastCameraLngLat = null;
 let lastCameraBearing = null;
@@ -3524,29 +3647,24 @@ function stopHeartbeat() {
 }
 
 /* =========================================================
-   3-MODE CAMERA TOGGLE:
-   1. AUTO 3D (Free 3D on straight run, auto 3D Lock near corner, back to Free 3D after turn)
-   2. 3D LOCK (Always locked behind rider heading)
-   3. FREE 3D (Manual pan/rotate freely)
+   FREE 3D TOGGLE (2-STATE: FREE 3D <-> 3D LOCK)
    ========================================================= */
 function toggleMapMode() {
+  const btn = document.getElementById("mapModeBtn");
   const label = document.getElementById("mapModeLabel");
-  if (currentMapMode === 'auto') {
-    currentMapMode = 'headup';
+
+  if (currentMapMode === 'free3d') {
+    currentMapMode = 'lock3d';
+    if (btn) btn.classList.add("lock-active");
     if (label) label.textContent = "3D LOCK";
     showToast("3D LOCK: Naka-lock sa likod ng arrow");
-    if (riderLocation) applySmoothCamera(riderLocation.lng, riderLocation.lat, lastHeading, true, 0);
-  } else if (currentMapMode === 'headup') {
-    currentMapMode = 'northup';
-    if (label) label.textContent = "FREE 3D";
-    showToast("FREE 3D: Malayang ikot ng mapa");
-    if (map) map.easeTo({ pitch: 38, bearing: 0, duration: 600 });
+    if (riderLocation) applySmoothCamera(riderLocation.lng, riderLocation.lat, lastHeading, 30);
   } else {
-    currentMapMode = 'auto';
-    lastAutoCameraPhase = '';
-    if (label) label.textContent = "AUTO 3D";
-    showToast("AUTO 3D: Free 3D sa tuwid • 3D Lock sa kanto");
-    if (riderLocation) applySmoothCamera(riderLocation.lng, riderLocation.lat, lastHeading, false, 0);
+    currentMapMode = 'free3d';
+    if (btn) btn.classList.remove("lock-active");
+    if (label) label.textContent = "FREE 3D";
+    showToast("FREE 3D: Malayang ikot at pan ng mapa");
+    if (map) map.easeTo({ pitch: 42, duration: 500 });
   }
 }
 
@@ -3580,7 +3698,7 @@ function saveRiderProfile(){
       name,
       contact,
       vehicleType: partnerVehicleType,
-      useToll: useTollRoute
+      useToll: partnerVehicleType === "motorcycle" ? false : useTollRoute
     }));
   }catch(e){}
 }
@@ -3869,8 +3987,8 @@ function initMap(){
     container: 'map',
     style: MAP_STYLES[currentStyleKey] || MAP_STYLES.liberty,
     center: [121.0415, 14.4086],
-    zoom: 18,
-    pitch: 35,
+    zoom: 17.5,
+    pitch: 42,
     bearing: 0
   });
 
@@ -3947,8 +4065,8 @@ function showSelectedBooking(){
     : "";
 
   const routeModeLabel = fareInfo.vType === "motorcycle"
-    ? "Motorcycle (National Hwy • No Toll)"
-    : `${fareInfo.vehicleLabel} (${fareInfo.tollAllowed ? "With Toll +₱" + fareInfo.tollFee.toFixed(2) : "No Toll • Hwy"})`;
+    ? "Motorcycle (No Toll • Avoids MCX/SLEX)"
+    : `${fareInfo.vehicleLabel} (${fareInfo.tollAllowed ? "With Toll +₱" + fareInfo.tollFee.toFixed(2) : "No Toll • Nearest Road"})`;
 
   content.innerHTML = `
     <div class="selectedTitle">${svgIcon("ic-bike", 17)}<span>Selected Booking</span> <span class="vehicleBadge">${escapeHTML(fareInfo.vehicleLabel)}</span></div>
@@ -4222,97 +4340,18 @@ async function sendChatMessage(){
 }
 
 /* =========================================================
-   ANTI-JITTER SMART CAMERA CONTROLLER:
-   - Straight run (>110m from corner): FREE 3D smooth tracking (walang biglang ikot/talon)
-   - Approaching corner (<=110m): Auto 3D LOCK behind turn heading
-   - After turn completed: Returns to FREE 3D
+   2-MODE CAMERA CONTROLLER:
+   - 'free3d': Free 3D pan & rotation (no forced camera snap)
+   - 'lock3d': Smooth 3D Lock behind rider arrow
    ========================================================= */
-function applySmoothCamera(lng, lat, heading, isNearCorner = false, upcomingTurnAngle = 0) {
+function applySmoothCamera(lng, lat, heading, upcomingTurnAngle = 0) {
   if (!map) return;
 
-  if (currentMapMode === 'northup') {
-    // Manual Free 3D: user controls rotation/pitch freely; gently follow center only if far
-    const now = Date.now();
-    if (now - lastCameraUpdateTime < 1400) return;
-    lastCameraUpdateTime = now;
-    map.easeTo({
-      center: [lng, lat],
-      duration: 900,
-      easing: t => t * (2 - t)
-    });
+  if (currentMapMode === 'free3d') {
     return;
   }
 
   const now = Date.now();
-
-  if (currentMapMode === 'auto') {
-    if (isNearCorner) {
-      // Malapit na sa kanto -> Activate 3D Lock automatically
-      if (lastAutoCameraPhase !== 'corner') {
-        lastAutoCameraPhase = 'corner';
-      }
-      if (now - lastCameraUpdateTime < 450) return;
-      lastCameraUpdateTime = now;
-      lastCameraLngLat = [lng, lat];
-      lastCameraBearing = heading;
-
-      map.easeTo({
-        center: [lng, lat],
-        zoom: 18.6,
-        pitch: 52,
-        bearing: heading,
-        padding: { top: 60, bottom: 0, left: 0, right: 0 },
-        duration: 550,
-        easing: t => t * (2 - t)
-      });
-    } else {
-      // Tuwid ang takbo -> Free 3D mode (gentle follow, walang jittery rotation)
-      if (lastAutoCameraPhase !== 'straight') {
-        lastAutoCameraPhase = 'straight';
-        lastCameraUpdateTime = now;
-        lastCameraLngLat = [lng, lat];
-        lastCameraBearing = heading;
-        map.easeTo({
-          center: [lng, lat],
-          zoom: 17.2,
-          pitch: 36,
-          bearing: heading,
-          padding: { top: 40, bottom: 0, left: 0, right: 0 },
-          duration: 850,
-          easing: t => t * (2 - t)
-        });
-        return;
-      }
-
-      // Throttle straight-run camera updates to eliminate GPS jitter jumps
-      const movedSinceCam = lastCameraLngLat
-        ? calculateDistanceMeters(lastCameraLngLat[1], lastCameraLngLat[0], lat, lng)
-        : 999;
-      let bearingDelta = lastCameraBearing !== null ? Math.abs(heading - lastCameraBearing) : 999;
-      if (bearingDelta > 180) bearingDelta = 360 - bearingDelta;
-
-      if (now - lastCameraUpdateTime < 900 && movedSinceCam < 6 && bearingDelta < 12) {
-        return;
-      }
-
-      lastCameraUpdateTime = now;
-      lastCameraLngLat = [lng, lat];
-      lastCameraBearing = heading;
-
-      map.easeTo({
-        center: [lng, lat],
-        zoom: 17.2,
-        pitch: 36,
-        bearing: heading,
-        padding: { top: 40, bottom: 0, left: 0, right: 0 },
-        duration: 800,
-        easing: t => t * (2 - t)
-      });
-    }
-    return;
-  }
-
-  // Explicit 'headup' (3D LOCK) mode with anti-jitter deadband
   const movedSinceCam = lastCameraLngLat
     ? calculateDistanceMeters(lastCameraLngLat[1], lastCameraLngLat[0], lat, lng)
     : 999;
@@ -4327,8 +4366,8 @@ function applySmoothCamera(lng, lat, heading, isNearCorner = false, upcomingTurn
   lastCameraLngLat = [lng, lat];
   lastCameraBearing = heading;
 
-  const targetPitch = Math.abs(upcomingTurnAngle) > 25 ? 54 : 42;
-  const targetZoom = Math.abs(upcomingTurnAngle) > 25 ? 18.6 : 17.6;
+  const targetPitch = Math.abs(upcomingTurnAngle) > 25 ? 54 : 44;
+  const targetZoom = Math.abs(upcomingTurnAngle) > 25 ? 18.5 : 17.6;
 
   map.easeTo({
     center: [lng, lat],
@@ -4354,14 +4393,12 @@ function startRiderGPS(){
 
     document.getElementById("speedometerValue").textContent = speedKmh;
 
-    // Ignore wild GPS drift spikes (>35m accuracy jump) when already locked
     if (riderLocation && accuracy > 45) {
       return;
     }
 
     if(riderLocation) {
       const distMoved = calculateDistanceMeters(riderLocation.lat, riderLocation.lng, lat, lng);
-      // Deadband filter: ignore micro GPS jitter < 2.5 meters while stationary
       if (distMoved > 2.5) {
         let targetHeading = (rawHeading !== null && !isNaN(rawHeading) && speedKmh > 6) 
           ? rawHeading 
@@ -4374,16 +4411,18 @@ function startRiderGPS(){
       lastHeading = rawHeading; 
     }
 
+    const isFirstFix = !riderLocation;
     riderLocation = { lat, lng };
 
-    // Kapag may active route, ang updateNavigationProgress na ang maglalagay ng rider arrow sa mismong CENTRO ng routeline!
+    if (isFirstFix && map) {
+      map.flyTo({ center: [lng, lat], zoom: 17.5, pitch: 42, duration: 800 });
+    }
+
     if (fullRouteCoordinates && fullRouteCoordinates.length >= 2 && selectedRide && isActiveRideStatus(selectedRide.status)) {
       updateNavigationProgress(lat, lng, speedKmh);
     } else {
       updateRiderMarker(lng, lat, lastHeading);
-      if (currentMapMode !== 'northup') {
-        applySmoothCamera(lng, lat, lastHeading, false, 0);
-      }
+      applySmoothCamera(lng, lat, lastHeading, 0);
     }
 
     syncSelectedCardDistances();
@@ -4418,7 +4457,6 @@ function updateRiderMarker(lng, lat, heading = 0){
     wrapper.className = 'rider-marker-wrapper';
     const arrow = document.createElement('div');
     arrow.className = 'rider-arrow-container';
-    // ic-arrow-up points straight 0deg (North) so rotate(heading) aligns 100% with the road line
     arrow.innerHTML = svgIcon("ic-arrow-up", 20);
     wrapper.appendChild(arrow);
     riderMarker = new maplibregl.Marker({
@@ -4459,7 +4497,6 @@ function stopAutoNavigation(){
   currentRouteTollMeters = 0;
   isRerouting = false;
   isDrawingRoute = false;
-  lastAutoCameraPhase = '';
   hideTuklasSideTurnSignal();
 
   const voiceNav = document.getElementById("voiceNav");
@@ -4510,11 +4547,6 @@ function projectPointToSegment(pLat, pLng, aLat, aLng, bLat, bLng) {
   return { lat: projLat, lng: projLng, t, distMeters };
 }
 
-/* =========================================================
-   STRICT NO-PREMATURE-REROUTE:
-   Hindi magbibigay ng bagong ruta habang hindi pa lumiliko
-   o lumalayo nang >55m sa loob ng 3 sunod-sunod na GPS ticks.
-   ========================================================= */
 async function triggerConfirmedReroute(currentLat, currentLng) {
   if (!selectedRide || isRerouting || isDrawingRoute) return;
   const now = Date.now();
@@ -4526,7 +4558,7 @@ async function triggerConfirmedReroute(currentLat, currentLng) {
   isRerouting = true;
   lastRerouteTime = now;
   offRouteConfirmCount = 0;
-  showToast("Lumihis sa ruta — Nagko-compute ng bagong daan...");
+  showToast("Lumihis sa ruta — Naghahanap ng pinakamalapit na rutang walang toll...");
 
   try {
     const newCoords = await fetchVehicleRouteCoords(currentLng, currentLat, target.lng, target.lat, selectedRide);
@@ -4548,7 +4580,6 @@ function updateNavigationProgress(currentLat, currentLng, speedKmh = 0) {
   }
 
   const maxSegmentIdx = fullRouteCoordinates.length - 2;
-  // STRICT DIRECTION LOCK: Only scan forward along the locked route (never jump backward or across parallel East/West streets)
   const searchStart = Math.max(0, lastMatchedSegmentIndex);
   const searchEnd = Math.min(maxSegmentIdx, lastMatchedSegmentIndex + 8);
 
@@ -4560,12 +4591,10 @@ function updateNavigationProgress(currentLat, currentLng, speedKmh = 0) {
     const b = fullRouteCoordinates[i + 1];
     const proj = projectPointToSegment(currentLat, currentLng, a[1], a[0], b[1], b[0]);
 
-    // Check directional alignment: avoid snapping to an opposite-direction segment (West vs East)
     const segBearing = calculateBearing(a[1], a[0], b[1], b[0]);
     let headingDiff = Math.abs(segBearing - lastHeading);
     if (headingDiff > 180) headingDiff = 360 - headingDiff;
 
-    // Penalize segments facing opposite direction (>125 deg) when moving
     const directionPenalty = (speedKmh > 6 && headingDiff > 125) ? 35 : 0;
     const effectiveScore = proj.distMeters + directionPenalty;
 
@@ -4575,10 +4604,8 @@ function updateNavigationProgress(currentLat, currentLng, speedKmh = 0) {
     }
   }
 
-  // Check if rider truly went off-route (> 55 meters away from locked route)
   if (bestProjection && bestProjection.distMeters > STRICT_OFFROUTE_METERS) {
     offRouteConfirmCount++;
-    // Keep rider arrow snapped cleanly on the current locked route segment until 3 consecutive off-route readings confirm a real turn/detour
     const lockedA = fullRouteCoordinates[lastMatchedSegmentIndex];
     const lockedB = fullRouteCoordinates[lastMatchedSegmentIndex + 1];
     bestProjection = projectPointToSegment(currentLat, currentLng, lockedA[1], lockedA[0], lockedB[1], lockedB[0]);
@@ -4590,19 +4617,16 @@ function updateNavigationProgress(currentLat, currentLng, speedKmh = 0) {
     }
   } else {
     offRouteConfirmCount = 0;
-    // Monotonic progression: never jump backwards along the line
     if (bestSegIndex >= lastMatchedSegmentIndex) {
       lastMatchedSegmentIndex = bestSegIndex;
     }
   }
 
-  // Exact center coordinate on the routeline so the arrow NEVER drifts to the side
   const snappedPoint = [bestProjection.lng, bestProjection.lat];
   const segA = fullRouteCoordinates[bestSegIndex];
   const segB = fullRouteCoordinates[bestSegIndex + 1];
   const segmentHeading = calculateBearing(segA[1], segA[0], segB[1], segB[0]);
 
-  // Snap rider marker directly onto the center of the routeline and align its arrow with the road direction
   updateRiderMarker(snappedPoint[0], snappedPoint[1], segmentHeading);
 
   const passedCoords = fullRouteCoordinates.slice(0, bestSegIndex + 1);
@@ -4659,12 +4683,8 @@ function updateNavigationProgress(currentLat, currentLng, speedKmh = 0) {
   document.getElementById("navInstruction").textContent = turnInfo.text;
   document.getElementById("navArrow").innerHTML = svgIcon(turnInfo.arrowId, 26);
 
-  // Auto-popup 100m orange blinking side signal (Middle-Right kapag Right, Middle-Left kapag Left/U-Turn/Rotonda)
   syncTuklasSideTurnSignal(turnInfo.signalType, turnInfo.turnDist);
-
-  // Smart Camera: Free 3D kapag tuwid pa, auto 3D Lock kapag <=110m malapit na sa kanto, balik Free 3D pagkaliko
-  const isApproachingCorner = Boolean(turnInfo.signalType && turnInfo.turnDist <= CORNER_3D_LOCK_METERS);
-  applySmoothCamera(snappedPoint[0], snappedPoint[1], segmentHeading, isApproachingCorner, turnInfo.turnAngle);
+  applySmoothCamera(snappedPoint[0], snappedPoint[1], segmentHeading, turnInfo.turnAngle);
 
   document.getElementById("voiceNav").classList.add("active");
 }
@@ -4742,73 +4762,154 @@ function getIndependentTurnCountdown(remainingCoords) {
   };
 }
 
+/* =========================================================
+   AVOID TOLL CORRIDORS + NEAREST NO-TOLL ROUTE ENGINE
+   - Hinaharang ang MCX, SLEX, Skyway, CALAX, CAVITEX, NLEX, etc.
+   - Gumagamit ng Valhalla `exclude_polygons` sa mga toll zones
+   - Pinipili ang PINAKAMALAPIT na rutang walang toll
+   ========================================================= */
+function legHasForbiddenTollOrExpressway(leg) {
+  if (!leg || !Array.isArray(leg.maneuvers)) return false;
+  return leg.maneuvers.some(m => {
+    if (m.toll) return true;
+    const names = Array.isArray(m.street_names) ? m.street_names.join(" ") : "";
+    const instr = m.instruction || "";
+    return TOLL_EXPRESSWAY_PATTERN.test(`${names} ${instr}`);
+  });
+}
+
+function buildValhallaPayload(originLng, originLat, targetLng, targetLat, isMoto, allowToll, forceAvoidAllHighways = false, excludePolygons = []) {
+  const costingModel = isMoto ? "motorcycle" : "auto";
+  const costingOptions = isMoto
+    ? {
+        motorcycle: {
+          use_tolls: 0,
+          toll_booth_penalty: 999999,
+          toll_booth_cost: 999999,
+          use_highways: forceAvoidAllHighways ? 0 : 0.02,
+          use_ferry: 0,
+          use_trails: 0,
+          maneuver_penalty: 400
+        }
+      }
+    : {
+        auto: {
+          use_tolls: allowToll ? 1 : 0,
+          toll_booth_penalty: allowToll ? 0 : 999999,
+          toll_booth_cost: allowToll ? 0 : 999999,
+          use_highways: allowToll ? 1 : (forceAvoidAllHighways ? 0 : 0.10),
+          use_ferry: 0
+        }
+      };
+
+  const payload = {
+    locations: [{ lat: originLat, lon: originLng }, { lat: targetLat, lon: targetLng }],
+    costing: costingModel,
+    costing_options: costingOptions
+  };
+
+  if (!allowToll && Array.isArray(excludePolygons) && excludePolygons.length > 0) {
+    payload.exclude_polygons = excludePolygons;
+  }
+
+  return payload;
+}
+
+async function queryValhallaCandidate(originLng, originLat, targetLng, targetLat, isMoto, allowToll, forceAvoidAllHighways, excludePolygons) {
+  const payload = buildValhallaPayload(originLng, originLat, targetLng, targetLat, isMoto, allowToll, forceAvoidAllHighways, excludePolygons);
+  const res = await fetch(`https://valhalla1.openstreetmap.de/route`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) return null;
+  const data = await res.json();
+  if (!data.trip || !data.trip.legs || !data.trip.legs[0]) return null;
+
+  const leg = data.trip.legs[0];
+  const decodedCoords = decodePolyline(leg.shape);
+  const hasTollManeuver = legHasForbiddenTollOrExpressway(leg);
+  const hitsTollZone = !allowToll && routeTouchesTollZone(decodedCoords, originLat, originLng, targetLat, targetLng);
+  const lengthMeters = computePolylineLengthMeters(decodedCoords);
+
+  let tollKmSum = 0;
+  const roundabouts = [];
+  if (Array.isArray(leg.maneuvers)) {
+    leg.maneuvers.forEach(m => {
+      if (allowToll && !isMoto) {
+        if (m.toll || (m.street_names && m.street_names.some(s => TOLL_EXPRESSWAY_PATTERN.test(s)))) {
+          tollKmSum += Number(m.length || 0);
+        }
+      }
+      if ((m.type === 26 || m.type === 27 || /roundabout|rotunda|rotonda/i.test(m.instruction || "")) && typeof m.begin_shape_index === "number" && decodedCoords[m.begin_shape_index]) {
+        const pt = decodedCoords[m.begin_shape_index];
+        roundabouts.push({ lng: pt[0], lat: pt[1] });
+      }
+    });
+  }
+
+  return {
+    coords: decodedCoords,
+    lengthMeters,
+    isCleanNoToll: !hasTollManeuver && !hitsTollZone,
+    tollKmSum,
+    roundabouts
+  };
+}
+
 async function fetchVehicleRouteCoords(originLng, originLat, targetLng, targetLat, ride = null) {
   const vType = getEffectiveVehicleType(ride);
   const allowToll = isEffectiveTollEnabled(ride);
+  const isMoto = (vType === "motorcycle");
+  const mustBlockToll = isMoto || !allowToll;
+
   currentRouteTollMeters = 0;
   currentRouteRoundaboutPoints = [];
 
+  const tollPolygons = mustBlockToll
+    ? getRelevantTollExcludePolygons(originLng, originLat, targetLng, targetLat)
+    : [];
+
+  // 1. Valhalla Multi-Pass: Kinukuha ang pinakamalapit na rutang hindi dumadaan sa toll/MCX
   try {
-    const isMoto = (vType === "motorcycle");
-    const costingModel = isMoto ? "motorcycle" : "auto";
-    const costingOptions = isMoto
-      ? {
-          motorcycle: {
-            use_tolls: 0,
-            use_highways: 1,
-            use_trails: 0
-          }
+    const candidates = [];
+    const modes = mustBlockToll
+      ? [
+          { forceNoHwy: false, polys: tollPolygons },
+          { forceNoHwy: true,  polys: tollPolygons },
+          { forceNoHwy: true,  polys: [] }
+        ]
+      : [{ forceNoHwy: false, polys: [] }];
+
+    for (let i = 0; i < modes.length; i++) {
+      const m = modes[i];
+      const cand = await queryValhallaCandidate(originLng, originLat, targetLng, targetLat, isMoto, allowToll, m.forceNoHwy, m.polys);
+      if (cand && cand.coords && cand.coords.length >= 2) {
+        candidates.push(cand);
+        if (!mustBlockToll || cand.isCleanNoToll) {
+          break;
         }
-      : {
-          auto: {
-            use_tolls: allowToll ? 1 : 0,
-            use_highways: 1
-          }
-        };
-
-    const valhallaPayload = {
-      locations: [{ lat: originLat, lon: originLng }, { lat: targetLat, lon: targetLng }],
-      costing: costingModel,
-      costing_options: costingOptions
-    };
-
-    const res = await fetch(`https://valhalla1.openstreetmap.de/route`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(valhallaPayload)
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      if (data.trip && data.trip.legs && data.trip.legs[0]) {
-        const leg = data.trip.legs[0];
-        const decodedCoords = decodePolyline(leg.shape);
-
-        if (Array.isArray(leg.maneuvers)) {
-          let tollKmSum = 0;
-          leg.maneuvers.forEach(m => {
-            if (allowToll && !isMoto) {
-              if (m.toll || (m.street_names && m.street_names.some(s => /expressway|skyway|slex|nlex|cavitex|calax|sctex|tplex|star tollway/i.test(s)))) {
-                tollKmSum += Number(m.length || 0);
-              }
-            }
-            if ((m.type === 26 || m.type === 27 || /roundabout|rotunda|rotonda/i.test(m.instruction || "")) && typeof m.begin_shape_index === "number" && decodedCoords[m.begin_shape_index]) {
-              const pt = decodedCoords[m.begin_shape_index];
-              currentRouteRoundaboutPoints.push({ lng: pt[0], lat: pt[1] });
-            }
-          });
-          if (allowToll && !isMoto) {
-            currentRouteTollMeters = tollKmSum * 1000;
-            if (selectedRide) showSelectedBooking();
-          }
-        }
-        return decodedCoords;
       }
+    }
+
+    if (candidates.length > 0) {
+      const cleanCandidates = candidates.filter(c => c.isCleanNoToll);
+      const pool = (mustBlockToll && cleanCandidates.length > 0) ? cleanCandidates : candidates;
+      pool.sort((a, b) => a.lengthMeters - b.lengthMeters);
+      const best = pool[0];
+
+      currentRouteRoundaboutPoints = best.roundabouts || [];
+      if (allowToll && !isMoto) {
+        currentRouteTollMeters = (best.tollKmSum || 0) * 1000;
+        if (selectedRide) showSelectedBooking();
+      }
+      return best.coords;
     }
   } catch (err) {}
 
+  // 2. Secondary: OSRM (Strictly exclude toll, motorway, and ferry when mustBlockToll)
   try {
-    const excludeParam = allowToll ? "" : "&exclude=motorway";
+    const excludeParam = mustBlockToll ? "&exclude=toll,motorway,ferry" : "";
     const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${originLng},${originLat};${targetLng},${targetLat}?overview=full&geometries=geojson${excludeParam}`;
     const res = await fetch(osrmUrl);
     if (res.ok) {
@@ -4819,8 +4920,10 @@ async function fetchVehicleRouteCoords(originLng, originLat, targetLng, targetLa
     }
   } catch (e) {}
 
+  // 3. Tertiary: OpenRouteService (Strictly avoid tollways & highways when mustBlockToll)
   try {
-    const optionsParam = allowToll ? "" : `&options={"avoid_features":["tollways"]}`;
+    const avoidList = mustBlockToll ? `["tollways","highways","ferries"]` : `[]`;
+    const optionsParam = `&options={"avoid_features":${avoidList}}`;
     const orsUrl = `https://api.openrouteservice.org/v2/directions/driving-car?start=${originLng},${originLat}&end=${targetLng},${targetLat}${optionsParam}`;
     const res = await fetch(orsUrl);
     if(res.ok){
@@ -4864,7 +4967,6 @@ async function drawRideOnMap(ride, forceRecompute = false){
   const fareText = `₱${fareInfo.totalFare.toFixed(2)}`;
   const modeTag = `${fareInfo.vehicleLabel} • ${fareInfo.tollAllowed ? "With Toll" : "No Toll"}`;
 
-  // Upright Pickup Pin (hindi nakatagilid kahit naka-3D pitch ang mapa)
   if((ride.status === "searching" || ride.status === "accepted") && ride.pickup_lat != null && ride.pickup_lng != null) {
     const pLat = Number(ride.pickup_lat);
     const pLng = Number(ride.pickup_lng);
@@ -4901,7 +5003,6 @@ async function drawRideOnMap(ride, forceRecompute = false){
     pickupMarker = null;
   }
 
-  // Upright Drop-off Pin (hindi nakatagilid kahit naka-3D pitch ang mapa)
   if(ride.status === "picked_up" && ride.destination_lat != null && ride.destination_lng != null) {
     const dLat = Number(ride.destination_lat);
     const dLng = Number(ride.destination_lng);
@@ -4936,7 +5037,6 @@ async function drawRideOnMap(ride, forceRecompute = false){
     destinationMarker = null;
   }
 
-  // Route Lock Guard: Huwag muling mag-fetch/magpalit ng ruta kung naka-lock na ang kasalukuyang target!
   const desiredRouteKey = `${ride.id}|${ride.status}|${target.lat.toFixed(5)},${target.lng.toFixed(5)}|${fareInfo.vType}|${fareInfo.tollAllowed}`;
   if (!forceRecompute && activeRouteKey === desiredRouteKey && fullRouteCoordinates.length >= 2) {
     if (riderLocation) {
@@ -4994,7 +5094,6 @@ function subscribeRealtime(){
         const statusChanged = selectedRide.status !== r.status;
         selectedRide = r;
         showSelectedBooking();
-        // Only recompute route if ride status changed (e.g., accepted -> picked_up), NEVER on GPS heartbeat updates!
         if (statusChanged || fullRouteCoordinates.length < 2) {
           drawRideOnMap(r, true);
         }
