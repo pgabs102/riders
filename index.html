@@ -122,6 +122,9 @@ html.theme-ecomint {
   --safe-right: env(safe-area-inset-right, 0px);
   --sheet-collapsed-h: clamp(98px, 14vh, 116px);
   --sheet-expanded-h: min(68vh, 540px);
+  --signal-orange: #ff7a00;
+  --signal-bright: #ff9d1c;
+  --signal-glow: rgba(255, 122, 0, 0.92);
 }
 
 * {
@@ -163,6 +166,105 @@ button, input, select {
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+/* =========================================================
+   TUKLAS 100M AUTO-POPUP TURN SIGNAL (MIDDLE-RIGHT / MIDDLE-LEFT)
+   ========================================================= */
+.tuklas-signal-popup {
+  position: fixed;
+  top: 52%;
+  z-index: 6500;
+  background: rgba(13, 16, 23, 0.95);
+  border: 2.5px solid var(--signal-orange);
+  border-radius: 18px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 122px;
+  max-width: 148px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.65), 0 0 24px rgba(255, 122, 0, 0.35);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.26s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease;
+}
+
+.tuklas-signal-popup.side-right {
+  right: calc(10px + var(--safe-right));
+  left: auto;
+  transform: translate(135%, -50%);
+}
+
+.tuklas-signal-popup.side-right.show {
+  transform: translate(0, -50%);
+  opacity: 1;
+}
+
+.tuklas-signal-popup.side-left {
+  left: calc(10px + var(--safe-left));
+  right: auto;
+  transform: translate(-135%, -50%);
+}
+
+.tuklas-signal-popup.side-left.show {
+  transform: translate(0, -50%);
+  opacity: 1;
+}
+
+.signal-arrows-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.tuklas-signal-arrow {
+  width: 48px;
+  height: 48px;
+  fill: var(--signal-orange);
+  stroke: var(--signal-orange);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.tuklas-signal-arrow.blinking {
+  animation: tuklasOrangeBlink var(--blink-speed, 0.45s) infinite ease-in-out;
+}
+
+@keyframes tuklasOrangeBlink {
+  0%, 100% {
+    opacity: 1;
+    fill: var(--signal-bright);
+    stroke: #ffc061;
+    filter: drop-shadow(0 0 10px var(--signal-glow)) drop-shadow(0 0 22px rgba(255, 122, 0, 0.7));
+    transform: scale(1.07);
+  }
+  50% {
+    opacity: 0.14;
+    filter: none;
+    transform: scale(0.94);
+  }
+}
+
+.tuklas-signal-label {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--signal-orange);
+  text-align: center;
+}
+
+.tuklas-signal-dist {
+  font-size: 20px;
+  font-weight: 900;
+  line-height: 1.05;
+  color: #ffffff;
+  text-align: center;
 }
 
 /* =========================================================
@@ -536,7 +638,7 @@ header.hiddenHeader {
 }
 
 /* =========================================================
-   RIDER PROFILE & SETTINGS PANEL (AUTO-FITTING ALL PHONES)
+   RIDER PROFILE & SETTINGS PANEL
    ========================================================= */
 .riderMenu {
   position: fixed;
@@ -957,28 +1059,44 @@ body.nav-active .tollToggleBtn { top: calc(148px + var(--safe-top)); }
 body.nav-active .sosBtn { top: calc(192px + var(--safe-top)); }
 body.nav-active .aiSupportBtn { top: calc(236px + var(--safe-top)); }
 
+/* RIDER CENTERED ARROW MARKER (ALWAYS ALIGNED ON ROUTELINE) */
 .rider-marker-wrapper {
   position: relative;
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
   pointer-events: none;
+  margin: 0;
+  padding: 0;
 }
 
 .rider-arrow-container {
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--orange);
   border: 3px solid #ffffff;
   border-radius: 50%;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.4);
   color: #ffffff;
-  transition: transform 0.15s ease-out;
+  transform-origin: center center;
+  will-change: transform;
+}
+
+/* UPRIGHT PIN MARKERS (HINDI NAKATAGILID SA 3D VIEW) */
+.upright-pin-marker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  width: 34px;
+  height: 42px;
+  cursor: pointer;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.45));
 }
 
 /* TURN-BY-TURN NAV HUD */
@@ -1583,6 +1701,14 @@ body.nav-active .aiSupportBtn { top: calc(236px + var(--safe-top)); }
     padding: 7px 9px;
     min-height: 36px;
   }
+  .tuklas-signal-popup {
+    min-width: 108px;
+    padding: 10px 10px;
+  }
+  .tuklas-signal-arrow {
+    width: 40px;
+    height: 40px;
+  }
 }
 
 @media (max-height: 680px) {
@@ -1834,7 +1960,7 @@ body.nav-active .aiSupportBtn { top: calc(236px + var(--safe-top)); }
     </button>
   </div>
 
-  <div class="loginFoot">TUKLAS Partner V5.9.3 • MapLibre Road Name Halo Only</div>
+  <div class="loginFoot">TUKLAS Partner V6.0 • Zero-Jitter Smart Auto-3D Navigation</div>
 </div>
 
 <!-- TOP HEADER -->
@@ -2051,6 +2177,20 @@ body.nav-active .aiSupportBtn { top: calc(236px + var(--safe-top)); }
   <div class="mapCard" id="mapCard">
     <div id="map"></div>
 
+    <!-- 100M AUTO-POPUP TURN SIGNAL (MIDDLE-RIGHT FOR RIGHT TURN, MIDDLE-LEFT FOR LEFT/UTURN/ROTONDA) -->
+    <aside id="tuklasSignalPopup" class="tuklas-signal-popup side-right" role="alert" aria-live="assertive">
+      <div class="signal-arrows-row">
+        <svg id="tuklasPrimaryArrow" class="tuklas-signal-arrow blinking" viewBox="0 0 48 48">
+          <path id="tuklasPrimaryPath" d="M15 7 L35 24 L15 41 L9 34 L21 24 L9 14 Z" />
+        </svg>
+        <svg id="tuklasSecondaryArrow" class="tuklas-signal-arrow blinking" viewBox="0 0 48 48">
+          <path id="tuklasSecondaryPath" d="M15 7 L35 24 L15 41 L9 34 L21 24 L9 14 Z" />
+        </svg>
+      </div>
+      <div id="tuklasSignalLabel" class="tuklas-signal-label">KANAN</div>
+      <div id="tuklasSignalDist" class="tuklas-signal-dist">100 m</div>
+    </aside>
+
     <div id="speedometerBadge" class="speedometer-badge">
       <div id="speedometerValue" class="speedometer-value">0</div>
       <div class="speedometer-label">KM/H</div>
@@ -2058,7 +2198,7 @@ body.nav-active .aiSupportBtn { top: calc(236px + var(--safe-top)); }
 
     <button id="mapModeBtn" class="hudSideBtn mapModeBtn" onclick="toggleMapMode()">
       <span class="monoIcon" style="width:15px;height:15px"><svg><use href="#ic-nav"></use></svg></span>
-      <span id="mapModeLabel">3D LOCK</span>
+      <span id="mapModeLabel">AUTO 3D</span>
     </button>
 
     <button id="tollToggleBtn" class="hudSideBtn tollToggleBtn" onclick="toggleTollMode()">
@@ -2262,6 +2402,94 @@ const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, 
   }
 });
 
+/* =========================================================
+   TUKLAS 100M AUTO-POPUP TURN SIGNAL CONTROLLER (SIDE HUD)
+   ========================================================= */
+const SIGNAL_POPUP_TRIGGER_METERS = 100;
+
+const BOLD_CHEVRON_LEFT  = "M33 7 L13 24 L33 41 L39 34 L27 24 L39 14 Z";
+const BOLD_CHEVRON_RIGHT = "M15 7 L35 24 L15 41 L9 34 L21 24 L9 14 Z";
+
+const SOLID_UTURN_MAIN =
+  "M30 41 V19 A10 10 0 0 0 10 19 V26 H5 L15 39 L25 26 H20 V19 A3 3 0 0 1 26 19 V41 Z";
+const SOLID_UTURN_BADGE =
+  "M34 39 L28 33 L32 29 L38 35 Z M34 29 L28 23 L32 19 L38 25 Z";
+
+const SOLID_ROUNDABOUT_RING =
+  "M22 9 A15 15 0 1 0 37 24 H31 A9 9 0 1 1 22 15 V20 L31 12 L22 4 Z";
+const SOLID_ROUNDABOUT_EXIT =
+  "M28 24 L37 15 L32 10 L44 10 L44 22 L39 17 L30 26 Z";
+
+const TUKLAS_SIGNAL_TYPES = {
+  left: {
+    label: "KALIWA",
+    side: "side-left",
+    d1: BOLD_CHEVRON_LEFT,
+    d2: BOLD_CHEVRON_LEFT
+  },
+  right: {
+    label: "KANAN",
+    side: "side-right",
+    d1: BOLD_CHEVRON_RIGHT,
+    d2: BOLD_CHEVRON_RIGHT
+  },
+  uturn: {
+    label: "U-TURN",
+    side: "side-left",
+    d1: SOLID_UTURN_MAIN,
+    d2: SOLID_UTURN_BADGE
+  },
+  roundabout: {
+    label: "ROTONDA",
+    side: "side-left",
+    d1: SOLID_ROUNDABOUT_RING,
+    d2: SOLID_ROUNDABOUT_EXIT
+  }
+};
+
+let currentRouteRoundaboutPoints = [];
+
+function syncTuklasSideTurnSignal(maneuver, distanceMeters) {
+  const popupEl = document.getElementById("tuklasSignalPopup");
+  const pArrow = document.getElementById("tuklasPrimaryArrow");
+  const sArrow = document.getElementById("tuklasSecondaryArrow");
+  const pPath = document.getElementById("tuklasPrimaryPath");
+  const sPath = document.getElementById("tuklasSecondaryPath");
+  const labelEl = document.getElementById("tuklasSignalLabel");
+  const distEl = document.getElementById("tuklasSignalDist");
+
+  if (!popupEl || !pArrow || !sArrow) return;
+
+  const cfg = TUKLAS_SIGNAL_TYPES[maneuver];
+  const dist = typeof distanceMeters === "number" ? Math.max(0, Math.round(distanceMeters)) : Infinity;
+
+  if (!cfg || dist > SIGNAL_POPUP_TRIGGER_METERS) {
+    popupEl.classList.remove("show");
+    pArrow.classList.remove("blinking");
+    sArrow.classList.remove("blinking");
+    return;
+  }
+
+  popupEl.classList.remove("side-left", "side-right");
+  popupEl.classList.add(cfg.side);
+
+  pPath.setAttribute("d", cfg.d1);
+  sPath.setAttribute("d", cfg.d2);
+  labelEl.textContent = cfg.label;
+  distEl.textContent = `${dist} m`;
+
+  const blinkSec = Math.max(0.24, Math.min(0.52, (dist / SIGNAL_POPUP_TRIGGER_METERS) * 0.52));
+  document.documentElement.style.setProperty("--blink-speed", `${blinkSec.toFixed(2)}s`);
+
+  popupEl.classList.add("show");
+  pArrow.classList.add("blinking");
+  sArrow.classList.add("blinking");
+}
+
+function hideTuklasSideTurnSignal() {
+  syncTuklasSideTurnSignal(null, Infinity);
+}
+
 /* ===== VEHICLE & TOLL FARE CONFIGURATION ===== */
 const VEHICLE_RATES = {
   motorcycle: { label: "Motorcycle", baseFare: 50, perKm: 10, tollPerKm: 0, allowTollToggle: false },
@@ -2269,8 +2497,8 @@ const VEHICLE_RATES = {
   van:        { label: "Van / MPV", baseFare: 120, perKm: 22, tollPerKm: 6.5, allowTollToggle: true }
 };
 
-let partnerVehicleType = "motorcycle"; // "motorcycle" | "car" | "van"
-let useTollRoute = false; // false = National Highway / No Expressway; true = With Toll (Car/Van only)
+let partnerVehicleType = "motorcycle";
+let useTollRoute = false;
 let currentRouteTollMeters = 0;
 
 function getEffectiveVehicleType(ride = null) {
@@ -2282,7 +2510,7 @@ function getEffectiveVehicleType(ride = null) {
 
 function isEffectiveTollEnabled(ride = null) {
   const vType = getEffectiveVehicleType(ride);
-  if (vType === "motorcycle") return false; // Motorcycle NEVER enters expressway/toll
+  if (vType === "motorcycle") return false;
   if (ride && typeof ride.use_toll === "boolean") return ride.use_toll;
   return useTollRoute;
 }
@@ -2356,7 +2584,7 @@ function syncVehicleTypeSelection(val) {
   updateRoutingModeUI();
   if (selectedRide) {
     showSelectedBooking();
-    drawRideOnMap(selectedRide);
+    drawRideOnMap(selectedRide, true);
   }
 }
 
@@ -2373,7 +2601,7 @@ function setTollPreference(allowToll) {
   showToast(useTollRoute ? "WITH TOLL: Pinayagan ang Expressway (+Toll Fare)" : "NO TOLL: National Highway / Service Road lang");
   if (selectedRide) {
     showSelectedBooking();
-    drawRideOnMap(selectedRide);
+    drawRideOnMap(selectedRide, true);
   }
 }
 
@@ -2632,7 +2860,7 @@ try {
 } catch (e) {}
 
 /* =========================================================
-   MAPLIBRE ROAD NAME / SYMBOL LABEL HALO ONLY (NO HUD / UI)
+   MAPLIBRE ROAD NAME / SYMBOL LABEL HALO ONLY
    ========================================================= */
 let roadHaloState = {
   color: "#ffffff",
@@ -2756,13 +2984,24 @@ let chatRideId = null;
 let chatMessagesSeen = new Set();
 let geocodeCache = {};
 
+/* =========================================================
+   STRICT ROUTE-LOCK, ZERO-JITTER & SMART AUTO-3D STATE
+   ========================================================= */
 let fullRouteCoordinates = [];
-let lastMatchedSegmentIndex = 0;
+let activeRouteKey = "";               // Locks route per (rideId + status + targetCoords) so status/GPS updates won't redraw/jump
+let lastMatchedSegmentIndex = 0;       // Monotonic forward-only index (West stays West, East stays East)
+let offRouteConfirmCount = 0;          // Requires 3 consecutive off-route readings >55m before rerouting
 let isRerouting = false;
 let lastRerouteTime = 0;
-const SHORTCUT_REROUTE_THRESHOLD_METERS = 30;
+const STRICT_OFFROUTE_METERS = 55;
+const CORNER_3D_LOCK_METERS = 110;     // Auto-activates 3D Lock within 110m of corner, returns to Free 3D after turn
 
-let currentMapMode = 'headup';
+let currentMapMode = 'auto';           // 'auto' (Free 3D on straight, 3D Lock on turn), 'headup', 'northup'
+let lastAutoCameraPhase = '';          // 'straight' | 'corner'
+let lastCameraUpdateTime = 0;
+let lastCameraLngLat = null;
+let lastCameraBearing = null;
+
 let isRiderOnline = false;
 let heartbeatInterval = null;
 let audioCtx = null;
@@ -3002,6 +3241,7 @@ function enterRiderAppFromLogin(offlineMode = false) {
 function logoutRiderToLogin() {
   closeRiderMenu();
   stopRiderBookingWatcher();
+  hideTuklasSideTurnSignal();
   if (isRiderOnline) {
     stopHeartbeat();
     releaseWakeLock();
@@ -3283,16 +3523,30 @@ function stopHeartbeat() {
   if (riderContact) supabaseClient.from("rider_heartbeats").update({ status: "offline" }).eq("rider_contact", riderContact);
 }
 
+/* =========================================================
+   3-MODE CAMERA TOGGLE:
+   1. AUTO 3D (Free 3D on straight run, auto 3D Lock near corner, back to Free 3D after turn)
+   2. 3D LOCK (Always locked behind rider heading)
+   3. FREE 3D (Manual pan/rotate freely)
+   ========================================================= */
 function toggleMapMode() {
   const label = document.getElementById("mapModeLabel");
-  if (currentMapMode === 'headup') {
-    currentMapMode = 'northup';
-    if (label) label.textContent = "FREE 3D";
-    map.easeTo({ pitch: 30, bearing: 0, duration: 800 });
-  } else {
+  if (currentMapMode === 'auto') {
     currentMapMode = 'headup';
     if (label) label.textContent = "3D LOCK";
-    if (riderLocation) lockMapTo3DView(riderLocation.lng, riderLocation.lat, lastHeading, 0);
+    showToast("3D LOCK: Naka-lock sa likod ng arrow");
+    if (riderLocation) applySmoothCamera(riderLocation.lng, riderLocation.lat, lastHeading, true, 0);
+  } else if (currentMapMode === 'headup') {
+    currentMapMode = 'northup';
+    if (label) label.textContent = "FREE 3D";
+    showToast("FREE 3D: Malayang ikot ng mapa");
+    if (map) map.easeTo({ pitch: 38, bearing: 0, duration: 600 });
+  } else {
+    currentMapMode = 'auto';
+    lastAutoCameraPhase = '';
+    if (label) label.textContent = "AUTO 3D";
+    showToast("AUTO 3D: Free 3D sa tuwid • 3D Lock sa kanto");
+    if (riderLocation) applySmoothCamera(riderLocation.lng, riderLocation.lat, lastHeading, false, 0);
   }
 }
 
@@ -3397,7 +3651,7 @@ async function restoreActiveRide(){
     selectedRide = restoredRide;
     updateRoutingModeUI();
     saveActiveRide(restoredRide); bookingSignature = "";
-    setWaitingListHidden(true); showSelectedBooking(); drawRideOnMap(restoredRide); openBookingSheet();
+    setWaitingListHidden(true); showSelectedBooking(); drawRideOnMap(restoredRide, true); openBookingSheet();
   }catch(e){}finally{ restoringActiveRide = false; }
 }
 
@@ -3616,7 +3870,7 @@ function initMap(){
     style: MAP_STYLES[currentStyleKey] || MAP_STYLES.liberty,
     center: [121.0415, 14.4086],
     zoom: 18,
-    pitch: 30,
+    pitch: 35,
     bearing: 0
   });
 
@@ -3629,13 +3883,14 @@ function initMap(){
     applySavedLayerCustomizations();
     applyMaplibreRoadHaloToMap();
     updateRiderMarker(121.0415, 14.4086, 0);
-    if (selectedRide) drawRideOnMap(selectedRide);
+    if (selectedRide) drawRideOnMap(selectedRide, true);
   });
 }
 
 function clearRideMap(){
   if(pickupMarker) { pickupMarker.remove(); pickupMarker = null; }
   if(destinationMarker) { destinationMarker.remove(); destinationMarker = null; }
+  activeRouteKey = "";
   if(map) {
     try {
       if(map.getLayer('layer-route-passed')) map.removeLayer('layer-route-passed');
@@ -3674,7 +3929,7 @@ function selectRide(id){
   latestDropoffRemainingMeters = null;
   updateRoutingModeUI();
   if(isActiveRideStatus(ride.status)) saveActiveRide(ride);
-  setWaitingListHidden(true); showSelectedBooking(); drawRideOnMap(ride); openBookingSheet();
+  setWaitingListHidden(true); showSelectedBooking(); drawRideOnMap(ride, true); openBookingSheet();
 }
 
 function showSelectedBooking(){
@@ -3781,7 +4036,15 @@ async function loadBookings(){
       bookingSignature = signature; renderBookings();
       if(selectedRide){
         const updated = rides.find(r => String(r.id) === String(selectedRide.id));
-        if(updated){ selectedRide = updated; if(isActiveRideStatus(updated.status)) saveActiveRide(updated); showSelectedBooking(); drawRideOnMap(updated); }
+        if(updated){
+          const statusChanged = updated.status !== selectedRide.status;
+          selectedRide = updated;
+          if(isActiveRideStatus(updated.status)) saveActiveRide(updated);
+          showSelectedBooking();
+          if (statusChanged || fullRouteCoordinates.length < 2) {
+            drawRideOnMap(updated, true);
+          }
+        }
       }
     }else if(!waitingListHidden){ renderBookings(); }
   }catch(e){}finally{ loadingBookings = false; }
@@ -3807,7 +4070,7 @@ async function acceptRide(rideId){
     if(idx >= 0) rides[idx] = data; else rides.push(data);
     bookingSignature = ""; showSelectedBooking();
 
-    setTimeout(() => { drawRideOnMap(data); }, 150);
+    setTimeout(() => { drawRideOnMap(data, true); }, 150);
     showToast("Booking Routeline Locked!");
     return true;
   }catch(e){ acceptingRideId = null; return false; }
@@ -3832,7 +4095,7 @@ async function markPickedUp(){
   const { data, error } = await supabaseClient.from("rides").update({ status: "picked_up" }).eq("id", selectedRide.id).select().single();
   if(error){ showToast("Failed to update status"); return; }
   selectedRide = data; latestDropoffRemainingMeters = null; saveActiveRide(data); setWaitingListHidden(true);
-  updateLocalRide(data); showSelectedBooking(); drawRideOnMap(data);
+  updateLocalRide(data); showSelectedBooking(); drawRideOnMap(data, true);
 }
 
 async function markArrived(){
@@ -3958,22 +4221,123 @@ async function sendChatMessage(){
   if(data) appendChatMessage(data);
 }
 
-function lockMapTo3DView(lng, lat, heading, upcomingTurnAngle = 0) {
-  if (!map || currentMapMode !== 'headup') return;
-  let targetPitch = 30; 
-  let targetZoom = 17.5;
-  if (Math.abs(upcomingTurnAngle) > 25) {
-    targetPitch = 55;
-    targetZoom = 19;
+/* =========================================================
+   ANTI-JITTER SMART CAMERA CONTROLLER:
+   - Straight run (>110m from corner): FREE 3D smooth tracking (walang biglang ikot/talon)
+   - Approaching corner (<=110m): Auto 3D LOCK behind turn heading
+   - After turn completed: Returns to FREE 3D
+   ========================================================= */
+function applySmoothCamera(lng, lat, heading, isNearCorner = false, upcomingTurnAngle = 0) {
+  if (!map) return;
+
+  if (currentMapMode === 'northup') {
+    // Manual Free 3D: user controls rotation/pitch freely; gently follow center only if far
+    const now = Date.now();
+    if (now - lastCameraUpdateTime < 1400) return;
+    lastCameraUpdateTime = now;
+    map.easeTo({
+      center: [lng, lat],
+      duration: 900,
+      easing: t => t * (2 - t)
+    });
+    return;
   }
-  map.easeTo({ 
-    center: [lng, lat], 
-    zoom: targetZoom, 
-    pitch: targetPitch, 
-    bearing: heading, 
-    padding: { top: 50, bottom: 0, left: 0, right: 0 }, 
-    duration: 400, 
-    easing: t => t 
+
+  const now = Date.now();
+
+  if (currentMapMode === 'auto') {
+    if (isNearCorner) {
+      // Malapit na sa kanto -> Activate 3D Lock automatically
+      if (lastAutoCameraPhase !== 'corner') {
+        lastAutoCameraPhase = 'corner';
+      }
+      if (now - lastCameraUpdateTime < 450) return;
+      lastCameraUpdateTime = now;
+      lastCameraLngLat = [lng, lat];
+      lastCameraBearing = heading;
+
+      map.easeTo({
+        center: [lng, lat],
+        zoom: 18.6,
+        pitch: 52,
+        bearing: heading,
+        padding: { top: 60, bottom: 0, left: 0, right: 0 },
+        duration: 550,
+        easing: t => t * (2 - t)
+      });
+    } else {
+      // Tuwid ang takbo -> Free 3D mode (gentle follow, walang jittery rotation)
+      if (lastAutoCameraPhase !== 'straight') {
+        lastAutoCameraPhase = 'straight';
+        lastCameraUpdateTime = now;
+        lastCameraLngLat = [lng, lat];
+        lastCameraBearing = heading;
+        map.easeTo({
+          center: [lng, lat],
+          zoom: 17.2,
+          pitch: 36,
+          bearing: heading,
+          padding: { top: 40, bottom: 0, left: 0, right: 0 },
+          duration: 850,
+          easing: t => t * (2 - t)
+        });
+        return;
+      }
+
+      // Throttle straight-run camera updates to eliminate GPS jitter jumps
+      const movedSinceCam = lastCameraLngLat
+        ? calculateDistanceMeters(lastCameraLngLat[1], lastCameraLngLat[0], lat, lng)
+        : 999;
+      let bearingDelta = lastCameraBearing !== null ? Math.abs(heading - lastCameraBearing) : 999;
+      if (bearingDelta > 180) bearingDelta = 360 - bearingDelta;
+
+      if (now - lastCameraUpdateTime < 900 && movedSinceCam < 6 && bearingDelta < 12) {
+        return;
+      }
+
+      lastCameraUpdateTime = now;
+      lastCameraLngLat = [lng, lat];
+      lastCameraBearing = heading;
+
+      map.easeTo({
+        center: [lng, lat],
+        zoom: 17.2,
+        pitch: 36,
+        bearing: heading,
+        padding: { top: 40, bottom: 0, left: 0, right: 0 },
+        duration: 800,
+        easing: t => t * (2 - t)
+      });
+    }
+    return;
+  }
+
+  // Explicit 'headup' (3D LOCK) mode with anti-jitter deadband
+  const movedSinceCam = lastCameraLngLat
+    ? calculateDistanceMeters(lastCameraLngLat[1], lastCameraLngLat[0], lat, lng)
+    : 999;
+  let bearingDelta = lastCameraBearing !== null ? Math.abs(heading - lastCameraBearing) : 999;
+  if (bearingDelta > 180) bearingDelta = 360 - bearingDelta;
+
+  if (now - lastCameraUpdateTime < 500 && movedSinceCam < 3 && bearingDelta < 6) {
+    return;
+  }
+
+  lastCameraUpdateTime = now;
+  lastCameraLngLat = [lng, lat];
+  lastCameraBearing = heading;
+
+  const targetPitch = Math.abs(upcomingTurnAngle) > 25 ? 54 : 42;
+  const targetZoom = Math.abs(upcomingTurnAngle) > 25 ? 18.6 : 17.6;
+
+  map.easeTo({
+    center: [lng, lat],
+    zoom: targetZoom,
+    pitch: targetPitch,
+    bearing: heading,
+    padding: { top: 55, bottom: 0, left: 0, right: 0 },
+    duration: 550,
+    easing: t => t * (2 - t)
   });
 }
 
@@ -3984,28 +4348,44 @@ function startRiderGPS(){
   gpsWatchId = navigator.geolocation.watchPosition(async position => {
     const lat = position.coords.latitude;
     const lng = position.coords.longitude;
+    const accuracy = position.coords.accuracy || 10;
     const rawHeading = position.coords.heading;
     const speedKmh = position.coords.speed ? Math.round(position.coords.speed * 3.6) : 0;
 
     document.getElementById("speedometerValue").textContent = speedKmh;
 
+    // Ignore wild GPS drift spikes (>35m accuracy jump) when already locked
+    if (riderLocation && accuracy > 45) {
+      return;
+    }
+
     if(riderLocation) {
       const distMoved = calculateDistanceMeters(riderLocation.lat, riderLocation.lng, lat, lng);
-      if (distMoved > 2) {
-        let targetHeading = (rawHeading !== null && !isNaN(rawHeading) && speedKmh > 5) 
+      // Deadband filter: ignore micro GPS jitter < 2.5 meters while stationary
+      if (distMoved > 2.5) {
+        let targetHeading = (rawHeading !== null && !isNaN(rawHeading) && speedKmh > 6) 
           ? rawHeading 
           : calculateBearing(riderLocation.lat, riderLocation.lng, lat, lng);
-        smoothHeading = smoothAngle(smoothHeading, targetHeading, 0.25);
+        smoothHeading = smoothAngle(smoothHeading, targetHeading, 0.22);
         lastHeading = smoothHeading;
       }
-    } else if(rawHeading && !isNaN(rawHeading)) { 
+    } else if(rawHeading !== null && !isNaN(rawHeading)) { 
       smoothHeading = rawHeading; 
       lastHeading = rawHeading; 
     }
 
     riderLocation = { lat, lng };
-    updateRiderMarker(lng, lat, lastHeading);
-    updateNavigationProgress(lat, lng, speedKmh);
+
+    // Kapag may active route, ang updateNavigationProgress na ang maglalagay ng rider arrow sa mismong CENTRO ng routeline!
+    if (fullRouteCoordinates && fullRouteCoordinates.length >= 2 && selectedRide && isActiveRideStatus(selectedRide.status)) {
+      updateNavigationProgress(lat, lng, speedKmh);
+    } else {
+      updateRiderMarker(lng, lat, lastHeading);
+      if (currentMapMode !== 'northup') {
+        applySmoothCamera(lng, lat, lastHeading, false, 0);
+      }
+    }
+
     syncSelectedCardDistances();
     sortBookingsByPickupDistance();
     if(!waitingListHidden) renderBookings();
@@ -4021,21 +4401,32 @@ function startRiderGPS(){
   }, err => {}, { enableHighAccuracy: true, maximumAge: 1000, timeout: 8000 });
 }
 
-function smoothAngle(currentAngle, targetAngle, alpha = 0.3) {
+function smoothAngle(currentAngle, targetAngle, alpha = 0.25) {
   let diff = targetAngle - currentAngle;
   while (diff < -180) diff += 360;
   while (diff > 180) diff -= 360;
-  return currentAngle + alpha * diff;
+  return (currentAngle + alpha * diff + 360) % 360;
 }
 
+/* =========================================================
+   CENTERED ARROW MARKER ON ROUTELINE (NEVER OFF-SIDE)
+   ========================================================= */
 function updateRiderMarker(lng, lat, heading = 0){
   if(!map) return;
   if(!riderMarker){
-    const wrapper = document.createElement('div'); wrapper.className = 'rider-marker-wrapper';
-    const arrow = document.createElement('div'); arrow.className = 'rider-arrow-container';
-    arrow.innerHTML = svgIcon("ic-nav", 18);
+    const wrapper = document.createElement('div');
+    wrapper.className = 'rider-marker-wrapper';
+    const arrow = document.createElement('div');
+    arrow.className = 'rider-arrow-container';
+    // ic-arrow-up points straight 0deg (North) so rotate(heading) aligns 100% with the road line
+    arrow.innerHTML = svgIcon("ic-arrow-up", 20);
     wrapper.appendChild(arrow);
-    riderMarker = new maplibregl.Marker({ element: wrapper, rotationAlignment: 'map' }).setLngLat([lng, lat]).addTo(map);
+    riderMarker = new maplibregl.Marker({
+      element: wrapper,
+      anchor: 'center',
+      rotationAlignment: 'map',
+      pitchAlignment: 'map'
+    }).setLngLat([lng, lat]).addTo(map);
   } else {
     riderMarker.setLngLat([lng, lat]);
   }
@@ -4047,12 +4438,30 @@ function updateRiderMarker(lng, lat, heading = 0){
   }
 }
 
+function createUprightPinElement(colorHex) {
+  const el = document.createElement('div');
+  el.className = 'upright-pin-marker';
+  el.innerHTML = `
+    <svg width="34" height="42" viewBox="0 0 24 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 1C6.48 1 2 5.48 2 11C2 18.5 12 29 12 29C12 29 22 18.5 22 11C22 5.48 17.52 1 12 1Z" fill="${colorHex}" stroke="#FFFFFF" stroke-width="2"/>
+      <circle cx="12" cy="11" r="4" fill="#FFFFFF"/>
+    </svg>
+  `;
+  return el;
+}
+
 function stopAutoNavigation(){
   fullRouteCoordinates = [];
+  currentRouteRoundaboutPoints = [];
+  activeRouteKey = "";
   lastMatchedSegmentIndex = 0;
+  offRouteConfirmCount = 0;
   currentRouteTollMeters = 0;
   isRerouting = false;
   isDrawingRoute = false;
+  lastAutoCameraPhase = '';
+  hideTuklasSideTurnSignal();
+
   const voiceNav = document.getElementById("voiceNav");
   if (voiceNav) voiceNav.classList.remove("active");
 
@@ -4101,17 +4510,23 @@ function projectPointToSegment(pLat, pLng, aLat, aLng, bLat, bLng) {
   return { lat: projLat, lng: projLng, t, distMeters };
 }
 
-async function triggerShortcutRecalculation(currentLat, currentLng) {
+/* =========================================================
+   STRICT NO-PREMATURE-REROUTE:
+   Hindi magbibigay ng bagong ruta habang hindi pa lumiliko
+   o lumalayo nang >55m sa loob ng 3 sunod-sunod na GPS ticks.
+   ========================================================= */
+async function triggerConfirmedReroute(currentLat, currentLng) {
   if (!selectedRide || isRerouting || isDrawingRoute) return;
   const now = Date.now();
-  if (now - lastRerouteTime < 5000) return;
+  if (now - lastRerouteTime < 10000) return;
 
   const target = getNavigationTarget(selectedRide);
   if (!target) return;
 
   isRerouting = true;
   lastRerouteTime = now;
-  showToast("Lumiko sa shortcut (30m+) — Ina-update ang routeline...");
+  offRouteConfirmCount = 0;
+  showToast("Lumihis sa ruta — Nagko-compute ng bagong daan...");
 
   try {
     const newCoords = await fetchVehicleRouteCoords(currentLng, currentLat, target.lng, target.lat, selectedRide);
@@ -4127,11 +4542,15 @@ async function triggerShortcutRecalculation(currentLat, currentLng) {
 }
 
 function updateNavigationProgress(currentLat, currentLng, speedKmh = 0) {
-  if (!fullRouteCoordinates || fullRouteCoordinates.length < 2 || !map) return;
+  if (!fullRouteCoordinates || fullRouteCoordinates.length < 2 || !map) {
+    hideTuklasSideTurnSignal();
+    return;
+  }
 
   const maxSegmentIdx = fullRouteCoordinates.length - 2;
+  // STRICT DIRECTION LOCK: Only scan forward along the locked route (never jump backward or across parallel East/West streets)
   const searchStart = Math.max(0, lastMatchedSegmentIndex);
-  const searchEnd = Math.min(maxSegmentIdx, lastMatchedSegmentIndex + 12);
+  const searchEnd = Math.min(maxSegmentIdx, lastMatchedSegmentIndex + 8);
 
   let bestSegIndex = lastMatchedSegmentIndex;
   let bestProjection = null;
@@ -4141,39 +4560,51 @@ function updateNavigationProgress(currentLat, currentLng, speedKmh = 0) {
     const b = fullRouteCoordinates[i + 1];
     const proj = projectPointToSegment(currentLat, currentLng, a[1], a[0], b[1], b[0]);
 
-    if (!bestProjection || proj.distMeters < bestProjection.distMeters) {
-      bestProjection = proj;
+    // Check directional alignment: avoid snapping to an opposite-direction segment (West vs East)
+    const segBearing = calculateBearing(a[1], a[0], b[1], b[0]);
+    let headingDiff = Math.abs(segBearing - lastHeading);
+    if (headingDiff > 180) headingDiff = 360 - headingDiff;
+
+    // Penalize segments facing opposite direction (>125 deg) when moving
+    const directionPenalty = (speedKmh > 6 && headingDiff > 125) ? 35 : 0;
+    const effectiveScore = proj.distMeters + directionPenalty;
+
+    if (!bestProjection || effectiveScore < bestProjection.effectiveScore) {
+      bestProjection = { ...proj, effectiveScore };
       bestSegIndex = i;
     }
   }
 
-  if (bestProjection && bestProjection.distMeters >= SHORTCUT_REROUTE_THRESHOLD_METERS) {
-    let globalBestSeg = bestSegIndex;
-    let globalBestProj = bestProjection;
-    for (let i = lastMatchedSegmentIndex; i <= maxSegmentIdx; i++) {
-      const a = fullRouteCoordinates[i];
-      const b = fullRouteCoordinates[i + 1];
-      const proj = projectPointToSegment(currentLat, currentLng, a[1], a[0], b[1], b[0]);
-      if (proj.distMeters < globalBestProj.distMeters) {
-        globalBestProj = proj;
-        globalBestSeg = i;
-      }
-    }
+  // Check if rider truly went off-route (> 55 meters away from locked route)
+  if (bestProjection && bestProjection.distMeters > STRICT_OFFROUTE_METERS) {
+    offRouteConfirmCount++;
+    // Keep rider arrow snapped cleanly on the current locked route segment until 3 consecutive off-route readings confirm a real turn/detour
+    const lockedA = fullRouteCoordinates[lastMatchedSegmentIndex];
+    const lockedB = fullRouteCoordinates[lastMatchedSegmentIndex + 1];
+    bestProjection = projectPointToSegment(currentLat, currentLng, lockedA[1], lockedA[0], lockedB[1], lockedB[0]);
+    bestSegIndex = lastMatchedSegmentIndex;
 
-    if (globalBestProj.distMeters >= SHORTCUT_REROUTE_THRESHOLD_METERS) {
-      triggerShortcutRecalculation(currentLat, currentLng);
+    if (offRouteConfirmCount >= 3) {
+      triggerConfirmedReroute(currentLat, currentLng);
       return;
-    } else {
-      bestSegIndex = globalBestSeg;
-      bestProjection = globalBestProj;
+    }
+  } else {
+    offRouteConfirmCount = 0;
+    // Monotonic progression: never jump backwards along the line
+    if (bestSegIndex >= lastMatchedSegmentIndex) {
+      lastMatchedSegmentIndex = bestSegIndex;
     }
   }
 
-  if (bestSegIndex > lastMatchedSegmentIndex && bestProjection && bestProjection.distMeters < SHORTCUT_REROUTE_THRESHOLD_METERS) {
-    lastMatchedSegmentIndex = bestSegIndex;
-  }
-
+  // Exact center coordinate on the routeline so the arrow NEVER drifts to the side
   const snappedPoint = [bestProjection.lng, bestProjection.lat];
+  const segA = fullRouteCoordinates[bestSegIndex];
+  const segB = fullRouteCoordinates[bestSegIndex + 1];
+  const segmentHeading = calculateBearing(segA[1], segA[0], segB[1], segB[0]);
+
+  // Snap rider marker directly onto the center of the routeline and align its arrow with the road direction
+  updateRiderMarker(snappedPoint[0], snappedPoint[1], segmentHeading);
+
   const passedCoords = fullRouteCoordinates.slice(0, bestSegIndex + 1);
   passedCoords.push(snappedPoint);
 
@@ -4212,11 +4643,6 @@ function updateNavigationProgress(currentLat, currentLng, speedKmh = 0) {
     }
   }
 
-  const segA = fullRouteCoordinates[bestSegIndex];
-  const segB = fullRouteCoordinates[bestSegIndex + 1];
-  const segmentHeading = calculateBearing(segA[1], segA[0], segB[1], segB[0]);
-  const mapHeading = (speedKmh > 6) ? lastHeading : segmentHeading;
-
   let totalRemainingDist = 0;
   for (let i = 0; i < remainingCoords.length - 1; i++) {
     totalRemainingDist += calculateDistanceMeters(remainingCoords[i][1], remainingCoords[i][0], remainingCoords[i+1][1], remainingCoords[i+1][0]);
@@ -4233,10 +4659,12 @@ function updateNavigationProgress(currentLat, currentLng, speedKmh = 0) {
   document.getElementById("navInstruction").textContent = turnInfo.text;
   document.getElementById("navArrow").innerHTML = svgIcon(turnInfo.arrowId, 26);
 
-  let activeTurnAngle = (turnInfo.turnDist < 25) ? turnInfo.turnAngle : 0;
-  if (map && currentMapMode === 'headup' && riderLocation) {
-    lockMapTo3DView(riderLocation.lng, riderLocation.lat, mapHeading, activeTurnAngle);
-  }
+  // Auto-popup 100m orange blinking side signal (Middle-Right kapag Right, Middle-Left kapag Left/U-Turn/Rotonda)
+  syncTuklasSideTurnSignal(turnInfo.signalType, turnInfo.turnDist);
+
+  // Smart Camera: Free 3D kapag tuwid pa, auto 3D Lock kapag <=110m malapit na sa kanto, balik Free 3D pagkaliko
+  const isApproachingCorner = Boolean(turnInfo.signalType && turnInfo.turnDist <= CORNER_3D_LOCK_METERS);
+  applySmoothCamera(snappedPoint[0], snappedPoint[1], segmentHeading, isApproachingCorner, turnInfo.turnAngle);
 
   document.getElementById("voiceNav").classList.add("active");
 }
@@ -4251,12 +4679,14 @@ function calculateBearing(lat1, lon1, lat2, lon2) {
 }
 
 function getIndependentTurnCountdown(remainingCoords) {
-  if (remainingCoords.length < 3) return { turnDist: 0, arrowId: "ic-flag", text: "Arrived at destination", turnAngle: 0 };
+  if (remainingCoords.length < 3) {
+    return { turnDist: 0, arrowId: "ic-flag", text: "Arrived at destination", turnAngle: 0, signalType: null };
+  }
 
   let currentBearing = calculateBearing(remainingCoords[0][1], remainingCoords[0][0], remainingCoords[1][1], remainingCoords[1][0]);
   let turnDist = 0;
   let turnFound = false;
-  let turnType = { arrowId: "ic-arrow-up", text: "Proceed Straight" };
+  let turnType = { arrowId: "ic-arrow-up", text: "Proceed Straight", signalType: null };
   let detectedTurnAngle = 0;
 
   for (let i = 0; i < remainingCoords.length - 1; i++) {
@@ -4264,18 +4694,35 @@ function getIndependentTurnCountdown(remainingCoords) {
     turnDist += segDist;
 
     if (i < remainingCoords.length - 2) {
-      const nextBearing = calculateBearing(remainingCoords[i+1][1], remainingCoords[i+1][0], remainingCoords[i+2][1], remainingCoords[i+2][0]);
+      const turnPt = remainingCoords[i + 1];
+      const nextBearing = calculateBearing(turnPt[1], turnPt[0], remainingCoords[i+2][1], remainingCoords[i+2][0]);
       let diff = nextBearing - currentBearing;
       while (diff < -180) diff += 360;
       while (diff > 180) diff -= 360;
 
-      if (Math.abs(diff) > 25) {
+      const isNearRoundabout = currentRouteRoundaboutPoints.some(rp =>
+        calculateDistanceMeters(turnPt[1], turnPt[0], rp.lat, rp.lng) <= 45
+      );
+
+      if (isNearRoundabout && turnDist <= SIGNAL_POPUP_TRIGGER_METERS) {
         turnFound = true;
         detectedTurnAngle = diff;
-        if (diff > 25 && diff <= 140) turnType = { arrowId: "ic-arrow-right", text: "Turn Right ahead" };
-        else if (diff > 140) turnType = { arrowId: "ic-uturn", text: "U-Turn ahead" };
-        else if (diff < -25 && diff >= -140) turnType = { arrowId: "ic-arrow-left", text: "Turn Left ahead" };
-        else if (diff < -140) turnType = { arrowId: "ic-uturn", text: "U-Turn ahead" };
+        turnType = { arrowId: "ic-uturn", text: "Rotonda ahead", signalType: "roundabout" };
+        break;
+      }
+
+      if (Math.abs(diff) > 28) {
+        turnFound = true;
+        detectedTurnAngle = diff;
+        if (diff > 28 && diff <= 140) {
+          turnType = { arrowId: "ic-arrow-right", text: "Turn Right ahead", signalType: "right" };
+        } else if (diff > 140) {
+          turnType = { arrowId: "ic-uturn", text: "U-Turn ahead", signalType: "uturn" };
+        } else if (diff < -28 && diff >= -140) {
+          turnType = { arrowId: "ic-arrow-left", text: "Turn Left ahead", signalType: "left" };
+        } else if (diff < -140) {
+          turnType = { arrowId: "ic-uturn", text: "U-Turn ahead", signalType: "uturn" };
+        }
         break;
       }
       currentBearing = nextBearing;
@@ -4283,16 +4730,23 @@ function getIndependentTurnCountdown(remainingCoords) {
   }
 
   if (!turnFound) {
-    turnType = { arrowId: "ic-arrow-up", text: "Proceed to destination" };
+    turnType = { arrowId: "ic-arrow-up", text: "Proceed to destination", signalType: null };
   }
 
-  return { turnDist: turnDist, arrowId: turnType.arrowId, text: turnType.text, turnAngle: detectedTurnAngle };
+  return {
+    turnDist: turnDist,
+    arrowId: turnType.arrowId,
+    text: turnType.text,
+    turnAngle: detectedTurnAngle,
+    signalType: turnType.signalType
+  };
 }
 
 async function fetchVehicleRouteCoords(originLng, originLat, targetLng, targetLat, ride = null) {
   const vType = getEffectiveVehicleType(ride);
   const allowToll = isEffectiveTollEnabled(ride);
   currentRouteTollMeters = 0;
+  currentRouteRoundaboutPoints = [];
 
   try {
     const isMoto = (vType === "motorcycle");
@@ -4328,17 +4782,27 @@ async function fetchVehicleRouteCoords(originLng, originLat, targetLng, targetLa
       const data = await res.json();
       if (data.trip && data.trip.legs && data.trip.legs[0]) {
         const leg = data.trip.legs[0];
-        if (allowToll && !isMoto && Array.isArray(leg.maneuvers)) {
+        const decodedCoords = decodePolyline(leg.shape);
+
+        if (Array.isArray(leg.maneuvers)) {
           let tollKmSum = 0;
           leg.maneuvers.forEach(m => {
-            if (m.toll || (m.street_names && m.street_names.some(s => /expressway|skyway|slex|nlex|cavitex|calax|sctex|tplex|star tollway/i.test(s)))) {
-              tollKmSum += Number(m.length || 0);
+            if (allowToll && !isMoto) {
+              if (m.toll || (m.street_names && m.street_names.some(s => /expressway|skyway|slex|nlex|cavitex|calax|sctex|tplex|star tollway/i.test(s)))) {
+                tollKmSum += Number(m.length || 0);
+              }
+            }
+            if ((m.type === 26 || m.type === 27 || /roundabout|rotunda|rotonda/i.test(m.instruction || "")) && typeof m.begin_shape_index === "number" && decodedCoords[m.begin_shape_index]) {
+              const pt = decodedCoords[m.begin_shape_index];
+              currentRouteRoundaboutPoints.push({ lng: pt[0], lat: pt[1] });
             }
           });
-          currentRouteTollMeters = tollKmSum * 1000;
-          if (selectedRide) showSelectedBooking();
+          if (allowToll && !isMoto) {
+            currentRouteTollMeters = tollKmSum * 1000;
+            if (selectedRide) showSelectedBooking();
+          }
         }
-        return decodePolyline(leg.shape);
+        return decodedCoords;
       }
     }
   } catch (err) {}
@@ -4385,7 +4849,7 @@ function decodePolyline(str, precision) {
   return coordinates;
 }
 
-async function drawRideOnMap(ride){
+async function drawRideOnMap(ride, forceRecompute = false){
   if(!map || !ride || isDrawingRoute) return;
   const target = getNavigationTarget(ride);
   if(!target) { stopAutoNavigation(); return; }
@@ -4393,7 +4857,6 @@ async function drawRideOnMap(ride){
   const navLabel = document.getElementById("navTargetLabel");
   if (navLabel) navLabel.textContent = target.label;
 
-  isDrawingRoute = true;
   document.getElementById("topHeader")?.classList.add("hiddenHeader");
   document.body.classList.add("nav-active");
 
@@ -4401,7 +4864,8 @@ async function drawRideOnMap(ride){
   const fareText = `₱${fareInfo.totalFare.toFixed(2)}`;
   const modeTag = `${fareInfo.vehicleLabel} • ${fareInfo.tollAllowed ? "With Toll" : "No Toll"}`;
 
-  if(ride.status === "accepted" && ride.pickup_lat != null && ride.pickup_lng != null) {
+  // Upright Pickup Pin (hindi nakatagilid kahit naka-3D pitch ang mapa)
+  if((ride.status === "searching" || ride.status === "accepted") && ride.pickup_lat != null && ride.pickup_lng != null) {
     const pLat = Number(ride.pickup_lat);
     const pLng = Number(ride.pickup_lng);
     let pickupPlace = getPickupName(ride);
@@ -4418,12 +4882,16 @@ async function drawRideOnMap(ride){
     `;
 
     if (!pickupMarker) {
-      const popup = new maplibregl.Popup({ offset: 28, closeButton: false }).setHTML(pickupPopupHtml);
-      pickupMarker = new maplibregl.Marker({ color: '#ff6b00' })
+      const popup = new maplibregl.Popup({ offset: 36, closeButton: false }).setHTML(pickupPopupHtml);
+      pickupMarker = new maplibregl.Marker({
+        element: createUprightPinElement('#ff6b00'),
+        anchor: 'bottom',
+        pitchAlignment: 'viewport',
+        rotationAlignment: 'viewport'
+      })
         .setLngLat([pLng, pLat])
         .setPopup(popup)
         .addTo(map);
-      pickupMarker.getElement().style.cursor = "pointer";
     } else {
       pickupMarker.setLngLat([pLng, pLat]);
       if (pickupMarker.getPopup()) pickupMarker.getPopup().setHTML(pickupPopupHtml);
@@ -4433,6 +4901,7 @@ async function drawRideOnMap(ride){
     pickupMarker = null;
   }
 
+  // Upright Drop-off Pin (hindi nakatagilid kahit naka-3D pitch ang mapa)
   if(ride.status === "picked_up" && ride.destination_lat != null && ride.destination_lng != null) {
     const dLat = Number(ride.destination_lat);
     const dLng = Number(ride.destination_lng);
@@ -4448,12 +4917,16 @@ async function drawRideOnMap(ride){
     `;
 
     if (!destinationMarker) {
-      const popup = new maplibregl.Popup({ offset: 28, closeButton: false }).setHTML(destPopupHtml);
-      destinationMarker = new maplibregl.Marker({ color: '#ef4444' })
+      const popup = new maplibregl.Popup({ offset: 36, closeButton: false }).setHTML(destPopupHtml);
+      destinationMarker = new maplibregl.Marker({
+        element: createUprightPinElement('#ef4444'),
+        anchor: 'bottom',
+        pitchAlignment: 'viewport',
+        rotationAlignment: 'viewport'
+      })
         .setLngLat([dLng, dLat])
         .setPopup(popup)
         .addTo(map);
-      destinationMarker.getElement().style.cursor = "pointer";
     } else {
       destinationMarker.setLngLat([dLng, dLat]);
       if (destinationMarker.getPopup()) destinationMarker.getPopup().setHTML(destPopupHtml);
@@ -4463,13 +4936,25 @@ async function drawRideOnMap(ride){
     destinationMarker = null;
   }
 
+  // Route Lock Guard: Huwag muling mag-fetch/magpalit ng ruta kung naka-lock na ang kasalukuyang target!
+  const desiredRouteKey = `${ride.id}|${ride.status}|${target.lat.toFixed(5)},${target.lng.toFixed(5)}|${fareInfo.vType}|${fareInfo.tollAllowed}`;
+  if (!forceRecompute && activeRouteKey === desiredRouteKey && fullRouteCoordinates.length >= 2) {
+    if (riderLocation) {
+      updateNavigationProgress(riderLocation.lat, riderLocation.lng, 0);
+    }
+    return;
+  }
+
+  isDrawingRoute = true;
   const origin = riderLocation ? { lat: riderLocation.lat, lng: riderLocation.lng } : { lat: target.lat - 0.002, lng: target.lng - 0.002 };
 
   try{
     const routeCoords = await fetchVehicleRouteCoords(origin.lng, origin.lat, target.lng, target.lat, ride);
     if(routeCoords && routeCoords.length) {
       fullRouteCoordinates = routeCoords;
+      activeRouteKey = desiredRouteKey;
       lastMatchedSegmentIndex = 0;
+      offRouteConfirmCount = 0;
       updateNavigationProgress(origin.lat, origin.lng, 0);
     }
   }catch(e){} finally {
@@ -4505,14 +4990,21 @@ function subscribeRealtime(){
       }
       const idx = rides.findIndex(x => String(x.id) === String(r.id));
       if(idx >= 0) rides[idx] = r; else rides.push(r);
-      if(selectedRide && String(selectedRide.id) === String(r.id)){ selectedRide = r; showSelectedBooking(); drawRideOnMap(r); }
+      if(selectedRide && String(selectedRide.id) === String(r.id)){
+        const statusChanged = selectedRide.status !== r.status;
+        selectedRide = r;
+        showSelectedBooking();
+        // Only recompute route if ride status changed (e.g., accepted -> picked_up), NEVER on GPS heartbeat updates!
+        if (statusChanged || fullRouteCoordinates.length < 2) {
+          drawRideOnMap(r, true);
+        }
+      }
       renderBookings();
     }).subscribe();
 }
 
 function syncViewportLayout() {
   const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-  const vw = window.visualViewport ? window.visualViewport.width : window.innerWidth;
   const rootStyle = document.documentElement.style;
 
   const collapsedH = Math.max(96, Math.min(118, Math.round(vh * 0.14)));
